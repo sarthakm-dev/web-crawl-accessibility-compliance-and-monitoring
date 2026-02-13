@@ -1,0 +1,37 @@
+{
+  "name": "web-crawl-accessibility-and-compliance-monitoring-system",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "pnpm -r dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  },
+  "keywords": [],
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.2",
+  "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0", 
+    "@typescript-eslint/parser": "^8.49.0",
+    "husky": "^9.1.7",
+    "globals": "^16.5.0",
+    "prettier": "^3.7.4",
+    "eslint": "^9.39.1"
+  },
+  "lint-staged": {
+    "**/*.{js,ts}": [
+      "prettier --write"
+    ],
+    "**/*.json": [
+      "prettier --write"
+    ],
+    "**/*.md": [
+      "prettier --write"
+    ]
+  }
+}
