@@ -1,5 +1,5 @@
 import { AuthClient } from "../clients/auth.client";
-import { LoginDto, RefreshDto, SignupDto } from "packages/shared-types/auth.types";
+import { LoginDto, LogoutDto, RefreshDto, SignupDto } from "packages/shared-types/auth.types";
 
 export const AuthService = {
   async signup(dto: SignupDto) {
@@ -22,8 +22,8 @@ export const AuthService = {
     return response.data;
   },
 
-  async logout(refreshToken: string) {
-    const response = await AuthClient.logout({ refreshToken });
+  async logout(userId: LogoutDto) {
+    const response = await AuthClient.logout(userId);
     return response.data;
   },
 };

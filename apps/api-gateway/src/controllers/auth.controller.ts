@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { AuthService } from "../services/auth.service";
 import {
   LoginDto,
-  RefreshDto,
   SignupDto,
 } from "packages/shared-types/auth.types";
 
@@ -43,13 +42,12 @@ export const AuthController = {
 
   async refresh(req: Request, res: Response) {
     try {
-      const { refreshToken } = req.body as RefreshDto;
+      const { refreshToken } = req.body;
+      
       if(!refreshToken){
         return res.send(400).json({error: "refreshToken is required"});
       }
-      const dto: RefreshDto = { refreshToken };
-
-      const result = await AuthService.refresh(dto);
+      const result = await AuthService.refresh(refreshToken);
       res.json(result);
     } catch (err: any) {
       res.status(err.status || 500).json({
@@ -64,7 +62,7 @@ export const AuthController = {
       if(!authHeader){
         return res.status(401).json({error: "Unauthorized"});
       }
-      console.log(authHeader);
+      
       const result = await AuthService.me(authHeader);
       res.json(result);
     } catch (err: any) {
@@ -76,9 +74,8 @@ export const AuthController = {
 
   async logout(req: Request, res: Response) {
     try {
-      const { refreshToken } = req.body as RefreshDto;
-
-      const result = await AuthService.logout(refreshToken);
+      const { userId } = req.body;
+      const result = await AuthService.logout(userId);
       res.json(result);
     } catch (err: any) {
       res.status(err.status || 500).json({
