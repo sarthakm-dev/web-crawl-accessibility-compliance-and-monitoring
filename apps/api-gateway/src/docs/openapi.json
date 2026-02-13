@@ -44,7 +44,7 @@
         }
       }
     },
-    "/auth/signin": {
+    "/auth/login": {
       "post": {
         "summary": "Login user",
         "requestBody": {
@@ -66,9 +66,71 @@
           }
         }
       }
+    },
+    "/auth/refresh": {
+      "post": {
+        "summary": "Refresh access token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New access token issued"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logout user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logged out successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Get current user",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "User profile returned"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
     }
   },
   "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
     "schemas": {
       "SignUpRequest": {
         "type": "object",
@@ -93,6 +155,24 @@
             "format": "email"
           },
           "password": {
+            "type": "string"
+          }
+        }
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "required": ["refreshToken"],
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "LogoutRequest": {
+        "type": "object",
+        "required": ["userId"],
+        "properties": {
+          "userId": {
             "type": "string"
           }
         }
