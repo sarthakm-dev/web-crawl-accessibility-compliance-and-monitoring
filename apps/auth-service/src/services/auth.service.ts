@@ -14,7 +14,6 @@ export const AuthService = {
     if (existing) throw new Error('User already exists');
 
     const hash = await bcrypt.hash(password, 10);
-    
     const user = await User.create({
       email,
       passwordHash: hash,
@@ -111,15 +110,9 @@ export const AuthService = {
   },
 
   async logout(userId: string) {
-    console.log("UserID",userId);
-    const keys = await redis.keys(`refresh:${userId}`);
-    console.log(await redis.keys(`*`))
-    console.log("Before",await redis.mget(keys))
-    const res = await redis.del(`refresh:${userId}`);
-    console.log(res);
-    const key = await redis.keys('*');
-    console.log("After",await redis.mget(key));
-    return res;
+    
+    await redis.del(`refresh:${userId}`);
+    return true;
   },
   async me(userId: any) {
     const user = await User.findByPk(userId, {
