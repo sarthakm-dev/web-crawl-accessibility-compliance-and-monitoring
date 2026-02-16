@@ -114,6 +114,7 @@ export const AuthService = {
     await redis.del(`refresh:${userId}`);
     return true;
   },
+  
   async me(userId: any) {
     const user = await User.findByPk(userId, {
       attributes: ['id', 'email', 'isActive'],
