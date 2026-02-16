@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { signupSchema, loginSchema } from "../../../../packages/shared-validation/auth.schema";
-import { AuthRequest } from '../middlewares/auth.middleware';
+import { AuthRequest } from '../../../../packages/shared-types/auth.types';
 
 export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
       const parsed = signupSchema.parse(req.body);
       if(!parsed){
-        return res.send(400).json({error: "Email and password is required"});
+        return res.send(400).json({error: "Valid email and password is required"});
       }
       const user = await AuthService.signup(parsed.email, parsed.password);
 
@@ -22,7 +22,7 @@ export const AuthController = {
     try {
       const parsed = loginSchema.parse(req.body);
       if(!parsed){
-        return res.send(400).json({error: "Email and password is required"});
+        return res.send(400).json({error: "Valid email and password is required"});
       }
       const result = await AuthService.login(parsed.email, parsed.password);
 
@@ -31,18 +31,20 @@ export const AuthController = {
       return res.status(400).json({ error: err.message });
     }
   },
+
   async me(req: AuthRequest, res: Response) {
     try {
       const userId = req.userId;
       if (!userId) {
-        res.status(400).json({ error: 'userId is required' });
+        res.status(401).json({ error: 'Cannot find user' });
       }
       const user = await AuthService.me(userId);
       return res.json(user);
     } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+      return res.status(401).json({ error: err.message });
     }
   },
+
   async refresh(req: Request, res: Response) {
     try {
       const { refreshToken } = req.body;
@@ -57,11 +59,12 @@ export const AuthController = {
       return res.status(401).json({ error: err.message });
     }
   },
+  
   async logout(req: AuthRequest, res: Response) {
     try {
       const userId = req.userId;
       if (!userId) {
-        return res.status(400).json({ error: 'userId is required' });
+        return res.status(400).json({ error: 'User not found' });
       }
 
       await AuthService.logout(userId);
