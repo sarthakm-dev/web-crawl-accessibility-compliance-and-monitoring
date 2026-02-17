@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model';
-import { redis } from "../../../../packages/shared-config/redis";
+import { redis } from '../../../../packages/shared-config/redis';
 import { Role } from '../models/role.model';
 import { Permission } from '../models/permission.model';
 
@@ -9,7 +9,7 @@ const ACCESS_EXPIRY = '15m';
 const REFRESH_EXPIRY = '7d';
 
 export const AuthService = {
-  async signup(name:string, email: string, password: string) {
+  async signup(name: string, email: string, password: string) {
     const existing = await User.findOne({ where: { email } });
     if (existing) throw new Error('User already exists');
 
@@ -19,8 +19,8 @@ export const AuthService = {
       email,
       passwordHash: hash,
     });
-    const viewerRole = await Role.findOne({where: {name: 'viewer'}});
-    if(viewerRole){
+    const viewerRole = await Role.findOne({ where: { name: 'viewer' } });
+    if (viewerRole) {
       await user.addRole(viewerRole);
     }
     return user;
@@ -49,7 +49,9 @@ export const AuthService = {
     const roles = user.Roles?.map((role: any) => role.name) ?? [];
 
     const permissions =
-      user.Roles?.flatMap((role: any) => role.Permissions?.map((perm: any) => perm.name)) ?? [];
+      user.Roles?.flatMap((role: any) =>
+        role.Permissions?.map((perm: any) => perm.name)
+      ) ?? [];
 
     const accessToken = jwt.sign(
       {
@@ -58,12 +60,16 @@ export const AuthService = {
         permissions,
       },
       process.env.JWT_SECRET!,
-      { expiresIn: ACCESS_EXPIRY },
+      { expiresIn: ACCESS_EXPIRY }
     );
 
-    const refreshToken = jwt.sign({ userId: user.id }, process.env.JWT_REFRESH_SECRET!, {
-      expiresIn: REFRESH_EXPIRY,
-    });
+    const refreshToken = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_REFRESH_SECRET!,
+      {
+        expiresIn: REFRESH_EXPIRY,
+      }
+    );
 
     await redis.set(`refresh:${user.id}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
 
@@ -72,9 +78,12 @@ export const AuthService = {
 
   async refresh(refreshToken: string) {
     try {
-      const payload = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as any;
+      const payload = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET!
+      ) as any;
       const stored = await redis.get(`refresh:${payload.userId}`);
-      
+
       if (!stored || stored !== refreshToken) {
         throw new Error('Invalid refresh token');
       }
@@ -92,7 +101,9 @@ export const AuthService = {
 
       const roles = user.Roles?.map((r: any) => r.name) ?? [];
       const permissions =
-        user.Roles?.flatMap((r: any) => r.Permissions?.map((p: any) => p.name)) ?? [];
+        user.Roles?.flatMap((r: any) =>
+          r.Permissions?.map((p: any) => p.name)
+        ) ?? [];
 
       const newAccessToken = jwt.sign(
         {
@@ -101,7 +112,7 @@ export const AuthService = {
           permissions,
         },
         process.env.JWT_SECRET!,
-        { expiresIn: ACCESS_EXPIRY },
+        { expiresIn: ACCESS_EXPIRY }
       );
 
       return { accessToken: newAccessToken };
@@ -111,20 +122,19 @@ export const AuthService = {
   },
 
   async logout(userId: string) {
-    
     await redis.del(`refresh:${userId}`);
     return true;
   },
-  
+
   async me(userId: any) {
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'email','name', 'isActive','created_at'],
+      attributes: ['id', 'email', 'name', 'isActive', 'created_at'],
       include: [
         {
           model: Role,
-          attributes: ['id','name'],
-          through: {attributes:[]},
-        }
+          attributes: ['id', 'name'],
+          through: { attributes: [] },
+        },
       ],
     });
     if (!user) {

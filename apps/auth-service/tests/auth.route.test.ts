@@ -194,5 +194,4 @@ describe('Auth Routes', () => {
       error: 'Something went wrong',
     });
   });
-  
 });

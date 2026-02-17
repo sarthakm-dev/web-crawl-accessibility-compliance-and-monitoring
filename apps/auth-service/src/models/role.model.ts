@@ -1,9 +1,5 @@
-import {
-  Model,
-  DataTypes,
-  BelongsToManySetAssociationsMixin,
-} from 'sequelize';
-import { sequelize } from "../../../../packages/shared-config/database";
+import { Model, DataTypes, BelongsToManySetAssociationsMixin } from 'sequelize';
+import { sequelize } from '../../../../packages/shared-config/database';
 import { Permission } from './permission.model';
 
 export class Role extends Model {
@@ -11,18 +7,14 @@ export class Role extends Model {
   public name!: string;
   public description!: string;
   declare Permissions?: Permission[];
-  declare setPermissions: BelongsToManySetAssociationsMixin<
-    any,
-    string
-  >;
-
+  declare setPermissions: BelongsToManySetAssociationsMixin<any, string>;
 }
 
 Role.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: sequelize.literal("uuid_generate_v4()"),
+      defaultValue: sequelize.literal('uuid_generate_v4()'),
       primaryKey: true,
     },
     name: {
@@ -38,5 +30,5 @@ Role.init(
     sequelize,
     tableName: 'roles',
     timestamps: false,
-  },
+  }
 );

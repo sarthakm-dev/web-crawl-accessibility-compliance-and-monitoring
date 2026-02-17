@@ -23,7 +23,9 @@ async function seed() {
     'report:view',
   ];
 
-  await Promise.all(allPermissions.map((name) => Permission.findOrCreate({ where: { name } })));
+  await Promise.all(
+    allPermissions.map(name => Permission.findOrCreate({ where: { name } }))
+  );
 
   const [admin] = await Role.findOrCreate({ where: { name: 'admin' } });
   const [developer] = await Role.findOrCreate({ where: { name: 'developer' } });
@@ -31,7 +33,8 @@ async function seed() {
 
   const permissions = await Permission.findAll();
 
-  const getPerms = async (names: string[]) => Permission.findAll({ where: { name: names } });
+  const getPerms = async (names: string[]) =>
+    Permission.findAll({ where: { name: names } });
 
   await admin.setPermissions(permissions);
 
@@ -45,11 +48,11 @@ async function seed() {
       'issue:resolve',
       'issue:view',
       'report:view',
-    ]),
+    ])
   );
 
   await viewer.setPermissions(
-    await getPerms(['site:view', 'issue:view', 'report:view', 'crawl:view']),
+    await getPerms(['site:view', 'issue:view', 'report:view', 'crawl:view'])
   );
 }
 

@@ -1,7 +1,7 @@
-import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../../../../packages/shared-config/database";
-import { Role } from "./role.model";
-import { BelongsToManyAddAssociationMixin } from "sequelize";
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../../../../packages/shared-config/database';
+import { Role } from './role.model';
+import { BelongsToManyAddAssociationMixin } from 'sequelize';
 
 export class User extends Model {
   declare id: string;
@@ -10,25 +10,25 @@ export class User extends Model {
   declare isActive: boolean;
   declare name: string;
   declare Roles?: Role[];
-  declare addRole: BelongsToManyAddAssociationMixin<Role,string>;
+  declare addRole: BelongsToManyAddAssociationMixin<Role, string>;
 }
 
 User.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: sequelize.literal("uuid_generate_v4()"),
-      primaryKey: true
+      defaultValue: sequelize.literal('uuid_generate_v4()'),
+      primaryKey: true,
     },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
+      unique: true,
     },
     passwordHash: {
       type: DataTypes.STRING,
       allowNull: false,
-      field: "password_hash"
+      field: 'password_hash',
     },
     name: {
       type: DataTypes.STRING,
@@ -36,13 +36,13 @@ User.init(
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
-      field: "is_active"
-    }
+      field: 'is_active',
+    },
   },
   {
     sequelize,
-    tableName: "users",
+    tableName: 'users',
     timestamps: true,
-    underscored: true
+    underscored: true,
   }
 );

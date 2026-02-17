@@ -9,5 +9,4 @@ import { setupAssociations } from './associations';
 export async function initModels() {
   setupAssociations();
   await sequelize.sync();
-  
 }

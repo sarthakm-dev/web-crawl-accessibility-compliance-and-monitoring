@@ -1,5 +1,5 @@
-import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../../../../packages/shared-config/database";
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../../../../packages/shared-config/database';
 
 export class Permission extends Model {
   public id!: string;
@@ -11,7 +11,7 @@ Permission.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: sequelize.literal("uuid_generate_v4()"),
+      defaultValue: sequelize.literal('uuid_generate_v4()'),
       primaryKey: true,
     },
     name: {
@@ -25,7 +25,7 @@ Permission.init(
   },
   {
     sequelize,
-    tableName: "permissions",
+    tableName: 'permissions',
     timestamps: false,
   }
 );

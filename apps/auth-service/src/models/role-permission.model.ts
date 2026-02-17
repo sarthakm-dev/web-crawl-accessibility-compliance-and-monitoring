@@ -1,5 +1,5 @@
-import { DataTypes, Model } from "sequelize";
-import { sequelize } from "../../../../packages/shared-config/database";
+import { DataTypes, Model } from 'sequelize';
+import { sequelize } from '../../../../packages/shared-config/database';
 export class RolePermission extends Model {}
 
 RolePermission.init(
@@ -15,7 +15,7 @@ RolePermission.init(
   },
   {
     sequelize,
-    tableName: "role_permissions",
+    tableName: 'role_permissions',
     timestamps: false,
   }
 );

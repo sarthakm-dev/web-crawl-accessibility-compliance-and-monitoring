@@ -1,16 +1,25 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
-import { signupSchema, loginSchema } from "../../../../packages/shared-validation/auth.schema";
+import {
+  signupSchema,
+  loginSchema,
+} from '../../../../packages/shared-validation/auth.schema';
 import { AuthRequest } from '../../../../packages/shared-types/auth.types';
 
 export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
       const parsed = signupSchema.parse(req.body);
-      
-      const user = await AuthService.signup(parsed.name,parsed.email, parsed.password);
 
-      return res.status(201).json({ id: user.id, name:user.name, email: user.email });
+      const user = await AuthService.signup(
+        parsed.name,
+        parsed.email,
+        parsed.password
+      );
+
+      return res
+        .status(201)
+        .json({ id: user.id, name: user.name, email: user.email });
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
     }
@@ -19,7 +28,7 @@ export const AuthController = {
   async login(req: Request, res: Response) {
     try {
       const parsed = loginSchema.parse(req.body);
-      
+
       const result = await AuthService.login(parsed.email, parsed.password);
 
       return res.json(result);
@@ -47,7 +56,7 @@ export const AuthController = {
       if (!refreshToken) {
         return res.status(400).json({ error: 'refreshToken cannot be empty' });
       }
- 
+
       const result = await AuthService.refresh(refreshToken);
 
       return res.json(result);
@@ -55,7 +64,7 @@ export const AuthController = {
       return res.status(401).json({ error: err.message });
     }
   },
-  
+
   async logout(req: AuthRequest, res: Response) {
     try {
       const userId = req.userId;
@@ -64,8 +73,8 @@ export const AuthController = {
       }
 
       await AuthService.logout(userId);
-      
-      return res.status(200).json({message: "User Logged Out Successfully"});
+
+      return res.status(200).json({ message: 'User Logged Out Successfully' });
     } catch (err: any) {
       return res.status(401).json({ error: err.message });
     }
