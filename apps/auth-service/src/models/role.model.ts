@@ -40,4 +40,3 @@ Role.init(
     timestamps: false,
   },
 );
-

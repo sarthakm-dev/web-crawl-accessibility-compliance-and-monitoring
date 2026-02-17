@@ -1,6 +1,7 @@
 import { Sequelize } from "sequelize";
 
 declare global {
+   // eslint-disable-next-line no-unused-vars
   var _sequelize_: Sequelize | undefined;
 }
 

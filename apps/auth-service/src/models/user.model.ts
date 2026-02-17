@@ -8,7 +8,7 @@ export class User extends Model {
   declare email: string;
   declare passwordHash: string;
   declare isActive: boolean;
-
+  declare name: string;
   declare Roles?: Role[];
   declare addRole: BelongsToManyAddAssociationMixin<Role,string>;
 }
@@ -29,6 +29,9 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
       field: "password_hash"
+    },
+    name: {
+      type: DataTypes.STRING,
     },
     isActive: {
       type: DataTypes.BOOLEAN,

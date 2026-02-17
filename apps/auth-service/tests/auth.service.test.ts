@@ -57,6 +57,7 @@ describe('Auth service', () => {
 
     const mockUser = {
       id: '1',
+      name: 'Sarthak',
       email: 'test@test.com',
       addRole: vi.fn(),
     };
@@ -64,7 +65,7 @@ describe('Auth service', () => {
     (User.create as any).mockResolvedValue(mockUser);
     (Role.findOne as any).mockResolvedValue({ id: 'role1' });
 
-    const result = await AuthService.signup('test@test.com', 'pass');
+    const result = await AuthService.signup('Sarthak','test@test.com', 'pass');
 
     expect(mockUser.addRole).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
@@ -73,7 +74,7 @@ describe('Auth service', () => {
   it('should throw error if user already exists', async () => {
     (User.findOne as any).mockResolvedValue({ id: '1' });
 
-    await expect(AuthService.signup('test@test.com', 'pass')).rejects.toThrow(
+    await expect(AuthService.signup('Sarthak','test@test.com', 'pass')).rejects.toThrow(
       'User already exists',
     );
   });

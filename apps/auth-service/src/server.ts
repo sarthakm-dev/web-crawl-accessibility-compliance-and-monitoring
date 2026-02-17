@@ -3,11 +3,14 @@ import dotenv from 'dotenv';
 import { sequelize } from "../../../packages/shared-config/database";
 import authRoutes from './routes/auth.routes';
 import { initModels } from './models/init-models';
-
+import cors from "cors";
 dotenv.config();
 
 const app = express();
-
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
 app.use(express.json());
 app.use('/auth', authRoutes);
 
