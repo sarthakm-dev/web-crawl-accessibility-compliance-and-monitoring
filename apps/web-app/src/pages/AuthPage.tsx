@@ -16,8 +16,8 @@ export default function AuthPage() {
       setLoading(true);
 
       const url = isLogin
-        ? 'http://localhost:5000/auth/login'
-        : 'http://localhost:5000/auth/signup';
+        ? 'http://localhost:4000/auth/login'
+        : 'http://localhost:4000/auth/signup';
 
       console.log({ email, password });
 
