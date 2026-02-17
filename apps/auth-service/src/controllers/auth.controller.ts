@@ -45,7 +45,7 @@ export const AuthController = {
     try {
       const { refreshToken } = req.body;
       if (!refreshToken) {
-        res.status(400).json({ error: 'refreshToken cannot be empty' });
+        return res.status(400).json({ error: 'refreshToken cannot be empty' });
       }
  
       const result = await AuthService.refresh(refreshToken);

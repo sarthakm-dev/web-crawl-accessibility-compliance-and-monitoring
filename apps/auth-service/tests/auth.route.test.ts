@@ -3,6 +3,7 @@ import express from 'express';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import router from '../src/routes/auth.routes';
 import { AuthService } from '../src/services/auth.service';
+import { AuthController } from '../src/controllers/auth.controller';
 
 vi.mock('../src/services/auth.service');
 vi.mock('../src/middlewares/auth.middleware', () => ({
@@ -16,6 +17,13 @@ const app = express();
 app.use(express.json());
 app.use('/', router);
 
+function mockResponse() {
+  const res: any = {};
+  res.status = vi.fn().mockReturnValue(res);
+  res.json = vi.fn().mockReturnValue(res);
+  return res;
+}
+
 describe('Auth Routes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -28,9 +36,11 @@ describe('Auth Routes', () => {
       email: 'test@test.com',
     });
 
-    const res = await request(app)
-      .post('/signup')
-      .send({ email: 'test@test.com', password: 'password12345' });
+    const res = await request(app).post('/signup').send({
+      name: 'Sarthak Mishra',
+      email: 'test@test.com',
+      password: 'password12345',
+    });
 
     expect(res.status).toBe(201);
     expect(res.body.email).toBe('test@test.com');
@@ -94,6 +104,20 @@ describe('Auth Routes', () => {
 
     expect(res.status).toBe(401);
   });
+  it('should return 401 if userId missing in /me', async () => {
+    const req = {
+      userId: undefined,
+    } as any;
+
+    const res = mockResponse();
+
+    await AuthController.me(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Cannot find user',
+    });
+  });
 
   it('POST /refresh should return new access token', async () => {
     (AuthService.refresh as any).mockResolvedValue({
@@ -120,16 +144,16 @@ describe('Auth Routes', () => {
     expect(res.status).toBe(401);
   });
 
-  it('POST /refresh should return error for invalid refresh token', async () => {
-    (AuthService.refresh as any).mockResolvedValue({
-      accessToken: 'new-token',
-    });
+  it('should return 400 if refreshToken missing', async () => {
+    const req = {
+      body: {},
+    } as any;
 
-    const res = await request(app)
-      .post('/refresh')
-      .send({ refreshToken: undefined });
+    const res = mockResponse();
 
-    expect(res.status).toBe(400);
+    await AuthController.refresh(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
   });
 
   it('POST /logout should call logout', async () => {
@@ -137,6 +161,38 @@ describe('Auth Routes', () => {
 
     expect(res.status).toBe(200);
   });
-  
 
+  it('should return 400 if userId missing in logout', async () => {
+    const req = {
+      userId: undefined,
+    } as any;
+
+    const res = mockResponse();
+
+    await AuthController.logout(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'User not found',
+    });
+  });
+
+  it('should return 401 if logout throws error', async () => {
+    vi.spyOn(AuthService, 'logout').mockRejectedValue(
+      new Error('Something went wrong')
+    );
+    const req = {
+      userId: 'test-user-id',
+    } as any;
+
+    const res = mockResponse();
+
+    await AuthController.logout(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Something went wrong',
+    });
+  });
+  
 });

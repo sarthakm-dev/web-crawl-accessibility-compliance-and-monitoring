@@ -65,7 +65,7 @@ describe('Auth service', () => {
     (User.create as any).mockResolvedValue(mockUser);
     (Role.findOne as any).mockResolvedValue({ id: 'role1' });
 
-    const result = await AuthService.signup('Sarthak','test@test.com', 'pass');
+    const result = await AuthService.signup('Sarthak', 'test@test.com', 'pass');
 
     expect(mockUser.addRole).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
@@ -74,9 +74,9 @@ describe('Auth service', () => {
   it('should throw error if user already exists', async () => {
     (User.findOne as any).mockResolvedValue({ id: '1' });
 
-    await expect(AuthService.signup('Sarthak','test@test.com', 'pass')).rejects.toThrow(
-      'User already exists',
-    );
+    await expect(
+      AuthService.signup('Sarthak', 'test@test.com', 'pass')
+    ).rejects.toThrow('User already exists');
   });
 
   it('should return tokens if credentials valid', async () => {
@@ -98,6 +98,14 @@ describe('Auth service', () => {
     });
   });
 
+  it('should throw error if user not found on login', async () => {
+    (User.findOne as any).mockResolvedValue(null);
+
+    await expect(AuthService.login('test@test.com', 'pass')).rejects.toThrow(
+      'Invalid credentials'
+    );
+  });
+
   it('should throw error if password invalid', async () => {
     (User.findOne as any).mockResolvedValue({
       passwordHash: 'hashed',
@@ -106,7 +114,27 @@ describe('Auth service', () => {
     (bcrypt.compare as any).mockResolvedValue(false);
 
     await expect(AuthService.login('test@test.com', 'wrong')).rejects.toThrow(
-      'Invalid credentials',
+      'Invalid credentials'
+    );
+  });
+
+  it('should throw Unauthorized if refresh token invalid', async () => {
+    (jwt.verify as any).mockReturnValue({ userId: '1' });
+
+    (redis.get as any).mockResolvedValue('different-token');
+
+    await expect(AuthService.refresh('valid-refresh-token')).rejects.toThrow(
+      'Unauthorized'
+    );
+  });
+
+  it('should throw Unauthorized if user not found in refresh', async () => {
+    (jwt.verify as any).mockReturnValue({ userId: '1' });
+    (redis.get as any).mockResolvedValue('valid-refresh-token');
+    (User.findByPk as any).mockResolvedValue(null);
+
+    await expect(AuthService.refresh('valid-refresh-token')).rejects.toThrow(
+      'Unauthorized'
     );
   });
 
@@ -129,5 +157,36 @@ describe('Auth service', () => {
     expect(result).toEqual({
       accessToken: 'new-access-token',
     });
+  });
+
+  it('should delete refresh token on logout', async () => {
+    (redis.del as any).mockResolvedValue(1);
+
+    const result = await AuthService.logout('1');
+
+    expect(redis.del).toHaveBeenCalledWith('refresh:1');
+    expect(result).toBe(true);
+  });
+
+  it('should return user profile', async () => {
+    const mockUser = {
+      id: '1',
+      email: 'test@test.com',
+      name: 'Sarthak',
+      isActive: true,
+      created_at: new Date(),
+      Roles: [{ id: 'r1', name: 'viewer' }],
+    };
+
+    (User.findByPk as any).mockResolvedValue(mockUser);
+
+    const result = await AuthService.me('1');
+
+    expect(result).toEqual(mockUser);
+  });
+  it('should throw error if user not found in me()', async () => {
+    (User.findByPk as any).mockResolvedValue(null);
+
+    await expect(AuthService.me('1')).rejects.toThrow('Cannot find user');
   });
 });

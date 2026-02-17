@@ -47,7 +47,7 @@ export const AuthService = {
     if (!valid) throw new Error('Invalid credentials');
 
     const roles = user.Roles?.map((role: any) => role.name) ?? [];
-``
+
     const permissions =
       user.Roles?.flatMap((role: any) => role.Permissions?.map((perm: any) => perm.name)) ?? [];
 
