@@ -9,12 +9,13 @@ const ACCESS_EXPIRY = '15m';
 const REFRESH_EXPIRY = '7d';
 
 export const AuthService = {
-  async signup(email: string, password: string) {
+  async signup(name:string, email: string, password: string) {
     const existing = await User.findOne({ where: { email } });
     if (existing) throw new Error('User already exists');
 
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({
+      name,
       email,
       passwordHash: hash,
     });
@@ -46,7 +47,7 @@ export const AuthService = {
     if (!valid) throw new Error('Invalid credentials');
 
     const roles = user.Roles?.map((role: any) => role.name) ?? [];
-
+``
     const permissions =
       user.Roles?.flatMap((role: any) => role.Permissions?.map((perm: any) => perm.name)) ?? [];
 
@@ -117,7 +118,14 @@ export const AuthService = {
   
   async me(userId: any) {
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'email', 'isActive'],
+      attributes: ['id', 'email','name', 'isActive','created_at'],
+      include: [
+        {
+          model: Role,
+          attributes: ['id','name'],
+          through: {attributes:[]},
+        }
+      ],
     });
     if (!user) {
       throw new Error('Cannot find user');

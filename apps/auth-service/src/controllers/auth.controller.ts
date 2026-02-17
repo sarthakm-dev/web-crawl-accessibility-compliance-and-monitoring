@@ -7,12 +7,10 @@ export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
       const parsed = signupSchema.parse(req.body);
-      if(!parsed){
-        return res.send(400).json({error: "Valid email and password is required"});
-      }
-      const user = await AuthService.signup(parsed.email, parsed.password);
+      
+      const user = await AuthService.signup(parsed.name,parsed.email, parsed.password);
 
-      return res.status(201).json({ id: user.id, email: user.email });
+      return res.status(201).json({ id: user.id, name:user.name, email: user.email });
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
     }
@@ -21,9 +19,7 @@ export const AuthController = {
   async login(req: Request, res: Response) {
     try {
       const parsed = loginSchema.parse(req.body);
-      if(!parsed){
-        return res.send(400).json({error: "Valid email and password is required"});
-      }
+      
       const result = await AuthService.login(parsed.email, parsed.password);
 
       return res.json(result);
@@ -36,7 +32,7 @@ export const AuthController = {
     try {
       const userId = req.userId;
       if (!userId) {
-        res.status(401).json({ error: 'Cannot find user' });
+        return res.status(401).json({ error: 'Cannot find user' });
       }
       const user = await AuthService.me(userId);
       return res.json(user);
