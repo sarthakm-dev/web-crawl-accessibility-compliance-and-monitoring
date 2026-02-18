@@ -9,4 +9,6 @@ router.post('/login', AuthController.login);
 router.get('/me', authenticate, AuthController.me);
 router.post('/refresh', AuthController.refresh);
 router.post('/logout', authenticate, AuthController.logout);
+router.post('/forgot-password', AuthController.forgotPassword);
+router.post('/reset-password', AuthController.resetPassword);
 export default router;
