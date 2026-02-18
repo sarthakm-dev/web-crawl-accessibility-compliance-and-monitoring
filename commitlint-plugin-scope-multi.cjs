@@ -5,7 +5,7 @@ module.exports = {
         return [true];
       }
 
-      const validScopes = ['cli', 'docs', 'release', 'component','api','core','db','ui'];
+      const validScopes = ['cli', 'docs', 'release', 'component','api','core','db','ui','server'];
       const delimiters = [',', '/'];
       const scopes = parsed.scope
         .split(new RegExp(`[${delimiters.map(d => d === '/' ? '\\/' : d).join('')}]`))
