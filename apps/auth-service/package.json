@@ -9,7 +9,7 @@
     "start": "node dist/server.js",
     "test": "vitest  run",
     "test:watch": "vitest",
-    "seed:rbac": "ts-node-dev src/scripts/seed-rbac.ts",
+    "seed:rbac": "ts-node-dev -r tsconfig-paths/register src/scripts/seed-rbac.ts",
     "test:coverage": "vitest  run --coverage"
   },
   "keywords": [],

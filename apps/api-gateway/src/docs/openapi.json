@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:4000"
+      "url": "http://localhost:4000/api"
     }
   ],
   "paths": {
@@ -211,7 +211,7 @@
       },
       "ResetPasswordRequest": {
         "type": "object",
-        "required": ["email","otp","newPassword"],
+        "required": ["email", "otp", "newPassword"],
         "properties": {
           "email": {
             "type": "string"
