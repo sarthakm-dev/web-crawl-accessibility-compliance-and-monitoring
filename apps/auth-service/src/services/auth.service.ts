@@ -1,10 +1,12 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user.model';
-import { redis } from '../../../../packages/shared-config/redis';
+import { redis } from '@packages/shared-config/redis';
 import { Role } from '../models/role.model';
 import { Permission } from '../models/permission.model';
+import { sendOTP } from '../utils/mailer';
 
+const OTP_EXPIRY = 10 * 60;
 const ACCESS_EXPIRY = '15m';
 const REFRESH_EXPIRY = '7d';
 
@@ -141,5 +143,42 @@ export const AuthService = {
       throw new Error('Cannot find user');
     }
     return user;
+  },
+
+  async forgotPassword(email: string) {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await redis.set(`reset:${email}`, otp, 'EX', OTP_EXPIRY);
+
+    await sendOTP(email, otp);
+
+    return { message: 'OTP sent to email' };
+  },
+
+  async resetPassword(email: string, otp: string, newPassword: string) {
+    const storedOtp = await redis.get(`reset:${email}`);
+
+    if (!storedOtp || storedOtp !== otp) {
+      throw new Error('Invalid or expired OTP');
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    user.passwordHash = hashed;
+    await user.save();
+
+    await redis.del(`reset:${email}`);
+
+    return { message: 'Password reset successful' };
   },
 };

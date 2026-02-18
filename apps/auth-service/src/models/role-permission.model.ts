@@ -1,5 +1,5 @@
 import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../../../../packages/shared-config/database';
+import { sequelize } from '@packages/shared-config/database';
 export class RolePermission extends Model {}
 
 RolePermission.init(

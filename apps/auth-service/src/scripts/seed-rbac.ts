@@ -1,4 +1,4 @@
-import { sequelize } from '../../../../packages/shared-config/database';
+import { sequelize } from '@packages/shared-config/database';
 
 import { Permission, Role } from '../models';
 import { initModels } from '../models/init-models';

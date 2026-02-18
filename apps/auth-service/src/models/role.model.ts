@@ -1,5 +1,5 @@
 import { Model, DataTypes, BelongsToManySetAssociationsMixin } from 'sequelize';
-import { sequelize } from '../../../../packages/shared-config/database';
+import { sequelize } from '@packages/shared-config/database';
 import { Permission } from './permission.model';
 
 export class Role extends Model {
