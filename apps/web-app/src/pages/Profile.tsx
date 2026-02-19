@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react"
-import axios from "axios"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {type UserType} from "../../../../packages/shared-types/user.types"
-
+import api from "@/utils/api"
 
 export default function Profile() {
   const [user, setUser] = useState<UserType | null>(null)
@@ -14,13 +13,8 @@ export default function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("token")
-
-        const res = await axios.get("http://localhost:5000/auth/me", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+      
+        const res = await api.get("/auth/me");
         console.log(res.data);
         setUser(res.data)
       } catch (err) {
@@ -44,22 +38,22 @@ export default function Profile() {
   const role = user.Roles?.[0]?.name ?? "User"
 
   return (
-    <div className="flex-1 min-h-screen bg-linear-to-br from-blue-50 via-blue-100 to-blue-200 p-8">
+    <div className="md:flex-1 flex flex-col items-center md:items-start min-h-screen bg-linear-to-br from-blue-50 via-blue-100 to-blue-200 md:p-8 p-3">
       
-      <div className="mb-8">
+      <div className="mb-8 md:ml-[15%] ml-[8%]">
         <h1 className="text-3xl font-bold text-gray-800">Profile</h1>
         <p className="text-gray-500 text-sm">
           Manage your account information and access level
         </p>
       </div>
 
-      <Card className="rounded-2xl shadow-lg border-0 bg-white/90 backdrop-blur">
+      <Card className="rounded-2xl md:w-160 md:h-100 w-80  px-2 md:ml-[15%] ml-[8%] flex items-center justify-center shadow-lg border-0 bg-white/90 backdrop-blur">
         <CardContent className="p-8">
-          <div className="grid md:grid-cols-2 gap-10 items-center">
+          <div className="flex flex-col justify-center md:flex md:flex-row md:w-160 md:h-100 md:p-4  md:justify-around md:gap-10 items-center">
 
   
-            <div className="flex flex-col items-center md:items-start gap-4">
-              <Avatar className="h-20 w-20 bg-blue-500 text-white text-xl">
+            <div className="flex flex-col items-center p-10 md:items-start gap-4">
+              <Avatar className="md:h-20 md:w-20 bg-blue-500 text-white text-xl">
                 <AvatarFallback>
                   {user.name
                     .split(" ")
@@ -74,12 +68,12 @@ export default function Profile() {
                 </h2>
                 <p className="text-gray-500">{user.email}</p>
               </div>
-
+                    
               
 
               <Button
                 variant="destructive"
-                className="mt-4 w-full md:w-auto"
+                className="mt-4 w-full md:w-auto hover:bg-red-500"
                 onClick={() => {
                   localStorage.removeItem("token")
                   window.location.href = "/"
@@ -90,7 +84,7 @@ export default function Profile() {
             </div>
 
           
-            <div className="space-y-6">
+            <div className="md:space-y-6 space-y-2 p-12">
               <div>
                 <p className="text-sm text-gray-500">Full Name</p>
                 <p className="font-medium text-gray-800">
@@ -122,7 +116,7 @@ export default function Profile() {
               <div>
                 <p className="text-sm text-gray-500">Account Status</p>
                 <Badge className="bg-green-100 text-green-700">
-                  {user.is_active ? "Active" : "Inactive"}
+                  {user.isActive ? "Active" : "Inactive"}
                 </Badge>
               </div>
             </div>
