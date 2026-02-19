@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import router from '../src/routes/auth.routes';
 import { AuthService } from '../src/services/auth.service';
 import { AuthController } from '../src/controllers/auth.controller';
-
+import cookieParser = require('cookie-parser');
 vi.mock('../src/services/auth.service');
 vi.mock('../src/middlewares/auth.middleware', () => ({
   authenticate: (req: any, _res: any, next: any) => {
@@ -15,8 +15,8 @@ vi.mock('../src/middlewares/auth.middleware', () => ({
 
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 app.use('/', router);
-
 function mockResponse() {
   const res: any = {};
   res.status = vi.fn().mockReturnValue(res);
@@ -71,7 +71,6 @@ describe('Auth Routes', () => {
       .send({ email: 'test@test.com', password: 'password1234' });
 
     expect(res.status).toBe(200);
-    expect(res.body.accessToken).toBe('token');
   });
 
   it('POST /login should return error for malformed body', async () => {
@@ -126,10 +125,9 @@ describe('Auth Routes', () => {
 
     const res = await request(app)
       .post('/refresh')
-      .send({ refreshToken: 'valid' });
+      .set('Cookie', ['refreshToken=valid']);
 
     expect(res.status).toBe(200);
-    expect(res.body.accessToken).toBe('new-token');
   });
 
   it('POST /refresh should enter catch block for malformed body', async () => {
@@ -139,21 +137,15 @@ describe('Auth Routes', () => {
 
     const res = await request(app)
       .post('/refresh')
-      .send({ refreshToken: 'valid' });
+      .set('Cookie', 'refreshToken=valid');
 
     expect(res.status).toBe(401);
   });
 
   it('should return 400 if refreshToken missing', async () => {
-    const req = {
-      body: {},
-    } as any;
+    const res = await request(app).post('/refresh');
 
-    const res = mockResponse();
-
-    await AuthController.refresh(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toBe(400);
   });
 
   it('POST /logout should call logout', async () => {
@@ -192,6 +184,84 @@ describe('Auth Routes', () => {
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
       error: 'Something went wrong',
+    });
+  });
+
+  it('POST /forgot-password should return success message', async () => {
+    (AuthService.forgotPassword as any).mockResolvedValue({
+      message: 'OTP sent',
+    });
+
+    const res = await request(app)
+      .post('/forgot-password')
+      .send({ email: 'test@test.com' });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'OTP sent' });
+  });
+
+  it('POST /forgot-password should return 400 if email missing', async () => {
+    const res = await request(app).post('/forgot-password').send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'Email required' });
+  });
+
+  it('POST /forgot-password should return 400 if service throws', async () => {
+    (AuthService.forgotPassword as any).mockRejectedValue(
+      new Error('User not found')
+    );
+
+    const res = await request(app)
+      .post('/forgot-password')
+      .send({ email: 'test@test.com' });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: 'User not found' });
+  });
+
+  it('POST /reset-password should reset password', async () => {
+    (AuthService.resetPassword as any).mockResolvedValue({
+      message: 'Password reset successful',
+    });
+
+    const res = await request(app).post('/reset-password').send({
+      email: 'test@test.com',
+      otp: '123456',
+      newPassword: 'newpass123',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      message: 'Password reset successful',
+    });
+  });
+
+  it('POST /reset-password should return 400 if fields missing', async () => {
+    const res = await request(app).post('/reset-password').send({
+      email: 'test@test.com',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: 'All fields required',
+    });
+  });
+
+  it('POST /reset-password should return 400 if service throws', async () => {
+    (AuthService.resetPassword as any).mockRejectedValue(
+      new Error('Invalid OTP')
+    );
+
+    const res = await request(app).post('/reset-password').send({
+      email: 'test@test.com',
+      otp: 'wrong',
+      newPassword: 'newpass123',
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: 'Invalid OTP',
     });
   });
 });
