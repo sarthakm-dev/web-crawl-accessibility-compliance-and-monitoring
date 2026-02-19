@@ -5,7 +5,7 @@ export default function AppLayout() {
   return (
     <div className="h-screen flex overflow-hidden bg-linear-to-br from-blue-100 to-blue-300">
  
-      <div className="w-64 bg-white shadow-md shrink-0">
+      <div className="md:w-64 w-auto bg-white shadow-md shrink-0">
         <Sidebar />
       </div>
 
