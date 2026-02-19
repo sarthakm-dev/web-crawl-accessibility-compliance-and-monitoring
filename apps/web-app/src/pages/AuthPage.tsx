@@ -1,100 +1,256 @@
-import { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import api from "@/utils/api";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import {type Mode} from '../../../../packages/shared-types/auth.types'
+
 
 export default function AuthPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
-  const [error, setError] = useState('');
+  const [mode, setMode] = useState<Mode>("login");
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmError, setConfirmError] = useState("");
+
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
-  const handleSubmit = async (e: React.SubmitEvent) => {
+
+  useEffect(() => {
+    if (!email) return setEmailError("");
+    setError('');
+    const regex = /\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/;
+    setEmailError(regex.test(email) ? "" : "Invalid email format");
+    setError('');
+  }, [email]);
+
+  useEffect(() => {
+    if (!password) return setPasswordError("");
+    setError('');
+    setPasswordError(
+      password.length < 6 ? "Password must be at least 6 characters" : ""
+    );
+  }, [password]);
+
+
+  useEffect(() => {
+    if (mode !== "signup" && mode !== "reset") return;
+    if (!confirmPassword) return setConfirmError("");
+    setConfirmError(
+      password !== confirmPassword ? "Passwords do not match" : ""
+    );
+  }, [password, confirmPassword, mode]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setMessage("");
+    setLoading(true);
+
     try {
-      setError('');
-      setLoading(true);
+   
+      if (mode === "login") {
+        await api.post("/auth/login", { email, password });
+        navigate("/dashboard");
+      }
 
-      const url = isLogin
-        ? 'http://localhost:4000/auth/login'
-        : 'http://localhost:4000/auth/signup';
+    
+      else if (mode === "signup") {
+        if (password !== confirmPassword) return;
+        await api.post("/auth/signup", { name, email, password });
+        navigate("/dashboard");
+      }
 
-      console.log({ email, password });
+      else if (mode === "forgot") {
+        await api.post("/auth/forgot-password", { email });
+        setMessage("OTP sent to your email");
+        setMode("otp");
+      }
 
-      const res = await axios.post(url, { email, password });
+      else if (mode === "otp") {
+        await api.post("/auth/verify-otp", { email, otp });
+        setMessage("OTP verified");
+        setMode("reset");
+      }
 
-      localStorage.setItem('token', res.data.accessToken);
-      navigate("/dashboard");
+    
+      else if (mode === "reset") {
+        if (password !== confirmPassword) return;
+        await api.post("/auth/reset-password", {
+          email,
+          otp,
+          newPassword: password,
+        });
+        setMessage("Password reset successful");
+        setMode("login");
+      }
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        const message = err.response?.data?.message || 'Something went wrong';
-        setError(message);
+        setError(err.response?.data?.error || "Something went wrong");
       } else {
-        setError('Unexpected error occured');
+        setError("Unexpected error occurred");
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const isDisabled =
+    loading ||
+    !!emailError ||
+    !!passwordError ||
+    !!confirmError ||
+    !email ||
+    (mode === "login" && !password) ||
+    (mode === "signup" && (!name || !password || !confirmPassword)) ||
+    (mode === "otp" && !otp) ||
+    (mode === "reset" && (!password || !confirmPassword));
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-100 to-blue-400">
-      <div className="bg-white w-105 rounded-2xl shadow-2xl p-10 relative overflow-hidden">
+      <div className="bg-white w-96 rounded-2xl shadow-2xl p-8">
 
-        <form onSubmit={handleSubmit}>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            {isLogin ? 'Sign In' : 'Sign Up'}
-          </h2>
+        <h2 className="text-2xl font-bold text-center mb-6">
+          {mode === "login" && "Sign In"}
+          {mode === "signup" && "Sign Up"}
+          {mode === "forgot" && "Forgot Password"}
+          {mode === "otp" && "Enter OTP"}
+          {mode === "reset" && "Reset Password"}
+        </h2>
 
-          <p className="text-gray-500 mb-6">
-            {isLogin
-              ? 'Welcome back! Please enter your details'
-              : 'Create your account to get started'}
-          </p>
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-
-          <div className="mb-4">
-            <label className="text-sm text-gray-600">Email</label>
+          {mode === "signup" && (
             <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full mt-1 p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              type="text"
+              placeholder="Full Name"
+              className="w-full p-3 border rounded-xl"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
-          </div>
+          )}
 
-          <div className="mb-4">
-            <label className="text-sm text-gray-600">Password</label>
+          {(mode !== "otp") && (
+            <>
+              <input
+                type="email"
+                placeholder="Email"
+                className="w-full p-3 border rounded-xl"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+            </>
+          )}
+
+          {mode === "otp" && (
             <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full mt-1 p-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
+              type="text"
+              placeholder="Enter 6 digit OTP"
+              className="w-full p-3 border rounded-xl"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
             />
-          </div>
+          )}
 
-          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+          {(mode === "login" || mode === "signup" || mode === "reset") && (
+            <>
+              <input
+                type="password"
+                placeholder={mode === "reset" ? "New Password" : "Password"}
+                className="w-full p-3 border rounded-xl"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              {passwordError && (
+                <p className="text-red-500 text-sm">{passwordError}</p>
+              )}
+            </>
+          )}
+
+          {(mode === "signup" || mode === "reset") && (
+            <>
+              <input
+                type="password"
+                placeholder="Confirm Password"
+                className="w-full p-3 border rounded-xl"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              {confirmError && (
+                <p className="text-red-500 text-sm">{confirmError}</p>
+              )}
+            </>
+          )}
+
+          {mode === "login" && (
+            <p
+              className="text-sm text-blue-600 cursor-pointer text-right"
+              onClick={() => {
+                setError('');
+                setMode("forgot")
+              }}
+            >
+              Forgot Password?
+            </p>
+          )}
+
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {message && <p className="text-green-600 text-sm">{message}</p>}
 
           <button
-            type='submit'
-            disabled={loading}
-            className="w-full py-3 rounded-xl text-white font-semibold bg-linear-to-r from-blue-500 to-blue-700 hover:opacity-90 transition-all duration-300"
+            type="submit"
+            disabled={isDisabled}
+            className="w-full py-3 rounded-xl text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Sign Up'}
+            {loading && "Please wait..."}
+            {!loading && mode === "login" && "Sign In"}
+            {!loading && mode === "signup" && "Sign Up"}
+            {!loading && mode === "forgot" && "Send OTP"}
+            {!loading && mode === "otp" && "Verify OTP"}
+            {!loading && mode === "reset" && "Reset Password"}
           </button>
+        </form>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            {isLogin ? "Don't have an account?" : 'Already have an account?'}
+        {(mode === "login" || mode === "signup") && (
+          <p className="text-sm text-center mt-6">
+            {mode === "login"
+              ? "Don't have an account?"
+              : "Already have one?"}
             <span
-              className="text-blue-600 font-medium ml-1 cursor-pointer"
-              onClick={() => setIsLogin(!isLogin)}
+              className="text-blue-600 ml-1 cursor-pointer"
+              onClick={() =>
+                {
+                  setError('');
+                  setEmail('');
+                  setPassword('');
+                  setMode(mode === "login" ? "signup" : "login")
+                }
+              }
             >
-              {isLogin ? 'Sign Up' : 'Sign In'}
+              {mode === "login" ? "Sign Up" : "Sign In"}
             </span>
           </p>
-        </form>
+        )}
+
+        {(mode === "forgot" || mode === "otp" || mode === "reset") && (
+          <p className="text-sm text-center mt-6">
+            <span
+              className="text-blue-600 cursor-pointer"
+              onClick={() => setMode("login")}
+            >
+              Back to Login
+            </span>
+          </p>
+        )}
       </div>
     </div>
   );
