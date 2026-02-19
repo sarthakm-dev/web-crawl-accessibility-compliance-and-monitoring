@@ -4,6 +4,7 @@ import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import AppLayout from './components/layout/AppLayout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 function App() {
   return (
     <BrowserRouter>
@@ -12,8 +13,8 @@ function App() {
         <Route path="/" element={<AuthPage />} />
 
         <Route element={<AppLayout />}>
-          <Route path="/dashboard" element={<Dashboard/>}/>
-          <Route path="/profile" element={<Profile/>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard/></ProtectedRoute>}/>
+          <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>
