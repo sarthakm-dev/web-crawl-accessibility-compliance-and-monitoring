@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 
-const AUTH_SERVICE_URL = 'http://localhost:5000/api/auth';
+const AUTH_SERVICE_URL = 'http://auth-service:5000/api/auth';
 
 export const AuthController = {
   async signup(req: Request, res: Response) {
@@ -111,6 +111,19 @@ export const AuthController = {
     try {
       const response = await axios.post(
         `${AUTH_SERVICE_URL}/reset-password`,
+        req.body
+      );
+      return res.status(200).json(response.data);
+    } catch (err: any) {
+      return res.status(err.response?.status || 500).json({
+        error: err.response?.data?.error || 'Password Reset Failed',
+      });
+    }
+  },
+  async verifyOtp(req: Request, res: Response) {
+    try {
+      const response = await axios.post(
+        `${AUTH_SERVICE_URL}/verify-otp`,
         req.body
       );
       return res.status(200).json(response.data);

@@ -123,4 +123,18 @@ export const AuthController = {
       return res.status(400).json({ error: err.message });
     }
   },
+  async verifyOtp(req: Request, res: Response) {
+    try {
+      const { email, otp } = req.body;
+
+      if (!email || !otp) {
+        return res.status(400).json({ error: 'All fields required' });
+      }
+
+      const result = await AuthService.verifyOtp(email, otp);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
+    }
+  },
 };

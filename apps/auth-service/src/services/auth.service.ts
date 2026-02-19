@@ -181,4 +181,16 @@ export const AuthService = {
 
     return { message: 'Password reset successful' };
   },
+  async verifyOtp(email: string, otp: string) {
+    const storedOtp = await redis.get(`reset:${email}`);
+    if (!storedOtp || storedOtp !== otp) {
+      throw new Error('Invalid or expired OTP');
+    }
+
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return { message: 'Otp verification successful' };
+  },
 };
