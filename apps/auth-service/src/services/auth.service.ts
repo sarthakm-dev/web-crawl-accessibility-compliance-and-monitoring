@@ -124,7 +124,10 @@ export const AuthService = {
   },
 
   async logout(userId: string) {
-    await redis.del(`refresh:${userId}`);
+    const response = await redis.del(`refresh:${userId}`);
+    if (response == 0) {
+      throw new Error('Cannot Logout User');
+    }
     return true;
   },
 
