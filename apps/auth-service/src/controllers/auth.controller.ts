@@ -3,6 +3,9 @@ import { AuthService } from '../services/auth.service';
 import {
   signupSchema,
   loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  verifyOTPSchema,
 } from '@packages/shared-validation/auth.schema';
 import { AuthRequest } from '@packages/shared-types/auth.types';
 
@@ -43,7 +46,7 @@ export const AuthController = {
       });
       return res.json({ message: 'Login successful' });
     } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+      return res.status(401).json({ error: err.message });
     }
   },
 
@@ -64,7 +67,7 @@ export const AuthController = {
     try {
       const refreshToken = req.cookies.refreshToken;
       if (!refreshToken) {
-        return res.status(400).json({ error: 'refreshToken cannot be empty' });
+        return res.status(401).json({ error: 'refresh token missing' });
       }
 
       const result = await AuthService.refresh(refreshToken);
@@ -84,7 +87,7 @@ export const AuthController = {
     try {
       const userId = req.userId;
       if (!userId) {
-        return res.status(400).json({ error: 'User not found' });
+        return res.status(401).json({ error: 'User not authenticated' });
       }
 
       await AuthService.logout(userId);
@@ -97,12 +100,9 @@ export const AuthController = {
   },
   async forgotPassword(req: Request, res: Response) {
     try {
-      const { email } = req.body;
-      if (!email) {
-        return res.status(400).json({ error: 'Email required' });
-      }
+      const parsed = forgotPasswordSchema.parse(req.body);
 
-      const result = await AuthService.forgotPassword(email);
+      const result = await AuthService.forgotPassword(parsed.email);
       return res.json(result);
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
@@ -111,13 +111,13 @@ export const AuthController = {
 
   async resetPassword(req: Request, res: Response) {
     try {
-      const { email, otp, newPassword } = req.body;
+      const parsed = resetPasswordSchema.parse(req.body);
 
-      if (!email || !otp || !newPassword) {
-        return res.status(400).json({ error: 'All fields required' });
-      }
-
-      const result = await AuthService.resetPassword(email, otp, newPassword);
+      const result = await AuthService.resetPassword(
+        parsed.email,
+        parsed.otp,
+        parsed.newPassword
+      );
       return res.json(result);
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
@@ -125,13 +125,8 @@ export const AuthController = {
   },
   async verifyOtp(req: Request, res: Response) {
     try {
-      const { email, otp } = req.body;
-
-      if (!email || !otp) {
-        return res.status(400).json({ error: 'All fields required' });
-      }
-
-      const result = await AuthService.verifyOtp(email, otp);
+      const parsed = verifyOTPSchema.parse(req.body);
+      const result = await AuthService.verifyOtp(parsed.email, parsed.otp);
       return res.json(result);
     } catch (err: any) {
       return res.status(400).json({ error: err.message });

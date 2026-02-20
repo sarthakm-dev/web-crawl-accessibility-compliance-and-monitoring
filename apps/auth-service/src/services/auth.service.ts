@@ -164,7 +164,7 @@ export const AuthService = {
     const storedOtp = await redis.get(`reset:${email}`);
 
     if (!storedOtp || storedOtp !== otp) {
-      throw new Error('Invalid or expired OTP');
+      throw new Error('Invalid Credentials');
     }
 
     const user = await User.findOne({ where: { email } });
@@ -184,7 +184,7 @@ export const AuthService = {
   async verifyOtp(email: string, otp: string) {
     const storedOtp = await redis.get(`reset:${email}`);
     if (!storedOtp || storedOtp !== otp) {
-      throw new Error('Invalid or expired OTP');
+      throw new Error('Invalid credentials');
     }
 
     const user = await User.findOne({ where: { email } });

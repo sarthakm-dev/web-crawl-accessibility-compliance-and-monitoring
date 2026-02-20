@@ -291,14 +291,14 @@ describe('Auth service', () => {
 
     await expect(
       AuthService.resetPassword('test@test.com', 'wrong', 'newpass')
-    ).rejects.toThrow('Invalid or expired OTP');
+    ).rejects.toThrow('Invalid credentials');
   });
   it('resetPassword should throw if otp expired', async () => {
     (redis.get as any).mockResolvedValue(null);
 
     await expect(
       AuthService.resetPassword('test@test.com', '123456', 'newpass')
-    ).rejects.toThrow('Invalid or expired OTP');
+    ).rejects.toThrow('Invalid credentials');
   });
   it('resetPassword should throw if user not found', async () => {
     (redis.get as any).mockResolvedValue('123456');
@@ -306,6 +306,43 @@ describe('Auth service', () => {
 
     await expect(
       AuthService.resetPassword('test@test.com', '123456', 'newpass')
+    ).rejects.toThrow('User not found');
+  });
+  it('should verify OTP successfully', async () => {
+    (redis.get as any).mockResolvedValue('123456');
+    (User.findOne as any).mockResolvedValue({ id: 1, email: 'test@test.com' });
+
+    const result = await AuthService.verifyOtp('test@test.com', '123456');
+
+    expect(redis.get).toHaveBeenCalledWith('reset:test@test.com');
+    expect(User.findOne).toHaveBeenCalledWith({
+      where: { email: 'test@test.com' },
+    });
+
+    expect(result).toEqual({
+      message: 'Otp verification successful',
+    });
+  });
+  it('should throw if OTP not found in redis', async () => {
+    (redis.get as any).mockResolvedValue(null);
+
+    await expect(
+      AuthService.verifyOtp('test@test.com', '123456')
+    ).rejects.toThrow('Invalid credentials');
+  });
+  it('should throw if OTP does not match', async () => {
+    (redis.get as any).mockResolvedValue('999999');
+
+    await expect(
+      AuthService.verifyOtp('test@test.com', '123456')
+    ).rejects.toThrow('Invalid credentials');
+  });
+  it('should throw if user not found', async () => {
+    (redis.get as any).mockResolvedValue('123456');
+    (User.findOne as any).mockResolvedValue(null);
+
+    await expect(
+      AuthService.verifyOtp('test@test.com', '123456')
     ).rejects.toThrow('User not found');
   });
 });

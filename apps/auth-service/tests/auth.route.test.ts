@@ -78,7 +78,7 @@ describe('Auth Routes', () => {
       .post('/login')
       .send({ email: 'bad.com', password: 'password1234' });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(401);
   });
 
   it('GET /me should return user when authenticated', async () => {
@@ -145,7 +145,7 @@ describe('Auth Routes', () => {
   it('should return 400 if refreshToken missing', async () => {
     const res = await request(app).post('/refresh');
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(401);
   });
 
   it('POST /logout should call logout', async () => {
@@ -163,9 +163,9 @@ describe('Auth Routes', () => {
 
     await AuthController.logout(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
-      error: 'User not found',
+      error: 'User not authenticated',
     });
   });
 
@@ -204,7 +204,6 @@ describe('Auth Routes', () => {
     const res = await request(app).post('/forgot-password').send({});
 
     expect(res.status).toBe(400);
-    expect(res.body).toEqual({ error: 'Email required' });
   });
 
   it('POST /forgot-password should return 400 if service throws', async () => {
@@ -243,9 +242,6 @@ describe('Auth Routes', () => {
     });
 
     expect(res.status).toBe(400);
-    expect(res.body).toEqual({
-      error: 'All fields required',
-    });
   });
 
   it('POST /reset-password should return 400 if service throws', async () => {
@@ -262,6 +258,71 @@ describe('Auth Routes', () => {
     expect(res.status).toBe(400);
     expect(res.body).toEqual({
       error: 'Invalid OTP',
+    });
+  });
+  it('POST /verify-otp should verify otp successfully', async () => {
+    const mockResult = { message: 'Otp verification successful' };
+
+    vi.spyOn(AuthService, 'verifyOtp').mockResolvedValue(mockResult);
+
+    const req = {
+      body: {
+        email: 'test@test.com',
+        otp: '123456',
+      },
+    } as any;
+
+    const res = {
+      json: vi.fn(),
+      status: vi.fn().mockReturnThis(),
+    } as any;
+
+    await AuthController.verifyOtp(req, res);
+
+    expect(AuthService.verifyOtp).toHaveBeenCalledWith(
+      'test@test.com',
+      '123456'
+    );
+
+    expect(res.json).toHaveBeenCalledWith(mockResult);
+  });
+  it('POST /verify-otp should return 400 if fields missing', async () => {
+    const req = {
+      body: {},
+    } as any;
+
+    const res = {
+      json: vi.fn(),
+      status: vi.fn().mockReturnThis(),
+    } as any;
+
+    await AuthController.verifyOtp(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalled();
+  });
+  it('POST /verify-otp should return 400 if service throws', async () => {
+    vi.spyOn(AuthService, 'verifyOtp').mockRejectedValue(
+      new Error('Invalid credentials')
+    );
+
+    const req = {
+      body: {
+        email: 'test@test.com',
+        otp: '000000',
+      },
+    } as any;
+
+    const res = {
+      json: vi.fn(),
+      status: vi.fn().mockReturnThis(),
+    } as any;
+
+    await AuthController.verifyOtp(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Invalid or expired OTP',
     });
   });
 });
