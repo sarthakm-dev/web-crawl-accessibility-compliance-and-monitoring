@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 
-const AUTH_SERVICE_URL = 'http://auth-service:5000/api/auth';
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
 
 export const AuthController = {
   async signup(req: Request, res: Response) {
