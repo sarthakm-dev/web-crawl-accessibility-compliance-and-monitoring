@@ -80,6 +80,7 @@ export default function AuthPage() {
         await axios.post("http://localhost/api/auth/verify-otp", { email, otp });
         setMessage("OTP verified");
         setMode("reset");
+        setMessage('');
       }
 
     
@@ -92,6 +93,7 @@ export default function AuthPage() {
         });
         setMessage("Password reset successful");
         setMode("login");
+        setMessage('');
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
@@ -158,7 +160,11 @@ export default function AuthPage() {
               placeholder="Enter 6 digit OTP"
               className="w-full p-3 border rounded-xl"
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
+              onChange={(e) => {
+                setOtp(e.target.value);
+                setError('');
+                setMessage('');
+              }}
             />
           )}
 
@@ -233,6 +239,7 @@ export default function AuthPage() {
                   setError('');
                   setEmail('');
                   setPassword('');
+                  setMessage('');
                   setMode(mode === "login" ? "signup" : "login")
                 }
               }
