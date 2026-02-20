@@ -322,7 +322,7 @@ describe('Auth Routes', () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
-      error: 'Invalid or expired OTP',
+      error: 'Invalid credentials',
     });
   });
 });

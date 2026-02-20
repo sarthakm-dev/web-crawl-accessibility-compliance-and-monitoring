@@ -1,9 +1,9 @@
-version: "3.9"
-
 services:
+
   postgres:
     image: postgres:15
     container_name: webcrawl-postgres
+    restart: always
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -12,19 +12,85 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  
+    networks:
+      - webcrawl-net
+
   redis:
     image: redis:7
     container_name: webcrawl-redis
+    restart: always
     ports:
       - "6379:6379"
+    networks:
+      - webcrawl-net
 
   rabbitmq:
     image: rabbitmq:3-management
     container_name: webcrawl-rabbitmq
+    restart: always
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - webcrawl-net
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    container_name: webcrawl-auth
+    env_file:
+      - apps/auth-service/.env
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
+      DB_HOST: postgres
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: your_access_secret
+      JWT_REFRESH_SECRET: your_refresh_secret
+    ports:
+      - "5000:5000"
+    networks:
+      - webcrawl-net
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    container_name: webcrawl-gateway
+    env_file:
+      - apps/api-gateway/.env
+    restart: always
+    depends_on:
+      - auth-service
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:5000/api/auth
+    ports:
+      - "4000:4000"
+    networks:
+      - webcrawl-net
+
+  web-app:
+    build:
+      context: .
+      dockerfile: apps/web-app/Dockerfile
+    container_name: webcrawl-web
+    restart: always
+    depends_on:
+      - api-gateway
+    ports:
+      - "80:80"
+    networks:
+      - webcrawl-net
 
 volumes:
   postgres_data:
+
+networks:
+  webcrawl-net:
+    driver: bridge

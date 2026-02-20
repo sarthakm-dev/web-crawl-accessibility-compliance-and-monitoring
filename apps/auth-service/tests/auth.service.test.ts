@@ -291,14 +291,14 @@ describe('Auth service', () => {
 
     await expect(
       AuthService.resetPassword('test@test.com', 'wrong', 'newpass')
-    ).rejects.toThrow('Invalid credentials');
+    ).rejects.toThrow('Invalid Credentials');
   });
   it('resetPassword should throw if otp expired', async () => {
     (redis.get as any).mockResolvedValue(null);
 
     await expect(
       AuthService.resetPassword('test@test.com', '123456', 'newpass')
-    ).rejects.toThrow('Invalid credentials');
+    ).rejects.toThrow('Invalid Credentials');
   });
   it('resetPassword should throw if user not found', async () => {
     (redis.get as any).mockResolvedValue('123456');

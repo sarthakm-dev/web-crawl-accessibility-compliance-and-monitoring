@@ -4,6 +4,15 @@ import path from 'path';
 export default defineConfig({
   test: {
     environment: 'node',
+    coverage: {
+      reporter: ['text', 'html'],
+      exclude: [
+        'node_modules',
+        'dist/',
+        'utils/mailer.ts',
+        '**/utils/mailer.ts',
+      ],
+    },
   },
   resolve: {
     alias: {

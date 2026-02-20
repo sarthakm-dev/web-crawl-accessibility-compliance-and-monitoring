@@ -18,6 +18,18 @@ app.use(
 app.use(morgan('dev'));
 app.use(cookieParser());
 app.use(express.json());
+app.use((req, res, next) => {
+  if (
+    req.method !== 'GET' &&
+    req.headers['content-type'] &&
+    !req.headers['content-type'].includes('application/json')
+  ) {
+    return res
+      .status(415)
+      .json({ error: 'Content-Type must be application/json' });
+  }
+  next();
+});
 app.use('/api/auth', authRoutes);
 
 const PORT = process.env.PORT || 5000;
