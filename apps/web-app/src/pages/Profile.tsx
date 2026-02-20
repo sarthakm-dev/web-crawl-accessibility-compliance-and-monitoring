@@ -13,7 +13,7 @@ export default function Profile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await api.get('/auth/me');
+        const res = await api.get('/api/auth/me');
         console.log(res.data);
         setUser(res.data);
       } catch (err) {

@@ -6,10 +6,6 @@ import { Role } from '../models/role.model';
 import { Permission } from '../models/permission.model';
 import { sendOTP } from '../utils/mailer';
 
-const OTP_EXPIRY = 10 * 60;
-const ACCESS_EXPIRY = '15m';
-const REFRESH_EXPIRY = '7d';
-
 export const AuthService = {
   async signup(name: string, email: string, password: string) {
     const existing = await User.findOne({ where: { email } });
@@ -62,14 +58,14 @@ export const AuthService = {
         permissions,
       },
       process.env.JWT_SECRET!,
-      { expiresIn: ACCESS_EXPIRY }
+      { expiresIn: (process.env.ACCESS_EXPIRY || '15m') as any }
     );
 
     const refreshToken = jwt.sign(
       { userId: user.id },
       process.env.JWT_REFRESH_SECRET!,
       {
-        expiresIn: REFRESH_EXPIRY,
+        expiresIn: (process.env.REFRESH_EXPIRY || '7d') as any,
       }
     );
 
@@ -114,7 +110,7 @@ export const AuthService = {
           permissions,
         },
         process.env.JWT_SECRET!,
-        { expiresIn: ACCESS_EXPIRY }
+        { expiresIn: (process.env.ACCESS_EXPIRY || '15m') as any }
       );
 
       return { accessToken: newAccessToken };
@@ -156,7 +152,7 @@ export const AuthService = {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    await redis.set(`reset:${email}`, otp, 'EX', OTP_EXPIRY);
+    await redis.set(`reset:${email}`, otp, 'EX', process.env.OTP_EXPIRY || 600);
 
     await sendOTP(email, otp);
 

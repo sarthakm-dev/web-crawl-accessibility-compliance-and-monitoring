@@ -59,25 +59,26 @@ export default function AuthPage() {
     try {
    
       if (mode === "login") {
-        await axios.post("http://localhost/api/auth/login", { email, password });
+        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/login", { email, password });
         navigate("/dashboard");
       }
 
     
       else if (mode === "signup") {
         if (password !== confirmPassword) return;
-        await axios.post("http://localhost/api/auth/signup", { name, email, password });
+        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/signup", { name, email, password });
         navigate("/dashboard");
       }
 
       else if (mode === "forgot") {
-        await axios.post("http://localhost/api/auth/forgot-password", { email });
+        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/forgot-password", { email });
         setMessage("OTP sent to your email");
         setMode("otp");
+        setMessage("");
       }
 
       else if (mode === "otp") {
-        await axios.post("http://localhost/api/auth/verify-otp", { email, otp });
+        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/verify-otp", { email, otp });
         setMessage("OTP verified");
         setMode("reset");
         setMessage('');
@@ -86,7 +87,7 @@ export default function AuthPage() {
     
       else if (mode === "reset") {
         if (password !== confirmPassword) return;
-        await axios.post("http://localhost/api/auth/reset-password", {
+        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/reset-password", {
           email,
           otp,
           newPassword: password,
@@ -203,7 +204,8 @@ export default function AuthPage() {
               className="text-sm text-blue-600 cursor-pointer text-right"
               onClick={() => {
                 setError('');
-                setMode("forgot")
+                setMode("forgot");
+                setMessage('');
               }}
             >
               Forgot Password?
