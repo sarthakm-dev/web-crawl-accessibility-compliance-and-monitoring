@@ -8,10 +8,10 @@ import {
 } from "recharts"
 
 const data = [
-  { severity: "Critical", value: 16 },
-  { severity: "High", value: 20 },
-  { severity: "Medium", value: 30 },
-  { severity: "Low", value: 34 },
+  { severity: "Critical", value: 0 },
+  { severity: "High", value: 0 },
+  { severity: "Medium", value: 0 },
+  { severity: "Low", value: 0 },
 ]
 
 export function IssueBreakdownChart() {

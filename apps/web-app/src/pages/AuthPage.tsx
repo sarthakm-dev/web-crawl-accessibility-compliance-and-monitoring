@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import api from "@/utils/api";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {type Mode} from '../../../../packages/shared-types/auth.types'
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 
 export default function AuthPage() {
@@ -58,25 +59,25 @@ export default function AuthPage() {
     try {
    
       if (mode === "login") {
-        await api.post("/auth/login", { email, password });
+        await axios.post("http://localhost/api/auth/login", { email, password });
         navigate("/dashboard");
       }
 
     
       else if (mode === "signup") {
         if (password !== confirmPassword) return;
-        await api.post("/auth/signup", { name, email, password });
+        await axios.post("http://localhost/api/auth/signup", { name, email, password });
         navigate("/dashboard");
       }
 
       else if (mode === "forgot") {
-        await api.post("/auth/forgot-password", { email });
+        await axios.post("http://localhost/api/auth/forgot-password", { email });
         setMessage("OTP sent to your email");
         setMode("otp");
       }
 
       else if (mode === "otp") {
-        await api.post("/auth/verify-otp", { email, otp });
+        await axios.post("http://localhost/api/auth/verify-otp", { email, otp });
         setMessage("OTP verified");
         setMode("reset");
       }
@@ -84,7 +85,7 @@ export default function AuthPage() {
     
       else if (mode === "reset") {
         if (password !== confirmPassword) return;
-        await api.post("/auth/reset-password", {
+        await axios.post("http://localhost/api/auth/reset-password", {
           email,
           otp,
           newPassword: password,
@@ -129,7 +130,7 @@ export default function AuthPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
 
           {mode === "signup" && (
-            <input
+            <Input
               type="text"
               placeholder="Full Name"
               className="w-full p-3 border rounded-xl"
@@ -140,7 +141,7 @@ export default function AuthPage() {
 
           {(mode !== "otp") && (
             <>
-              <input
+              <Input
                 type="email"
                 placeholder="Email"
                 className="w-full p-3 border rounded-xl"
@@ -152,7 +153,7 @@ export default function AuthPage() {
           )}
 
           {mode === "otp" && (
-            <input
+            <Input
               type="text"
               placeholder="Enter 6 digit OTP"
               className="w-full p-3 border rounded-xl"
@@ -163,7 +164,7 @@ export default function AuthPage() {
 
           {(mode === "login" || mode === "signup" || mode === "reset") && (
             <>
-              <input
+              <Input
                 type="password"
                 placeholder={mode === "reset" ? "New Password" : "Password"}
                 className="w-full p-3 border rounded-xl"
@@ -178,7 +179,7 @@ export default function AuthPage() {
 
           {(mode === "signup" || mode === "reset") && (
             <>
-              <input
+              <Input
                 type="password"
                 placeholder="Confirm Password"
                 className="w-full p-3 border rounded-xl"
@@ -206,7 +207,7 @@ export default function AuthPage() {
           {error && <p className="text-red-500 text-sm">{error}</p>}
           {message && <p className="text-green-600 text-sm">{message}</p>}
 
-          <button
+          <Button
             type="submit"
             disabled={isDisabled}
             className="w-full py-3 rounded-xl text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
@@ -217,7 +218,7 @@ export default function AuthPage() {
             {!loading && mode === "forgot" && "Send OTP"}
             {!loading && mode === "otp" && "Verify OTP"}
             {!loading && mode === "reset" && "Reset Password"}
-          </button>
+          </Button>
         </form>
 
         {(mode === "login" || mode === "signup") && (

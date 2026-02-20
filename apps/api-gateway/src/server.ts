@@ -5,6 +5,7 @@ import authRoutes from './routes/auth.routes';
 import dotenv from 'dotenv';
 import logger from 'morgan';
 import cors from 'cors';
+import helmet from 'helmet';
 dotenv.config();
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(
 );
 app.use(logger('dev'));
 app.use(express.json());
+app.use(helmet());
 app.use('/api/auth', authRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 

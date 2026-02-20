@@ -9,10 +9,10 @@ export default function Dashboard() {
   return (
     <div className="flex-1 min-h-screen bg-linear-to-br from-blue-50 via-blue-100 to-blue-200 p-6 space-y-6">
       <div className="grid md:grid-cols-4 grid-cols-2 gap-6">
-        <StatBox title="Active Sites" value="24" />
-        <StatBox title="Active Crawls" value="3" />
-        <StatBox title="Open Issues" value="732" />
-        <StatBox title="Compliance Score" value="78%" />
+        <StatBox title="Active Sites" value="0" />
+        <StatBox title="Active Crawls" value="0" />
+        <StatBox title="Open Issues" value="0" />
+        <StatBox title="Compliance Score" value="0" />
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
@@ -22,7 +22,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <AccessibilityTrendChart />
-            <p className="text-sm text-green-600 mt-3">+6% from last week</p>
+            <p className="text-sm text-green-600 mt-3">+0% from last week</p>
           </CardContent>
         </Card>
 
@@ -61,10 +61,8 @@ export default function Dashboard() {
           <CardTitle>Latest Crawl Jobs</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
-          <JobRow site="Google.com" status="In Progress" pages="3" />
-          <JobRow site="Amazon.in" status="Failed" pages="4" />
-          <JobRow site="Gmail.com" status="Completed" pages="5" />
-          <JobRow site="Mums.io" status="Completed" pages="6" />
+          <JobRow site="Google.com" status="In Progress" pages="0" />
+          
         </CardContent>
       </Card>
     </div>

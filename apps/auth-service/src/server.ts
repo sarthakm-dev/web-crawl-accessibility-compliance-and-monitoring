@@ -6,6 +6,7 @@ import { initModels } from './models/init-models';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
+import helmet from 'helmet';
 dotenv.config();
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(
   })
 );
 app.use(morgan('dev'));
+app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
 app.use((req, res, next) => {

@@ -1,4 +1,4 @@
-import {Request} from 'express';
+import { type Request } from 'express';
 export interface SignupDto {
   email: string;
   password: string;
@@ -20,3 +20,5 @@ export interface LogoutDto {
 export interface AuthRequest extends Request {
   userId?: string;
 }
+
+export type Mode = 'login' | 'signup' | 'reset' | 'forgot' | 'otp';

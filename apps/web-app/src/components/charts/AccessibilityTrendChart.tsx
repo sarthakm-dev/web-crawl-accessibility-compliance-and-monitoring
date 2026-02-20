@@ -8,11 +8,11 @@ import {
 } from "recharts"
 
 const data = [
-  { date: "Apr 18", score: 72 },
-  { date: "Apr 19", score: 75 },
-  { date: "Apr 20", score: 76 },
-  { date: "Apr 21", score: 77 },
-  { date: "Apr 22", score: 79 },
+  { date: "Feb 15", score: 0 },
+  { date: "Feb 16", score: 0 },
+  { date: "Feb 17", score: 0 },
+  { date: "Feb 18", score: 0 },
+  { date: "Feb 19", score: 0 },
 ]
 
 export function AccessibilityTrendChart() {

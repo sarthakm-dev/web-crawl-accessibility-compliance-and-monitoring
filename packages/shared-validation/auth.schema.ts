@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const signupSchema = z.object({
   name: z.string(),
@@ -11,6 +11,17 @@ export const loginSchema = z.object({
   password: z.string().min(6),
 });
 
-export const refreshSchema = z.object({
-  refreshToken: z.string(),
+export const forgotPasswordSchema = z.object({
+  email: z.email(),
+});
+
+export const resetPasswordSchema = z.object({
+  email: z.email(),
+  otp: z.string(),
+  newPassword: z.string().min(6),
+});
+
+export const verifyOTPSchema = z.object({
+  email: z.email(),
+  otp: z.string(),
 });

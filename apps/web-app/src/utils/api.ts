@@ -14,9 +14,11 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        await axios.get('/auth/refresh', {
-          withCredentials: true,
-        });
+        await axios.post(
+          'http://localhost/api/auth/refresh',
+          {},
+          { withCredentials: true }
+        );
 
         return api(originalRequest);
       } catch {
