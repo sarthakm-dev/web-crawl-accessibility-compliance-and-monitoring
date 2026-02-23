@@ -2,6 +2,7 @@ import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import swaggerDocument from './docs/openapi.json';
 import authRoutes from './routes/auth.routes';
+import siteRoutes from './routes/site.routes';
 import dotenv from 'dotenv';
 import logger from 'morgan';
 import cors from 'cors';
@@ -19,6 +20,7 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(helmet());
 app.use('/api/auth', authRoutes);
+app.use('/api/site', siteRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get('/api/health', (_, res) => {

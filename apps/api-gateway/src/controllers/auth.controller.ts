@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
-const CRAWL_MANAGER_URL = process.env.CRAWL_MANAGER_URL;
 export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
@@ -129,17 +128,7 @@ export const AuthController = {
       return res.status(200).json(response.data);
     } catch (err: any) {
       return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Password Reset Failed',
-      });
-    }
-  },
-  async createSite(req: Request, res: Response) {
-    try {
-      const response = await axios.post(`${CRAWL_MANAGER_URL}/sites`, req.body);
-      return res.status(200).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Password Reset Failed',
+        error: err.response?.data?.error || 'OTP Verification Failed',
       });
     }
   },

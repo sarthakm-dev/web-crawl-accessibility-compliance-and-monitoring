@@ -11,5 +11,4 @@ router.get('/me', AuthController.me);
 router.post('/forgot-password', AuthController.forgotPassword);
 router.post('/reset-password', AuthController.resetPassword);
 router.post('/verify-otp', AuthController.verifyOtp);
-router.post('/sites', AuthController.createSite);
 export default router;
