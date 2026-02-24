@@ -3,11 +3,11 @@ import axios from 'axios';
 
 const CRAWL_MANAGER_URL = process.env.CRAWL_MANAGER_URL;
 
-export const SiteController = {
-  async createSite(req: Request, res: Response) {
+export const CrawlController = {
+  async startCrawl(req: Request, res: Response) {
     try {
       const response = await axios.post(
-        `${CRAWL_MANAGER_URL}/sites`,
+        `${CRAWL_MANAGER_URL}/crawl`,
         req.body,
         {
           headers: {
@@ -24,14 +24,14 @@ export const SiteController = {
       return res.status(response.status).json(response.data);
     } catch (err: any) {
       return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Site Creation Failed',
+        error: err.response?.data?.error || 'Crawl Creation Failed',
       });
     }
   },
 
   async getAll(req: Request, res: Response) {
     try {
-      const response = await axios.get(`${CRAWL_MANAGER_URL}/sites`, {
+      const response = await axios.get(`${CRAWL_MANAGER_URL}/crawl`, {
         headers: {
           Cookie: req.headers.cookie || '',
         },
@@ -42,7 +42,7 @@ export const SiteController = {
       return res.status(response.status).json(response.data);
     } catch (err: any) {
       return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Failed to fetch sites',
+        error: err.response?.data?.error || 'Failed to fetch crawls',
       });
     }
   },
@@ -50,7 +50,7 @@ export const SiteController = {
   async getById(req: Request, res: Response) {
     try {
       const response = await axios.get(
-        `${CRAWL_MANAGER_URL}/sites/${req.params.id}`,
+        `${CRAWL_MANAGER_URL}/crawl/${req.params.id}`,
         {
           headers: {
             Cookie: req.headers.cookie || '',
@@ -62,7 +62,7 @@ export const SiteController = {
       return res.status(response.status).json(response.data);
     } catch (err: any) {
       return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Failed to fetch site',
+        error: err.response?.data?.error || 'Failed to fetch crawl',
       });
     }
   },
