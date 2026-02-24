@@ -2,6 +2,7 @@ import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '@packages/shared-config/database';
 import { Role } from './role.model';
 import { BelongsToManyAddAssociationMixin } from 'sequelize';
+import { Team } from './team.model';
 
 export class User extends Model {
   declare id: string;
@@ -10,7 +11,9 @@ export class User extends Model {
   declare isActive: boolean;
   declare name: string;
   declare Roles?: Role[];
+  declare Teams?: Team[];
   declare addRole: BelongsToManyAddAssociationMixin<Role, string>;
+  declare created_at: Date;
 }
 
 User.init(

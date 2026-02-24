@@ -5,6 +5,7 @@ import { redis } from '@packages/shared-config/redis';
 import { Role } from '../models/role.model';
 import { Permission } from '../models/permission.model';
 import { sendOTP } from '../utils/mailer';
+import { Team } from '../models/team.model';
 
 export const AuthService = {
   async signup(name: string, email: string, password: string) {
@@ -36,11 +37,18 @@ export const AuthService = {
             },
           ],
         },
+        {
+          model: Team,
+          through: { attributes: [] },
+        },
       ],
     });
 
     if (!user) throw new Error('Invalid credentials');
-
+    if (!user.Teams || user.Teams.length === 0) {
+      throw new Error('User is not assigned to any team');
+    }
+    const activeTeamId = user.Teams[0].id;
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) throw new Error('Invalid credentials');
 
@@ -54,6 +62,7 @@ export const AuthService = {
     const accessToken = jwt.sign(
       {
         userId: user.id,
+        teamId: activeTeamId,
         roles,
         permissions,
       },
@@ -69,7 +78,12 @@ export const AuthService = {
       }
     );
 
-    await redis.set(`refresh:${user.id}`, refreshToken, 'EX', 7 * 24 * 60 * 60);
+    await redis.set(
+      `refresh:${user.id}`,
+      refreshToken,
+      'EX',
+      Number(process.env.REDIS_EXPIRY) || 7 * 24 * 60 * 60
+    );
 
     return { accessToken, refreshToken };
   },
@@ -92,11 +106,18 @@ export const AuthService = {
             model: Role,
             include: [{ model: Permission }],
           },
+          {
+            model: Team,
+            through: { attributes: [] },
+          },
         ],
       });
 
       if (!user) throw new Error('User not found');
-
+      if (!user.Teams || user.Teams.length === 0) {
+        throw new Error('User is not assigned to any team');
+      }
+      const activeTeamId = user.Teams[0].id;
       const roles = user.Roles?.map((r: any) => r.name) ?? [];
       const permissions =
         user.Roles?.flatMap((r: any) =>
@@ -106,6 +127,7 @@ export const AuthService = {
       const newAccessToken = jwt.sign(
         {
           userId: user.id,
+          teamId: activeTeamId,
           roles,
           permissions,
         },
@@ -127,21 +149,30 @@ export const AuthService = {
     return true;
   },
 
-  async me(userId: any) {
+  async me(userId: string) {
     const user = await User.findByPk(userId, {
       attributes: ['id', 'email', 'name', 'isActive', 'created_at'],
       include: [
         {
-          model: Role,
+          model: Team,
           attributes: ['id', 'name'],
           through: { attributes: [] },
         },
       ],
     });
+
     if (!user) {
       throw new Error('Cannot find user');
     }
-    return user;
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      isActive: user.isActive,
+      created_at: user.created_at,
+      teams: user.Teams ?? [],
+    };
   },
 
   async forgotPassword(email: string) {
@@ -152,7 +183,12 @@ export const AuthService = {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    await redis.set(`reset:${email}`, otp, 'EX', process.env.OTP_EXPIRY || 600);
+    await redis.set(
+      `reset:${email}`,
+      otp,
+      'EX',
+      Number(process.env.OTP_EXPIRY) || 600
+    );
 
     await sendOTP(email, otp);
 

@@ -53,11 +53,22 @@ export const AuthController = {
   async me(req: AuthRequest, res: Response) {
     try {
       const userId = req.userId;
+      const teamId = req.teamId;
+      const roles = req.roles;
+      const permissions = req.permissions;
+
       if (!userId) {
-        return res.status(401).json({ error: 'Cannot find user' });
+        return res.status(401).json({ error: 'Unauthorized' });
       }
+
       const user = await AuthService.me(userId);
-      return res.json(user);
+
+      return res.status(200).json({
+        ...user,
+        teamId,
+        roles,
+        permissions,
+      });
     } catch (err: any) {
       return res.status(401).json({ error: err.message });
     }
