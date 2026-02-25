@@ -75,6 +75,44 @@ services:
     networks:
       - webcrawl-net
 
+  crawl-manager:
+    build:
+      context: .
+      dockerfile: apps/crawl-manager/Dockerfile
+    container_name: webcrawl-manager
+    env_file:
+      - apps/crawl-manager/.env
+    restart: always
+    depends_on:
+      - auth-service
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:5000/api/auth
+      JWT_SECRET: your_access_secret
+      JWT_REFRESH_SECRET: your_refresh_secret
+    ports:
+      - "3002:3002"
+    networks:
+      - webcrawl-net
+
+  crawl-worker:
+    build:
+      context: .
+      dockerfile: apps/crawl-worker/Dockerfile
+    container_name: webcrawl-worker
+    env_file:
+      - apps/crawl-worker/.env
+    restart: always
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
+      DB_HOST: postgres
+      DB_PORT: 5432
+      RABBITMQ_URL: amqp://rabbitmq:5672
+    networks:
+      - webcrawl-net
+
   web-app:
     build:
       context: .
