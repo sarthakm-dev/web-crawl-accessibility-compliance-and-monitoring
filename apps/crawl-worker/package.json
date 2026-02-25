@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn src/index.ts",
-    "build": "tsc",
+    "dev": "ts-node-dev src/index.ts",
+    "build": "tsup src/index.ts --format cjs --out-dir dist --clean",
     "start": "node dist/index.js",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest  run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest  run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -23,7 +24,11 @@
     "puppeteer": "^24.37.3",
     "sequelize": "^6.37.7",
     "ts-node-dev": "^2.0.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "4.0.18"
   }
 }
