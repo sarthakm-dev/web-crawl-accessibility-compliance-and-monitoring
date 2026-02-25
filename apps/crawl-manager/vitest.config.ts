@@ -9,8 +9,9 @@ export default defineConfig({
       exclude: [
         'node_modules',
         'dist/',
-        'utils/mailer.ts',
-        '**/utils/mailer.ts',
+        'repositories/*',
+        'models/*',
+        'publishers/*',
       ],
     },
   },
