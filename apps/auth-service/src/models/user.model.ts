@@ -13,6 +13,7 @@ export class User extends Model {
   declare Roles?: Role[];
   declare Teams?: Team[];
   declare addRole: BelongsToManyAddAssociationMixin<Role, string>;
+  declare public addTeam: BelongsToManyAddAssociationMixin<Team, string>;
   declare created_at: Date;
 }
 

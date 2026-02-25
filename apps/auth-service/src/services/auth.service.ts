@@ -18,6 +18,11 @@ export const AuthService = {
       email,
       passwordHash: hash,
     });
+    const team = await Team.create({
+      name: `${name}'s Team`,
+    });
+
+    await user.addTeam(team);
     const viewerRole = await Role.findOne({ where: { name: 'viewer' } });
     if (viewerRole) {
       await user.addRole(viewerRole);
