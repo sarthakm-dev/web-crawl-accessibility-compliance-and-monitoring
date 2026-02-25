@@ -19,6 +19,9 @@ export interface LogoutDto {
 
 export interface AuthRequest extends Request {
   userId?: string;
+  teamId?: string;
+  roles?: string[];
+  permissions?: string[];
 }
 
 export type Mode = 'login' | 'signup' | 'reset' | 'forgot' | 'otp';

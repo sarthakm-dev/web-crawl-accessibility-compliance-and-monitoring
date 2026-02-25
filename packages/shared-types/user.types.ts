@@ -2,7 +2,7 @@ export interface UserType {
   id: string;
   name: string;
   email: string;
-  created_at: string;
+  createdAt: string;
   isActive: boolean;
-  Roles?: { name: string }[];
+  roles?: string[];
 }
