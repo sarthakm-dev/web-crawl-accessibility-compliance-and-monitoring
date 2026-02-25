@@ -410,7 +410,7 @@ describe('Auth Routes', () => {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
-      error: 'Password Reset Failed',
+      error: 'OTP Verification Failed',
     });
   });
 });

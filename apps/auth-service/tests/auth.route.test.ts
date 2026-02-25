@@ -114,7 +114,7 @@ describe('Auth Routes', () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
-      error: 'Cannot find user',
+      error: 'Unauthorized',
     });
   });
 

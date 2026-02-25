@@ -1,58 +1,145 @@
-import request from 'supertest';
-import express from 'express';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CrawlController } from '../src/controllers/crawl.controllers';
 import { CrawlService } from '../src/services/crawl.service';
+import {
+  triggerCrawlSchema,
+  getCrawlsQuerySchema,
+} from '@packages/shared-validation/crawl.schema';
 
 vi.mock('../src/services/crawl.service');
-
-const app = express();
-app.use(express.json());
-
-app.use((req: any, _res, next) => {
-  req.user = { userId: 'user-1' };
-  next();
-});
-
-app.post('/crawl', CrawlController.trigger);
+vi.mock('@packages/shared-validation/crawl.schema');
 
 describe('CrawlController', () => {
+  let req: any;
+  let res: any;
+
   beforeEach(() => {
     vi.clearAllMocks();
+
+    req = {
+      body: {},
+      params: {},
+      query: {},
+      userId: 'user-1',
+    };
+
+    res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    };
   });
 
   it('should trigger crawl successfully', async () => {
-    (CrawlService.triggerCrawl as any).mockResolvedValue({
-      id: 'job-123',
-    });
-
-    const res = await request(app).post('/crawl').send({
+    req.body = {
       siteId: 'site-1',
       triggerType: 'manual',
+    };
+
+    (triggerCrawlSchema.parse as any).mockReturnValue(req.body);
+
+    (CrawlService.triggerCrawl as any).mockResolvedValue({
+      id: 'crawl-1',
     });
 
-    expect(res.status).toBe(201);
-    expect(res.body.id).toBe('job-123');
+    await CrawlController.trigger(req, res);
 
+    expect(triggerCrawlSchema.parse).toHaveBeenCalledWith(req.body);
     expect(CrawlService.triggerCrawl).toHaveBeenCalledWith(
       'site-1',
       'user-1',
       'manual'
     );
+
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith({ id: 'crawl-1' });
   });
 
-  it('should return 400 if service throws', async () => {
-    (CrawlService.triggerCrawl as any).mockRejectedValue(
-      new Error('Site not found')
-    );
+  it('should return 401 if user not present in trigger()', async () => {
+    req.userId = undefined;
+    req.body = { siteId: 'site-1', triggerType: 'manual' };
 
-    const res = await request(app).post('/crawl').send({
-      siteId: 'bad',
-      triggerType: 'manual',
+    (triggerCrawlSchema.parse as any).mockReturnValue(req.body);
+
+    await CrawlController.trigger(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Unauthorized' });
+  });
+
+  it('should return 400 if schema validation fails in trigger()', async () => {
+    (triggerCrawlSchema.parse as any).mockImplementation(() => {
+      throw new Error('Invalid input');
     });
 
-    expect(res.status).toBe(400);
-    expect(res.body.message).toBe('Site not found');
+    await CrawlController.trigger(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: 'Invalid input' });
+  });
+
+  it('should return crawl by id', async () => {
+    req.params.id = 'crawl-1';
+
+    (CrawlService.getCrawlById as any).mockResolvedValue({
+      id: 'crawl-1',
+    });
+
+    await CrawlController.getById(req, res);
+
+    expect(CrawlService.getCrawlById).toHaveBeenCalledWith('crawl-1');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ id: 'crawl-1' });
+  });
+
+  it('should return 404 if crawl not found', async () => {
+    req.params.id = 'crawl-1';
+
+    (CrawlService.getCrawlById as any).mockRejectedValue(
+      new Error('Crawl job not found')
+    );
+
+    await CrawlController.getById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Crawl job not found',
+    });
+  });
+
+  it('should return paginated crawls', async () => {
+    req.query = { page: '1', limit: '10' };
+
+    const parsedQuery = { page: 1, limit: 10 };
+
+    (getCrawlsQuerySchema.parse as any).mockReturnValue(parsedQuery);
+
+    (CrawlService.getAllCrawls as any).mockResolvedValue({
+      data: [],
+      pagination: {},
+    });
+
+    await CrawlController.getAll(req, res);
+
+    expect(getCrawlsQuerySchema.parse).toHaveBeenCalledWith(req.query);
+    expect(CrawlService.getAllCrawls).toHaveBeenCalledWith(parsedQuery);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      data: [],
+      pagination: {},
+    });
+  });
+
+  it('should return 400 if query validation fails in getAll()', async () => {
+    (getCrawlsQuerySchema.parse as any).mockImplementation(() => {
+      throw new Error('Invalid query');
+    });
+
+    await CrawlController.getAll(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      message: 'Invalid query',
+    });
   });
 });

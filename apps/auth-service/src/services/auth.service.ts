@@ -45,12 +45,12 @@ export const AuthService = {
     });
 
     if (!user) throw new Error('Invalid credentials');
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) throw new Error('Invalid credentials');
     if (!user.Teams || user.Teams.length === 0) {
       throw new Error('User is not assigned to any team');
     }
     const activeTeamId = user.Teams[0].id;
-    const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) throw new Error('Invalid credentials');
 
     const roles = user.Roles?.map((role: any) => role.name) ?? [];
 

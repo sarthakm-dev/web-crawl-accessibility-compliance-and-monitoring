@@ -84,11 +84,17 @@ describe('Auth service', () => {
       id: '1',
       passwordHash: 'hashed',
       Roles: [],
+      Teams: [
+        {
+          id: 'team-1',
+        },
+      ],
     };
 
     (User.findOne as any).mockResolvedValue(mockUser);
     (bcrypt.compare as any).mockResolvedValue(true);
     (jwt.sign as any).mockReturnValue('token');
+    (redis.set as any).mockResolvedValue(null);
 
     const result = await AuthService.login('test@test.com', 'pass');
 
@@ -99,13 +105,12 @@ describe('Auth service', () => {
   });
   it('login should include roles and permissions in token', async () => {
     const mockUser = {
-      id: 1,
-      email: 'test@test.com',
+      id: '1',
       passwordHash: 'hashed',
-      Roles: [
+      Roles: [],
+      Teams: [
         {
-          name: 'admin',
-          Permissions: [{ name: 'create_user' }, { name: 'delete_user' }],
+          id: 'team-1',
         },
       ],
     };
@@ -128,11 +133,12 @@ describe('Auth service', () => {
     (redis.get as any).mockResolvedValue('valid-refresh');
 
     const mockUser = {
-      id: 1,
-      Roles: [
+      id: '1',
+      passwordHash: 'hashed',
+      Roles: [],
+      Teams: [
         {
-          name: 'editor',
-          Permissions: [{ name: 'update_post' }],
+          id: 'team-1',
         },
       ],
     };
@@ -191,7 +197,17 @@ describe('Auth service', () => {
 
     const mockUser = {
       id: '1',
-      Roles: [],
+      Roles: [
+        {
+          name: 'viewer',
+          Permissions: [],
+        },
+      ],
+      Teams: [
+        {
+          id: 'team-1',
+        },
+      ],
     };
 
     (User.findByPk as any).mockResolvedValue(mockUser);
@@ -221,7 +237,7 @@ describe('Auth service', () => {
       name: 'Sarthak',
       isActive: true,
       created_at: new Date(),
-      Roles: [{ id: 'r1', name: 'viewer' }],
+      teams: [],
     };
 
     (User.findByPk as any).mockResolvedValue(mockUser);
