@@ -15,10 +15,12 @@ export const authenticate = (
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       userId: string;
+      teamId: string;
       roles: string[];
       permissions: string[];
     };
     req.userId = decoded.userId;
+    req.teamId = decoded.teamId;
     req.roles = decoded.roles;
     req.permissions = decoded.permissions;
 

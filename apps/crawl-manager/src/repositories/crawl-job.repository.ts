@@ -1,4 +1,5 @@
-import { CrawlJob } from '../models';
+import { CrawlJob, CrawlQueue } from '../models';
+import { PageVersion } from '../models/page-version.model';
 
 export const CrawlJobRepository = {
   async create(data: {
@@ -16,5 +17,58 @@ export const CrawlJobRepository = {
 
   async findById(id: string) {
     return CrawlJob.findByPk(id);
+  },
+
+  async findAllPaginated({
+    filters,
+    page,
+    limit,
+  }: {
+    filters: any;
+    page: number;
+    limit: number;
+  }) {
+    const offset = (page - 1) * limit;
+
+    const { rows, count } = await CrawlJob.findAndCountAll({
+      where: filters,
+      order: [['created_at', 'DESC']],
+      limit,
+      offset,
+    });
+
+    return {
+      data: rows,
+      pagination: {
+        total: count,
+        page,
+        limit,
+        totalPages: Math.ceil(count / limit),
+      },
+    };
+  },
+  async getStats(jobId: string) {
+    const totalPages = await PageVersion.count({
+      where: { crawl_job_id: jobId },
+    });
+
+    const failed = await CrawlQueue.count({
+      where: { crawl_job_id: jobId, status: 'failed' },
+    });
+
+    const pending = await CrawlQueue.count({
+      where: { crawl_job_id: jobId, status: 'pending' },
+    });
+
+    const completed = await CrawlQueue.count({
+      where: { crawl_job_id: jobId, status: 'completed' },
+    });
+
+    return {
+      totalPages,
+      failed,
+      pending,
+      completed,
+    };
   },
 };

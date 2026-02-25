@@ -1,28 +1,52 @@
 import { Request, Response } from 'express';
 import { CrawlService } from '../services/crawl.service';
+import {
+  triggerCrawlSchema,
+  getCrawlsQuerySchema,
+} from '@packages/shared-validation/crawl.schema';
 
 export const CrawlController = {
   async trigger(req: Request, res: Response) {
     try {
-      const { siteId, triggerType } = req.body;
-      if (!siteId || !triggerType) {
-        return res
-          .status(400)
-          .json({ error: 'siteId and triggerType is required' });
-      }
+      const parsed = triggerCrawlSchema.parse(req.body);
+
       const userId = (req as any).userId;
       if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized, user not found' });
+        return res.status(401).json({ error: 'Unauthorized' });
       }
+
       const result = await CrawlService.triggerCrawl(
-        siteId,
+        parsed.siteId,
         userId,
-        triggerType
+        parsed.triggerType
       );
 
-      res.status(201).json(result);
+      return res.status(201).json(result);
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      return res.status(400).json({ message: error.message });
+    }
+  },
+
+  async getById(req: Request<{ id: string }>, res: Response) {
+    try {
+      const result = await CrawlService.getCrawlById(req.params.id);
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res
+        .status(error.message === 'Crawl job not found' ? 404 : 400)
+        .json({ message: error.message });
+    }
+  },
+
+  async getAll(req: Request, res: Response) {
+    try {
+      const parsed = getCrawlsQuerySchema.parse(req.query);
+
+      const result = await CrawlService.getAllCrawls(parsed);
+
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message });
     }
   },
 };

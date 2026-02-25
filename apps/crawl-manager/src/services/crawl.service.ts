@@ -21,4 +21,38 @@ export const CrawlService = {
     });
     return job;
   },
+  async getCrawlById(id: string) {
+    const crawl = await CrawlJobRepository.findById(id);
+
+    if (!crawl) {
+      throw new Error('Crawl job not found');
+    }
+
+    const stats = await CrawlJobRepository.getStats(id);
+
+    return {
+      ...crawl.toJSON(),
+      stats,
+    };
+  },
+
+  async getAllCrawls(params: {
+    siteId?: string;
+    status?: string;
+    page: number;
+    limit: number;
+  }) {
+    const { siteId, status, page, limit } = params;
+
+    const filters: any = {};
+
+    if (siteId) filters.site_id = siteId;
+    if (status) filters.status = status;
+
+    return CrawlJobRepository.findAllPaginated({
+      filters,
+      page,
+      limit,
+    });
+  },
 };

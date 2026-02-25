@@ -9,4 +9,6 @@ router.post(
   authorize('site:create'),
   SiteController.createSite
 );
+router.get('/', authenticate, SiteController.getAll);
+router.get('/:id', authenticate, SiteController.getById);
 export default router;

@@ -11,5 +11,6 @@ router.post(
   authorize('crawl:trigger'),
   CrawlController.trigger
 );
-
+router.get('/', authenticate, CrawlController.getAll);
+router.get('/:id', authenticate, CrawlController.getById);
 export default router;
