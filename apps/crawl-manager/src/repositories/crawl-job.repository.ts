@@ -1,4 +1,5 @@
-import { CrawlJob, CrawlQueue } from '../models';
+import { CrawlJob } from '../models/crawl-job.model';
+import { CrawlQueue } from '../models/crawl-queue.model';
 import { PageVersion } from '../models/page-version.model';
 
 export const CrawlJobRepository = {

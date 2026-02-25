@@ -1,4 +1,4 @@
-import { Site } from '../models';
+import { Site } from '../models/site.model';
 
 export const SiteRepository = {
   async findActiveSite(siteId: string) {

@@ -1,4 +1,4 @@
-import { initModels } from './models';
+import { initModels } from './models/init-models';
 import { initPublisher } from './publishers/crawl.publishers';
 import crawlRoutes from './routes/crawl.routes';
 import siteRoutes from './routes/site.routes';
