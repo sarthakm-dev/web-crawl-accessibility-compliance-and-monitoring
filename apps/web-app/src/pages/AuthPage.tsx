@@ -1,12 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {type Mode} from '../../../../packages/shared-types/auth.types'
+import { type Mode } from "../../../../packages/shared-types/auth.types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
+import { toast } from "sonner";
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL + "/api",
+  withCredentials: true,
+});
 
 export default function AuthPage() {
+  const navigate = useNavigate();
+
   const [mode, setMode] = useState<Mode>("login");
 
   const [name, setName] = useState("");
@@ -19,28 +25,21 @@ export default function AuthPage() {
   const [passwordError, setPasswordError] = useState("");
   const [confirmError, setConfirmError] = useState("");
 
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (!email) return setEmailError("");
-    setError('');
     const regex = /\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/;
     setEmailError(regex.test(email) ? "" : "Invalid email format");
-    setError('');
   }, [email]);
 
   useEffect(() => {
     if (!password) return setPasswordError("");
-    setError('');
     setPasswordError(
       password.length < 6 ? "Password must be at least 6 characters" : ""
     );
   }, [password]);
-
 
   useEffect(() => {
     if (mode !== "signup" && mode !== "reset") return;
@@ -50,57 +49,78 @@ export default function AuthPage() {
     );
   }, [password, confirmPassword, mode]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+
+
+  const resetForm = () => {
+    setName("");
+    setEmail("");
+    setOtp("");
+    setPassword("");
+    setConfirmPassword("");
+    setEmailError("");
+    setPasswordError("");
+    setConfirmError("");
+  };
+
+  const changeMode = (newMode: Mode) => {
+    resetForm();
+    setMode(newMode);
+  };
+
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
-    setError("");
-    setMessage("");
     setLoading(true);
 
     try {
-   
       if (mode === "login") {
-        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/login", { email, password });
+        await api.post("/auth/login", { email, password });
+
+        toast.success("Login Successful");
+
         navigate("/dashboard");
       }
 
-    
       else if (mode === "signup") {
-        if (password !== confirmPassword) return;
-        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/signup", { name, email, password });
+        await api.post("/auth/signup", { name, email, password });
+
+        toast.success("Account Created");
+
         navigate("/dashboard");
       }
 
       else if (mode === "forgot") {
-        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/forgot-password", { email });
-        setMessage("OTP sent to your email");
+        await api.post("/auth/forgot-password", { email });
+
+        toast.success("OTP Sent");
+
         setMode("otp");
-        setMessage("");
       }
 
       else if (mode === "otp") {
-        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/verify-otp", { email, otp });
-        setMessage("OTP verified");
+        await api.post("/auth/verify-otp", { email, otp });
+
+        toast.success("OTP Verified");
+
         setMode("reset");
-        setMessage('');
       }
 
-    
       else if (mode === "reset") {
-        if (password !== confirmPassword) return;
-        await axios.post(import.meta.env.VITE_API_URL+ "/api/auth/reset-password", {
+        await api.post("/auth/reset-password", {
           email,
           otp,
           newPassword: password,
         });
-        setMessage("Password reset successful");
-        setMode("login");
-        setMessage('');
+
+        toast.success("Password Reset Successful");
+
+        changeMode("login");
       }
+
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        setError(err.response?.data?.error || "Something went wrong");
+        toast.error(`${err.response?.data.error || err.response?.data.message}`);
       } else {
-        setError("Unexpected error occurred");
+        toast.error('Unexpected Error');
       }
     } finally {
       setLoading(false);
@@ -118,10 +138,11 @@ export default function AuthPage() {
     (mode === "otp" && !otp) ||
     (mode === "reset" && (!password || !confirmPassword));
 
+
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-100 to-blue-400">
       <div className="bg-white w-96 rounded-2xl shadow-2xl p-8">
-
         <h2 className="text-2xl font-bold text-center mb-6">
           {mode === "login" && "Sign In"}
           {mode === "signup" && "Sign Up"}
@@ -136,22 +157,22 @@ export default function AuthPage() {
             <Input
               type="text"
               placeholder="Full Name"
-              className="w-full p-3 border rounded-xl"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
           )}
 
-          {(mode !== "otp") && (
+          {mode !== "otp" && (
             <>
               <Input
                 type="email"
                 placeholder="Email"
-                className="w-full p-3 border rounded-xl"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
+              {emailError && (
+                <p className="text-red-500 text-sm">{emailError}</p>
+              )}
             </>
           )}
 
@@ -159,13 +180,8 @@ export default function AuthPage() {
             <Input
               type="text"
               placeholder="Enter 6 digit OTP"
-              className="w-full p-3 border rounded-xl"
               value={otp}
-              onChange={(e) => {
-                setOtp(e.target.value);
-                setError('');
-                setMessage('');
-              }}
+              onChange={(e) => setOtp(e.target.value)}
             />
           )}
 
@@ -174,7 +190,6 @@ export default function AuthPage() {
               <Input
                 type="password"
                 placeholder={mode === "reset" ? "New Password" : "Password"}
-                className="w-full p-3 border rounded-xl"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -189,7 +204,6 @@ export default function AuthPage() {
               <Input
                 type="password"
                 placeholder="Confirm Password"
-                className="w-full p-3 border rounded-xl"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
@@ -202,30 +216,23 @@ export default function AuthPage() {
           {mode === "login" && (
             <p
               className="text-sm text-blue-600 cursor-pointer text-right"
-              onClick={() => {
-                setError('');
-                setMode("forgot");
-                setMessage('');
-              }}
+              onClick={() => changeMode("forgot")}
             >
               Forgot Password?
             </p>
           )}
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          {message && <p className="text-green-600 text-sm">{message}</p>}
 
           <Button
             type="submit"
             disabled={isDisabled}
             className="w-full py-3 rounded-xl text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading && "Please wait..."}
-            {!loading && mode === "login" && "Sign In"}
-            {!loading && mode === "signup" && "Sign Up"}
-            {!loading && mode === "forgot" && "Send OTP"}
-            {!loading && mode === "otp" && "Verify OTP"}
-            {!loading && mode === "reset" && "Reset Password"}
+            {loading ? "Please wait..." :
+              mode === "login" ? "Sign In" :
+              mode === "signup" ? "Sign Up" :
+              mode === "forgot" ? "Send OTP" :
+              mode === "otp" ? "Verify OTP" :
+              "Reset Password"}
           </Button>
         </form>
 
@@ -237,13 +244,7 @@ export default function AuthPage() {
             <span
               className="text-blue-600 ml-1 cursor-pointer"
               onClick={() =>
-                {
-                  setError('');
-                  setEmail('');
-                  setPassword('');
-                  setMessage('');
-                  setMode(mode === "login" ? "signup" : "login")
-                }
+                changeMode(mode === "login" ? "signup" : "login")
               }
             >
               {mode === "login" ? "Sign Up" : "Sign In"}
@@ -255,7 +256,7 @@ export default function AuthPage() {
           <p className="text-sm text-center mt-6">
             <span
               className="text-blue-600 cursor-pointer"
-              onClick={() => setMode("login")}
+              onClick={() => changeMode("login")}
             >
               Back to Login
             </span>
