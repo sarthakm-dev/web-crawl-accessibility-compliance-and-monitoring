@@ -6,6 +6,9 @@ import Profile from './pages/Profile';
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { Toaster } from 'sonner';
+import SitesPage from './pages/SitesPage';
+import CrawlJobsPage from './pages/CrawlJobsPage';
+import SiteDetailsPage from './pages/SiteDetailsPage';
 function App() {
   return (
     <>
@@ -27,6 +30,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sites"
+              element={
+                <ProtectedRoute>
+                  <SitesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/crawl-jobs"
+              element={
+                <ProtectedRoute>
+                  <CrawlJobsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/sites/:id"
+              element={
+                <ProtectedRoute>
+                  <SiteDetailsPage />
                 </ProtectedRoute>
               }
             />
