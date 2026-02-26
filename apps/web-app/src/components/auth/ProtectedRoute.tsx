@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import api from "@/utils/api";
+import { useAuthStore } from "@/store/authStore"
 
 export default function ProtectedRoute({
   children,
@@ -8,12 +9,14 @@ export default function ProtectedRoute({
   children: React.ReactNode;
 }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
+  const { setUser } = useAuthStore.getState();
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        await api.get("/auth/me");
+        const res = await api.get("/api/auth/me");
         setIsAuthenticated(true);
+        setUser(res.data);
+        console.log(res.data);
       } catch {
         setIsAuthenticated(false);
       }

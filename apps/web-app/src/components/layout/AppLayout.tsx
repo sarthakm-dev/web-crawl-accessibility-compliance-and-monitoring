@@ -9,7 +9,7 @@ export default function AppLayout() {
         <Sidebar />
       </div>
 
-      <div className="flex-1  overflow-y-auto">
+      <div className="flex-1 bg-linear-to-br from-blue-50 via-blue-100 to-blue-200  overflow-y-auto">
         <Outlet />
       </div>
     </div>
