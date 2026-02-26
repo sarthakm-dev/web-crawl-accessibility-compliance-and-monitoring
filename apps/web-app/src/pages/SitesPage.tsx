@@ -33,6 +33,8 @@ import {
 } from '@/components/ui/dialog';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
+import PlayIcon from "@/assets/icons/play.svg?react";
+
 export default function SitesPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -274,7 +276,7 @@ export default function SitesPage() {
                       </TableCell >
                       {hasPermission('crawl:trigger') && (<TableCell className='text-center'>
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="outline"
                           onClick={async e => {
                             e.stopPropagation();
@@ -293,15 +295,7 @@ export default function SitesPage() {
                           }}
                        
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M6.51 18.87a1 1 0 0 0 1-.01l10-6c.3-.18.49-.51.49-.86s-.18-.68-.49-.86l-10-6a.99.99 0 0 0-1.01-.01c-.31.18-.51.51-.51.87v12c0 .36.19.69.51.87ZM8 7.77 15.06 12 8 16.23z"></path>
-                          </svg>
+                          <PlayIcon />
                         </Button>
                       </TableCell>)}
                     </TableRow>
