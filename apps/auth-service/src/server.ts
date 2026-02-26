@@ -7,6 +7,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import { jsonValidation } from '@packages/shared-validation/json.validation';
 dotenv.config();
 
 const app = express();
@@ -20,18 +21,7 @@ app.use(morgan('dev'));
 app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
-app.use((req, res, next) => {
-  if (
-    req.method !== 'GET' &&
-    req.headers['content-type'] &&
-    !req.headers['content-type'].includes('application/json')
-  ) {
-    return res
-      .status(415)
-      .json({ error: 'Content-Type must be application/json' });
-  }
-  next();
-});
+app.use(jsonValidation());
 app.use('/api/auth', authRoutes);
 
 const PORT = process.env.PORT || 5000;

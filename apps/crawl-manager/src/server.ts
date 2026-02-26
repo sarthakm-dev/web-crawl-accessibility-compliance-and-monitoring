@@ -5,6 +5,7 @@ import siteRoutes from './routes/site.routes';
 import dotenv from 'dotenv';
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import { jsonValidation } from '@packages/shared-validation/json.validation';
 dotenv.config();
 
 async function crawlManager() {
@@ -13,6 +14,7 @@ async function crawlManager() {
   const app = express();
   app.use(express.json());
   app.use(cookieParser());
+  app.use(jsonValidation());
   app.use('/api/sites', siteRoutes);
   app.use('/api/crawl', crawlRoutes);
   app.listen(3002, () => {
