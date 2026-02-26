@@ -1,4 +1,5 @@
-import { Site } from '../models/site.model';
+import { Op } from 'sequelize';
+import { Site } from '@packages/shared-models/site.model';
 
 export const SiteService = {
   async createSite(
@@ -16,13 +17,33 @@ export const SiteService = {
     });
   },
 
-  async getAllSites(params: { teamId: string; page: number; limit: number }) {
-    const { teamId, page, limit } = params;
+  async getAllSites(params: {
+    teamId: string;
+    page: number;
+    limit: number;
+    search?: string;
+    status?: string;
+  }) {
+    const { teamId, page, limit, search, status } = params;
 
     const offset = (page - 1) * limit;
 
+    const where: any = {
+      team_id: teamId,
+    };
+
+    if (search && search.trim() !== '') {
+      where.name = {
+        [Op.iLike]: `%${search}%`,
+      };
+    }
+
+    if (status && status !== 'all') {
+      where.is_active = status === 'active';
+    }
+
     const { rows, count } = await Site.findAndCountAll({
-      where: { team_id: teamId },
+      where,
       order: [['created_at', 'DESC']],
       limit,
       offset,
@@ -34,7 +55,7 @@ export const SiteService = {
         total: count,
         page,
         limit,
-        totalPages: Math.ceil(count / limit),
+        totalPages: Math.max(Math.ceil(count / limit), 1),
       },
     };
   },

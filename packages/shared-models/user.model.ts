@@ -14,7 +14,6 @@ export class User extends Model {
   declare Teams?: Team[];
   declare addRole: BelongsToManyAddAssociationMixin<Role, string>;
   declare public addTeam: BelongsToManyAddAssociationMixin<Team, string>;
-  declare created_at: Date;
 }
 
 User.init(

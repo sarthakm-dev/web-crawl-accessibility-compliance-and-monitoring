@@ -1,4 +1,4 @@
-import { CrawlJob } from '../models/crawl-job.model';
+import { CrawlJob } from '@packages/shared-models/crawl-job.model';
 
 export const CrawlJobRepository = {
   async create(data: {

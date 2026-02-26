@@ -6,5 +6,5 @@
     "esModuleInterop": true,
     "moduleResolution": "node"
   },
-  "include": ["src", "tests"]
+  "include": ["src", "tests", "src/models/crawl-job.model.ts"]
 }

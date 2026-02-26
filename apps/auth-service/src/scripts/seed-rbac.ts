@@ -1,8 +1,7 @@
 import { sequelize } from '@packages/shared-config/database';
-
-import { Permission } from '../models/permission.model';
-import { Role } from '../models/role.model';
-import { initModels } from '../models/init-models';
+import { Permission } from '@packages/shared-models/permission.model';
+import { Role } from '@packages/shared-models/role.model';
+import { initModels } from '@packages/shared-models/init-models';
 
 async function seed() {
   initModels();

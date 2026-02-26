@@ -1,4 +1,4 @@
-import { Site } from '../models/site.model';
+import { Site } from '@packages/shared-models/site.model';
 
 export const SiteRepository = {
   async findActiveSite(siteId: string) {

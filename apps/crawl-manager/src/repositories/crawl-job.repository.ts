@@ -1,6 +1,8 @@
-import { CrawlJob } from '../models/crawl-job.model';
-import { CrawlQueue } from '../models/crawl-queue.model';
-import { PageVersion } from '../models/page-version.model';
+import { CrawlJob } from '@packages/shared-models/crawl-job.model';
+import { CrawlQueue } from '@packages/shared-models/crawl-queue.model';
+import { PageVersion } from '@packages/shared-models/page-version.model';
+import { Site } from '@packages/shared-models/site.model';
+import { User } from '@packages/shared-models/user.model';
 
 export const CrawlJobRepository = {
   async create(data: {
@@ -36,15 +38,39 @@ export const CrawlJobRepository = {
       order: [['created_at', 'DESC']],
       limit,
       offset,
+      include: [
+        {
+          model: Site,
+          attributes: ['id', 'name'],
+        },
+        {
+          model: User,
+          attributes: ['id', 'name', 'email'],
+        },
+      ],
     });
 
     return {
-      data: rows,
+      data: rows.map(job => ({
+        id: job.id,
+        status: job.status,
+        triggerType: job.trigger_type,
+        createdAt: job.created_at,
+        site: {
+          id: job.Site?.id,
+          name: job.Site?.name,
+        },
+        requestedBy: {
+          id: job.User?.id,
+          name: job.User?.name,
+          email: job.User?.email,
+        },
+      })),
       pagination: {
         total: count,
         page,
         limit,
-        totalPages: Math.ceil(count / limit),
+        totalPages: Math.max(Math.ceil(count / limit), 1),
       },
     };
   },

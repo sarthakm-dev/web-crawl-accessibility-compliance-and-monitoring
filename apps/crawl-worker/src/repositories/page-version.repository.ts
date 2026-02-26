@@ -1,4 +1,4 @@
-import { PageVersion } from '../models/page-version.model';
+import { PageVersion } from '@packages/shared-models/page-version.model';
 
 export const PageVersionRepository = {
   async create(data: {

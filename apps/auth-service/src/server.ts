@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { sequelize } from '@packages/shared-config/database';
 import authRoutes from './routes/auth.routes';
-import { initModels } from './models/init-models';
+import { initModels } from '@packages/shared-models/init-models';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';

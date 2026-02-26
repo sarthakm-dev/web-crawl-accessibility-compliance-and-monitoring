@@ -1,46 +1,52 @@
 import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '@packages/shared-config/database';
+import { Site } from './site.model';
+import { User } from './user.model';
 
-export class CrawlQueue extends Model {
+export class CrawlJob extends Model {
   declare id: string;
-  declare crawl_job_id: string;
-  declare url: string;
+  declare site_id: string;
   declare status: string;
-  declare discovered_from: string | null;
-  declare retry_count: number;
+  declare trigger_type: string;
+  declare requested_by: string;
+  declare started_at: Date | null;
+  declare completed_at: Date | null;
   declare created_at: Date;
+  declare Site?: Site;
+  declare User?: User;
 }
 
-CrawlQueue.init(
+CrawlJob.init(
   {
     id: {
       type: DataTypes.UUID,
       defaultValue: sequelize.literal('uuid_generate_v4()'),
       primaryKey: true,
     },
-    crawl_job_id: {
+    site_id: {
       type: DataTypes.UUID,
-      allowNull: false,
-    },
-    url: {
-      type: DataTypes.TEXT,
       allowNull: false,
     },
     status: {
       type: DataTypes.STRING,
       defaultValue: 'pending',
     },
-    discovered_from: {
-      type: DataTypes.TEXT,
+    trigger_type: {
+      type: DataTypes.STRING,
     },
-    retry_count: {
-      type: DataTypes.INTEGER,
-      defaultValue: 0,
+    requested_by: {
+      type: DataTypes.UUID,
+    },
+    started_at: {
+      type: DataTypes.DATE,
+    },
+    completed_at: {
+      type: DataTypes.DATE,
     },
   },
   {
     sequelize,
-    tableName: 'crawl_queue',
+    tableName: 'crawl_jobs',
     underscored: true,
     timestamps: true,
     createdAt: 'created_at',

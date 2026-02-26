@@ -1,4 +1,4 @@
-import { Page } from '../models/page.models';
+import { Page } from '@packages/shared-models/page.model';
 
 export const PageRepository = {
   async findByUrl(site_id: string, url: string) {

@@ -1,4 +1,4 @@
-import { CrawlQueue } from '../models/crawl-queue.model';
+import { CrawlQueue } from '@packages/shared-models/crawl-queue.model';
 
 export const CrawlQueueRepository = {
   async createIfNotExists(data: {

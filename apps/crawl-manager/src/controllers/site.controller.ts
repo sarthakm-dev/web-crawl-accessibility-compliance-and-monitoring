@@ -27,13 +27,20 @@ export const SiteController = {
 
   async getAll(req: Request, res: Response) {
     try {
-      const parsed = getSitesQuerySchema.parse(req.query);
+      const parsed = getSitesQuerySchema.parse(req.query) as {
+        page: number;
+        limit: number;
+        search?: string;
+        status?: string;
+      };
       const teamId = (req as any).teamId;
 
       const result = await SiteService.getAllSites({
         teamId,
         page: parsed.page,
         limit: parsed.limit,
+        search: parsed.search,
+        status: parsed.status,
       });
 
       return res.status(200).json(result);

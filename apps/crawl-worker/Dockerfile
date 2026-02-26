@@ -26,9 +26,9 @@ COPY ../../apps ./apps
 RUN npm install -g pnpm
 
 RUN pnpm --filter crawl-worker install --frozen-lockfile --prod=false
-RUN pnpm --filter crawl-worker build
 RUN pnpm --filter shared-config install --frozen-lockfile --prod=false
-
+RUN pnpm --filter shared-models install --frozen-lockfile --prod=false
+RUN pnpm --filter crawl-worker build
 WORKDIR /app/apps/crawl-worker
 
 CMD ["node", "dist/index.js"]

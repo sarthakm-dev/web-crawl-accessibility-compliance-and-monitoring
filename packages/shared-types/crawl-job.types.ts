@@ -1,8 +1,15 @@
 export interface CrawlJob {
   id: string;
-  site_id: string;
   status: string;
-  trigger_type: string;
-  requested_by: string;
-  created_at: string;
+  triggerType: string;
+  createdAt: string;
+  site: {
+    id: string;
+    name: string;
+  };
+  requestedBy: {
+    id: string;
+    name: string;
+    email: string;
+  };
 }

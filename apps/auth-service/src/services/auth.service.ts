@@ -1,11 +1,11 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/user.model';
+import { User } from '@packages/shared-models/user.model';
 import { redis } from '@packages/shared-config/redis';
-import { Role } from '../models/role.model';
-import { Permission } from '../models/permission.model';
+import { Role } from '@packages/shared-models/role.model';
+import { Permission } from '@packages/shared-models/permission.model';
 import { sendOTP } from '../utils/mailer';
-import { Team } from '../models/team.model';
+import { Team } from '@packages/shared-models/team.model';
 
 export const AuthService = {
   async signup(name: string, email: string, password: string) {
@@ -175,7 +175,7 @@ export const AuthService = {
       email: user.email,
       name: user.name,
       isActive: user.isActive,
-      created_at: user.created_at,
+      createdAt: user.getDataValue('created_at'),
       teams: user.Teams ?? [],
     };
   },
