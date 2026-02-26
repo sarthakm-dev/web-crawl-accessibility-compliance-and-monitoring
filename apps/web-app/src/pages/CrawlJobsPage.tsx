@@ -10,18 +10,22 @@ import { type CrawlJob } from "../../../../packages/shared-types/crawl-job.types
 
 
 export default function CrawlJobsPage() {
-  const [jobs, setJobs] = useState<CrawlJob[]>([])
-  const [loading, setLoading] = useState(false)
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [jobs, setJobs] = useState<CrawlJob[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [totalPages, setTotalPages] = useState(1);
+  const search = searchParams.get('search') || '';
+  const page = Number(searchParams.get("page")) || 1;
+  const limit = Number(searchParams.get('limit')) || 5;
 
-  const page = Number(searchParams.get("page")) || 1
-
+  const status = searchParams.get('status') || 'all';
   useEffect(() => {
     const fetchJobs = async () => {
       setLoading(true)
       try {
         const res = await api.get(`/api/crawl?page=${page}`)
-        setJobs(res.data.data ?? [])
+        setJobs(res.data.data ?? []);
+        setTotalPages(res.data.pagination.totalPages);
       } finally {
         setLoading(false)
       }
@@ -73,8 +77,8 @@ export default function CrawlJobsPage() {
         </div>
       </div>
 
-      <Card className="border-none shadow-sm bg-background/60 backdrop-blur-sm">
-        <Table>
+      <Card className="border-none rounded-xl shadow-sm bg-background/60 backdrop-blur-sm">
+        <Table className="rounded-xl">
           <TableHeader>
             <TableRow className="border-b bg-muted texe-center border-muted">
               <TableHead className="text-center">Crawl ID</TableHead>
@@ -132,26 +136,43 @@ export default function CrawlJobsPage() {
         </Table>
       </Card>
 
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          onClick={() =>
-            setSearchParams({ page: String(page - 1) })
-          }
-          disabled={page <= 1}
-        >
-          Previous
-        </Button>
+      <div className="flex justify-end items-center gap-4 pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() =>
+              setSearchParams({
+                page: (page - 1).toString(),
+                limit: limit.toString(),
+                search,
+                status,
+              })
+            }
+          >
+            Previous
+          </Button>
 
-        <Button
-          variant="outline"
-          onClick={() =>
-            setSearchParams({ page: String(page + 1) })
-          }
-        >
-          Next
-        </Button>
-      </div>
+          <span className="text-sm text-muted-foreground">
+            Page {page} of {totalPages}
+          </span>
+
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+            onClick={() =>
+              setSearchParams({
+                page: (page + 1).toString(),
+                limit: limit.toString(),
+                search,
+                status,
+              })
+            }
+          >
+            Next
+          </Button>
+        </div>
 
     </div>
   )

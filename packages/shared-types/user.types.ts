@@ -4,5 +4,7 @@ export interface UserType {
   email: string;
   createdAt: string;
   isActive: boolean;
+  teamID?: string;
   roles?: string[];
+  permissions?: string[];
 }
