@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthService } from '../src/services/auth.service';
-import { User } from '../src/models/user.model';
-import { Role } from '../src/models/role.model';
+import { User } from '@packages/shared-models/user.model';
+import { Role } from '@packages/shared-models/role.model';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { redis } from '@packages/shared-config/redis';
 import { sendOTP } from '../src/utils/mailer';
-vi.mock('../src/models/user.model', () => ({
+import { Team } from '@packages/shared-models/team.model';
+
+vi.mock('@packages/shared-models/user.model', () => ({
   User: {
     findOne: vi.fn(),
     create: vi.fn(),
@@ -14,14 +16,21 @@ vi.mock('../src/models/user.model', () => ({
   },
 }));
 
-vi.mock('../src/models/role.model', () => ({
+vi.mock('@packages/shared-models/role.model', () => ({
   Role: {
     findOne: vi.fn(),
   },
 }));
 
-vi.mock('../src/models/permission.model', () => ({
+vi.mock('@packages/shared-models/permission.model', () => ({
   Permission: {},
+}));
+
+vi.mock('@packages/shared-models/team.model', () => ({
+  Team: {
+    create: vi.fn(),
+    findOne: vi.fn(),
+  },
 }));
 
 vi.mock('bcryptjs', () => ({
@@ -35,6 +44,13 @@ vi.mock('jsonwebtoken', () => ({
   default: {
     sign: vi.fn(),
     verify: vi.fn(),
+  },
+}));
+vi.mock('@packages/shared-config/database', () => ({
+  sequelize: {
+    authenticate: vi.fn(),
+    sync: vi.fn(),
+    literal: vi.fn().mockReturnValue('mock-literal'),
   },
 }));
 
@@ -60,13 +76,20 @@ describe('Auth service', () => {
       name: 'Sarthak',
       email: 'test@test.com',
       addRole: vi.fn(),
+      addTeam: vi.fn(),
     };
 
     (User.create as any).mockResolvedValue(mockUser);
+
+    (Team.findOne as any).mockResolvedValue({
+      id: 'default-team-id',
+    });
+
     (Role.findOne as any).mockResolvedValue({ id: 'role1' });
 
     const result = await AuthService.signup('Sarthak', 'test@test.com', 'pass');
 
+    expect(mockUser.addTeam).toHaveBeenCalled();
     expect(mockUser.addRole).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
   });
@@ -231,20 +254,29 @@ describe('Auth service', () => {
   });
 
   it('should return user profile', async () => {
+    const createdAt = new Date();
     const mockUser = {
       id: '1',
       email: 'test@test.com',
       name: 'Sarthak',
       isActive: true,
-      created_at: new Date(),
       teams: [],
+      getDataValue: vi.fn().mockReturnValue(createdAt),
+      createdAt: createdAt,
     };
 
     (User.findByPk as any).mockResolvedValue(mockUser);
-
+    console.log('Mocker User', User.findByPk);
     const result = await AuthService.me('1');
 
-    expect(result).toEqual(mockUser);
+    expect(result).toEqual({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Sarthak',
+      isActive: true,
+      createdAt,
+      teams: [],
+    });
   });
   it('should throw error if user not found in me()', async () => {
     (User.findByPk as any).mockResolvedValue(null);

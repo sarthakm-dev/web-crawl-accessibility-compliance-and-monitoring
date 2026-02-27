@@ -18,11 +18,13 @@ export const AuthService = {
       email,
       passwordHash: hash,
     });
-    const team = await Team.create({
-      name: `${name}'s Team`,
+    const defaultTeam = await Team.findOne({
+      where: { name: 'Default team' },
     });
-
-    await user.addTeam(team);
+    if (!defaultTeam) {
+      throw new Error('Default team not found');
+    }
+    await user.addTeam(defaultTeam);
     const viewerRole = await Role.findOne({ where: { name: 'viewer' } });
     if (viewerRole) {
       await user.addRole(viewerRole);
