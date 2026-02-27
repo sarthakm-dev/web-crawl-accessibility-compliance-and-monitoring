@@ -1,7 +1,7 @@
-import { sequelize } from '../../../../packages/shared-config/database';
-
-import { Permission, Role } from '../models';
-import { initModels } from '../models/init-models';
+import { sequelize } from '@packages/shared-config/database';
+import { Permission } from '@packages/shared-models/permission.model';
+import { Role } from '@packages/shared-models/role.model';
+import { initModels } from '@packages/shared-models/init-models';
 
 async function seed() {
   initModels();
@@ -23,7 +23,9 @@ async function seed() {
     'report:view',
   ];
 
-  await Promise.all(allPermissions.map((name) => Permission.findOrCreate({ where: { name } })));
+  await Promise.all(
+    allPermissions.map(name => Permission.findOrCreate({ where: { name } }))
+  );
 
   const [admin] = await Role.findOrCreate({ where: { name: 'admin' } });
   const [developer] = await Role.findOrCreate({ where: { name: 'developer' } });
@@ -31,7 +33,8 @@ async function seed() {
 
   const permissions = await Permission.findAll();
 
-  const getPerms = async (names: string[]) => Permission.findAll({ where: { name: names } });
+  const getPerms = async (names: string[]) =>
+    Permission.findAll({ where: { name: names } });
 
   await admin.setPermissions(permissions);
 
@@ -45,11 +48,11 @@ async function seed() {
       'issue:resolve',
       'issue:view',
       'report:view',
-    ]),
+    ])
   );
 
   await viewer.setPermissions(
-    await getPerms(['site:view', 'issue:view', 'report:view', 'crawl:view']),
+    await getPerms(['site:view', 'issue:view', 'report:view', 'crawl:view'])
   );
 }
 

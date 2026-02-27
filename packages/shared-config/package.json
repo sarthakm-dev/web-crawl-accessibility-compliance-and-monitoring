@@ -1,0 +1,17 @@
+{
+  "name": "@packages/shared-config",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.2",
+  "dependencies": {
+    "ioredis": "^5.9.2",
+    "sequelize": "^6.37.7"
+  }
+}

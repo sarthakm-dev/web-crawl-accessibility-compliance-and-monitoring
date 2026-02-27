@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthService } from '../src/services/auth.service';
-import { User } from '../src/models/user.model';
-import { Role } from '../src/models/role.model';
+import { User } from '@packages/shared-models/user.model';
+import { Role } from '@packages/shared-models/role.model';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { redis } from '../../../packages/shared-config/redis';
+import { redis } from '@packages/shared-config/redis';
+import { sendOTP } from '../src/utils/mailer';
+import { Team } from '@packages/shared-models/team.model';
 
-vi.mock('../src/models/user.model', () => ({
+vi.mock('@packages/shared-models/user.model', () => ({
   User: {
     findOne: vi.fn(),
     create: vi.fn(),
@@ -14,14 +16,21 @@ vi.mock('../src/models/user.model', () => ({
   },
 }));
 
-vi.mock('../src/models/role.model', () => ({
+vi.mock('@packages/shared-models/role.model', () => ({
   Role: {
     findOne: vi.fn(),
   },
 }));
 
-vi.mock('../src/models/permission.model', () => ({
+vi.mock('@packages/shared-models/permission.model', () => ({
   Permission: {},
+}));
+
+vi.mock('@packages/shared-models/team.model', () => ({
+  Team: {
+    create: vi.fn(),
+    findOne: vi.fn(),
+  },
 }));
 
 vi.mock('bcryptjs', () => ({
@@ -37,15 +46,22 @@ vi.mock('jsonwebtoken', () => ({
     verify: vi.fn(),
   },
 }));
+vi.mock('@packages/shared-config/database', () => ({
+  sequelize: {
+    authenticate: vi.fn(),
+    sync: vi.fn(),
+    literal: vi.fn().mockReturnValue('mock-literal'),
+  },
+}));
 
-vi.mock('../../../packages/shared-config/redis', () => ({
+vi.mock('@packages/shared-config/redis', () => ({
   redis: {
     set: vi.fn(),
     get: vi.fn(),
     del: vi.fn(),
   },
 }));
-
+vi.mock('../src/utils/mailer');
 beforeEach(() => {
   vi.clearAllMocks();
 });
@@ -60,13 +76,20 @@ describe('Auth service', () => {
       name: 'Sarthak',
       email: 'test@test.com',
       addRole: vi.fn(),
+      addTeam: vi.fn(),
     };
 
     (User.create as any).mockResolvedValue(mockUser);
+
+    (Team.findOne as any).mockResolvedValue({
+      id: 'default-team-id',
+    });
+
     (Role.findOne as any).mockResolvedValue({ id: 'role1' });
 
-    const result = await AuthService.signup('Sarthak','test@test.com', 'pass');
+    const result = await AuthService.signup('Sarthak', 'test@test.com', 'pass');
 
+    expect(mockUser.addTeam).toHaveBeenCalled();
     expect(mockUser.addRole).toHaveBeenCalled();
     expect(result).toEqual(mockUser);
   });
@@ -74,9 +97,9 @@ describe('Auth service', () => {
   it('should throw error if user already exists', async () => {
     (User.findOne as any).mockResolvedValue({ id: '1' });
 
-    await expect(AuthService.signup('Sarthak','test@test.com', 'pass')).rejects.toThrow(
-      'User already exists',
-    );
+    await expect(
+      AuthService.signup('Sarthak', 'test@test.com', 'pass')
+    ).rejects.toThrow('User already exists');
   });
 
   it('should return tokens if credentials valid', async () => {
@@ -84,11 +107,17 @@ describe('Auth service', () => {
       id: '1',
       passwordHash: 'hashed',
       Roles: [],
+      Teams: [
+        {
+          id: 'team-1',
+        },
+      ],
     };
 
     (User.findOne as any).mockResolvedValue(mockUser);
     (bcrypt.compare as any).mockResolvedValue(true);
     (jwt.sign as any).mockReturnValue('token');
+    (redis.set as any).mockResolvedValue(null);
 
     const result = await AuthService.login('test@test.com', 'pass');
 
@@ -96,6 +125,60 @@ describe('Auth service', () => {
       accessToken: 'token',
       refreshToken: 'token',
     });
+  });
+  it('login should include roles and permissions in token', async () => {
+    const mockUser = {
+      id: '1',
+      passwordHash: 'hashed',
+      Roles: [],
+      Teams: [
+        {
+          id: 'team-1',
+        },
+      ],
+    };
+
+    (User.findOne as any).mockResolvedValue(mockUser);
+    (bcrypt.compare as any).mockResolvedValue(true);
+    (jwt.sign as any).mockReturnValue('token');
+    (redis.set as any).mockResolvedValue('OK');
+
+    const result = await AuthService.login('test@test.com', 'password');
+
+    expect(result.accessToken).toBe('token');
+    expect(result.refreshToken).toBe('token');
+  });
+
+  it('refresh should return new access token with roles and permissions', async () => {
+    const payload = { userId: 1 };
+
+    (jwt.verify as any).mockReturnValue(payload);
+    (redis.get as any).mockResolvedValue('valid-refresh');
+
+    const mockUser = {
+      id: '1',
+      passwordHash: 'hashed',
+      Roles: [],
+      Teams: [
+        {
+          id: 'team-1',
+        },
+      ],
+    };
+
+    (User.findByPk as any).mockResolvedValue(mockUser);
+    (jwt.sign as any).mockReturnValue('new-access-token');
+
+    const result = await AuthService.refresh('valid-refresh');
+
+    expect(result.accessToken).toBe('new-access-token');
+  });
+  it('should throw error if user not found on login', async () => {
+    (User.findOne as any).mockResolvedValue(null);
+
+    await expect(AuthService.login('test@test.com', 'pass')).rejects.toThrow(
+      'Invalid credentials'
+    );
   });
 
   it('should throw error if password invalid', async () => {
@@ -106,7 +189,27 @@ describe('Auth service', () => {
     (bcrypt.compare as any).mockResolvedValue(false);
 
     await expect(AuthService.login('test@test.com', 'wrong')).rejects.toThrow(
-      'Invalid credentials',
+      'Invalid credentials'
+    );
+  });
+
+  it('should throw Unauthorized if refresh token invalid', async () => {
+    (jwt.verify as any).mockReturnValue({ userId: '1' });
+
+    (redis.get as any).mockResolvedValue('different-token');
+
+    await expect(AuthService.refresh('valid-refresh-token')).rejects.toThrow(
+      'Unauthorized'
+    );
+  });
+
+  it('should throw Unauthorized if user not found in refresh', async () => {
+    (jwt.verify as any).mockReturnValue({ userId: '1' });
+    (redis.get as any).mockResolvedValue('valid-refresh-token');
+    (User.findByPk as any).mockResolvedValue(null);
+
+    await expect(AuthService.refresh('valid-refresh-token')).rejects.toThrow(
+      'Unauthorized'
     );
   });
 
@@ -117,7 +220,17 @@ describe('Auth service', () => {
 
     const mockUser = {
       id: '1',
-      Roles: [],
+      Roles: [
+        {
+          name: 'viewer',
+          Permissions: [],
+        },
+      ],
+      Teams: [
+        {
+          id: 'team-1',
+        },
+      ],
     };
 
     (User.findByPk as any).mockResolvedValue(mockUser);
@@ -129,5 +242,155 @@ describe('Auth service', () => {
     expect(result).toEqual({
       accessToken: 'new-access-token',
     });
+  });
+
+  it('should delete refresh token on logout', async () => {
+    (redis.del as any).mockResolvedValue(1);
+
+    const result = await AuthService.logout('1');
+
+    expect(redis.del).toHaveBeenCalledWith('refresh:1');
+    expect(result).toBe(true);
+  });
+
+  it('should return user profile', async () => {
+    const createdAt = new Date();
+    const mockUser = {
+      id: '1',
+      email: 'test@test.com',
+      name: 'Sarthak',
+      isActive: true,
+      teams: [],
+      getDataValue: vi.fn().mockReturnValue(createdAt),
+      createdAt: createdAt,
+    };
+
+    (User.findByPk as any).mockResolvedValue(mockUser);
+    console.log('Mocker User', User.findByPk);
+    const result = await AuthService.me('1');
+
+    expect(result).toEqual({
+      id: '1',
+      email: 'test@test.com',
+      name: 'Sarthak',
+      isActive: true,
+      createdAt,
+      teams: [],
+    });
+  });
+  it('should throw error if user not found in me()', async () => {
+    (User.findByPk as any).mockResolvedValue(null);
+
+    await expect(AuthService.me('1')).rejects.toThrow('Cannot find user');
+  });
+  it('forgotPassword should generate OTP and send email', async () => {
+    (User.findOne as any).mockResolvedValue({ id: 1, email: 'test@test.com' });
+    (redis.set as any).mockResolvedValue('OK');
+    (sendOTP as any).mockResolvedValue(undefined);
+
+    const result = await AuthService.forgotPassword('test@test.com');
+
+    expect(User.findOne).toHaveBeenCalledWith({
+      where: { email: 'test@test.com' },
+    });
+
+    expect(redis.set).toHaveBeenCalled();
+    expect(sendOTP).toHaveBeenCalledTimes(1);
+
+    expect(result).toEqual({
+      message: 'OTP sent to email',
+    });
+  });
+  it('forgotPassword should throw if user not found', async () => {
+    (User.findOne as any).mockResolvedValue(null);
+
+    await expect(AuthService.forgotPassword('wrong@test.com')).rejects.toThrow(
+      'User not found'
+    );
+  });
+  it('resetPassword should update password and delete otp', async () => {
+    const mockUser = {
+      passwordHash: '',
+      save: vi.fn().mockResolvedValue(true),
+    };
+
+    (redis.get as any).mockResolvedValue('123456');
+    (User.findOne as any).mockResolvedValue(mockUser);
+    (bcrypt.hash as any).mockResolvedValue('hashedPassword');
+    (redis.del as any).mockResolvedValue(1);
+
+    const result = await AuthService.resetPassword(
+      'test@test.com',
+      '123456',
+      'newpass'
+    );
+
+    expect(redis.get).toHaveBeenCalledWith('reset:test@test.com');
+    expect(bcrypt.hash).toHaveBeenCalledWith('newpass', 10);
+    expect(mockUser.save).toHaveBeenCalled();
+    expect(redis.del).toHaveBeenCalledWith('reset:test@test.com');
+
+    expect(result).toEqual({
+      message: 'Password reset successful',
+    });
+  });
+  it('resetPassword should throw if otp invalid', async () => {
+    (redis.get as any).mockResolvedValue('654321');
+
+    await expect(
+      AuthService.resetPassword('test@test.com', 'wrong', 'newpass')
+    ).rejects.toThrow('Invalid Credentials');
+  });
+  it('resetPassword should throw if otp expired', async () => {
+    (redis.get as any).mockResolvedValue(null);
+
+    await expect(
+      AuthService.resetPassword('test@test.com', '123456', 'newpass')
+    ).rejects.toThrow('Invalid Credentials');
+  });
+  it('resetPassword should throw if user not found', async () => {
+    (redis.get as any).mockResolvedValue('123456');
+    (User.findOne as any).mockResolvedValue(null);
+
+    await expect(
+      AuthService.resetPassword('test@test.com', '123456', 'newpass')
+    ).rejects.toThrow('User not found');
+  });
+  it('should verify OTP successfully', async () => {
+    (redis.get as any).mockResolvedValue('123456');
+    (User.findOne as any).mockResolvedValue({ id: 1, email: 'test@test.com' });
+
+    const result = await AuthService.verifyOtp('test@test.com', '123456');
+
+    expect(redis.get).toHaveBeenCalledWith('reset:test@test.com');
+    expect(User.findOne).toHaveBeenCalledWith({
+      where: { email: 'test@test.com' },
+    });
+
+    expect(result).toEqual({
+      message: 'Otp verification successful',
+    });
+  });
+  it('should throw if OTP not found in redis', async () => {
+    (redis.get as any).mockResolvedValue(null);
+
+    await expect(
+      AuthService.verifyOtp('test@test.com', '123456')
+    ).rejects.toThrow('Invalid credentials');
+  });
+  it('should throw if OTP does not match', async () => {
+    (redis.get as any).mockResolvedValue('999999');
+
+    await expect(
+      AuthService.verifyOtp('test@test.com', '123456')
+    ).rejects.toThrow('Invalid credentials');
+  });
+  it('should throw if user not found', async () => {
+    (redis.get as any).mockResolvedValue('123456');
+    (User.findOne as any).mockResolvedValue(null);
+
+    await expect(
+      AuthService.verifyOtp('test@test.com', '123456')
+    ).rejects.toThrow('User not found');
   });
 });

@@ -1,16 +1,28 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
-import { signupSchema, loginSchema } from "../../../../packages/shared-validation/auth.schema";
-import { AuthRequest } from '../../../../packages/shared-types/auth.types';
+import {
+  signupSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  verifyOTPSchema,
+} from '@packages/shared-validation/auth.schema';
+import { AuthRequest } from '@packages/shared-types/auth.types';
 
 export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
       const parsed = signupSchema.parse(req.body);
-      
-      const user = await AuthService.signup(parsed.name,parsed.email, parsed.password);
 
-      return res.status(201).json({ id: user.id, name:user.name, email: user.email });
+      const user = await AuthService.signup(
+        parsed.name,
+        parsed.email,
+        parsed.password
+      );
+
+      return res
+        .status(201)
+        .json({ id: user.id, name: user.name, email: user.email });
     } catch (err: any) {
       return res.status(400).json({ error: err.message });
     }
@@ -19,23 +31,44 @@ export const AuthController = {
   async login(req: Request, res: Response) {
     try {
       const parsed = loginSchema.parse(req.body);
-      
       const result = await AuthService.login(parsed.email, parsed.password);
-
-      return res.json(result);
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 15 * 60 * 1000,
+      });
+      res.cookie('refreshToken', result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      return res.json({ message: 'Login successful' });
     } catch (err: any) {
-      return res.status(400).json({ error: err.message });
+      return res.status(401).json({ error: err.message });
     }
   },
 
   async me(req: AuthRequest, res: Response) {
     try {
       const userId = req.userId;
+      const teamId = req.teamId;
+      const roles = req.roles;
+      const permissions = req.permissions;
+
       if (!userId) {
-        return res.status(401).json({ error: 'Cannot find user' });
+        return res.status(401).json({ error: 'Unauthorized' });
       }
+
       const user = await AuthService.me(userId);
-      return res.json(user);
+
+      return res.status(200).json({
+        ...user,
+        teamId,
+        roles,
+        permissions,
+      });
     } catch (err: any) {
       return res.status(401).json({ error: err.message });
     }
@@ -43,31 +76,71 @@ export const AuthController = {
 
   async refresh(req: Request, res: Response) {
     try {
-      const { refreshToken } = req.body;
+      const refreshToken = req.cookies.refreshToken;
       if (!refreshToken) {
-        res.status(400).json({ error: 'refreshToken cannot be empty' });
+        return res.status(401).json({ error: 'refresh token missing' });
       }
- 
-      const result = await AuthService.refresh(refreshToken);
 
-      return res.json(result);
+      const result = await AuthService.refresh(refreshToken);
+      res.cookie('accessToken', result.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 15 * 60 * 1000,
+      });
+      return res.json({ message: 'Token Refreshed' });
     } catch (err: any) {
       return res.status(401).json({ error: err.message });
     }
   },
-  
+
   async logout(req: AuthRequest, res: Response) {
     try {
       const userId = req.userId;
       if (!userId) {
-        return res.status(400).json({ error: 'User not found' });
+        return res.status(401).json({ error: 'User not authenticated' });
       }
 
       await AuthService.logout(userId);
-      
-      return res.status(200).json({message: "User Logged Out Successfully"});
+      res.clearCookie('accessToken');
+      res.clearCookie('refreshToken');
+      return res.status(200).json({ message: 'User Logged Out Successfully' });
     } catch (err: any) {
       return res.status(401).json({ error: err.message });
+    }
+  },
+  async forgotPassword(req: Request, res: Response) {
+    try {
+      const parsed = forgotPasswordSchema.parse(req.body);
+
+      const result = await AuthService.forgotPassword(parsed.email);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
+    }
+  },
+
+  async resetPassword(req: Request, res: Response) {
+    try {
+      const parsed = resetPasswordSchema.parse(req.body);
+
+      const result = await AuthService.resetPassword(
+        parsed.email,
+        parsed.otp,
+        parsed.newPassword
+      );
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
+    }
+  },
+  async verifyOtp(req: Request, res: Response) {
+    try {
+      const parsed = verifyOTPSchema.parse(req.body);
+      const result = await AuthService.verifyOtp(parsed.email, parsed.otp);
+      return res.json(result);
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
     }
   },
 };
