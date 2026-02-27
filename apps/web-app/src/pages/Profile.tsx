@@ -34,7 +34,7 @@ export default function Profile() {
     return <div className="p-8 text-red-500">Failed to load profile</div>;
   }
 
-  const role = user.Roles?.[0]?.name ?? 'User';
+  const role = user.roles?.[0] ?? 'User';
 
   return (
     <div className="md:flex-1 flex flex-col items-center md:items-start min-h-screen bg-linear-to-br from-blue-50 via-blue-100 to-blue-200 md:p-8 p-3">
@@ -70,7 +70,7 @@ export default function Profile() {
                 className="mt-4 w-full md:w-auto hover:bg-red-500"
                 onClick={async () => {
                   try {
-                    await api.post('/auth/logout');
+                    await api.post('/api/auth/logout');
                   } catch (err) {
                     console.error('Logout failed', err);
                   } finally {
@@ -103,7 +103,7 @@ export default function Profile() {
               <div>
                 <p className="text-sm text-gray-500">Member Since</p>
                 <p className="font-medium text-gray-800">
-                  {new Date(user.created_at).toLocaleDateString()}
+                  {new Date(user.createdAt).toLocaleDateString()}
                 </p>
               </div>
 

@@ -62,7 +62,6 @@ export default function Dashboard() {
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
           <JobRow site="Google.com" status="In Progress" pages="0" />
-          
         </CardContent>
       </Card>
     </div>

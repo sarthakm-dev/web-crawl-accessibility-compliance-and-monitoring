@@ -16,7 +16,7 @@ export const CrawlService = {
 
     const browser = await getBrowser();
     const baseHost = new URL(baseUrl).hostname;
-    const MAX_PAGES = 200;
+    const MAX_PAGES = Number(process.env.MAX_PAGES) || 200;
     let processedCount = 0;
 
     try {
@@ -116,8 +116,6 @@ export const CrawlService = {
     } catch (error) {
       console.error('Crawl job failed:', error);
       await CrawlJobRepository.updateStatus(jobId, 'failed');
-    } finally {
-      await browser.close();
     }
   },
 };
