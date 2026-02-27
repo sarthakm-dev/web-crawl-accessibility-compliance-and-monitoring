@@ -8,7 +8,6 @@ export const authenticate = (
   next: NextFunction
 ) => {
   const token = req.cookies.accessToken;
-  console.log(req.cookies);
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
   }

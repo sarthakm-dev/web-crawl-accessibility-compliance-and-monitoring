@@ -66,4 +66,23 @@ export const SiteController = {
       });
     }
   },
+  async deleteSite(req: Request, res: Response) {
+    try {
+      const response = await axios.delete(
+        `${CRAWL_MANAGER_URL}/sites/${req.params.id}`,
+        {
+          headers: {
+            Cookie: req.headers.cookie || '',
+          },
+          withCredentials: true,
+        }
+      );
+
+      return res.status(response.status).json(response.data);
+    } catch (err: any) {
+      return res.status(err.response?.status || 500).json({
+        error: err.response?.data?.error || err.message,
+      });
+    }
+  },
 };

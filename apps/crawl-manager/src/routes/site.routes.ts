@@ -11,4 +11,10 @@ router.post(
 );
 router.get('/', authenticate, SiteController.getAll);
 router.get('/:id', authenticate, SiteController.getById);
+router.delete(
+  '/:id',
+  authenticate,
+  authorize('site:delete'),
+  SiteController.deleteSite
+);
 export default router;

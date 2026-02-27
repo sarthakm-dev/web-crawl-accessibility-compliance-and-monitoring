@@ -1,5 +1,6 @@
 import { Op } from 'sequelize';
 import { Site } from '@packages/shared-models/site.model';
+import { CrawlJob } from '@packages/shared-models/crawl-job.model';
 
 export const SiteService = {
   async createSite(
@@ -70,5 +71,20 @@ export const SiteService = {
     }
 
     return site;
+  },
+  async deleteSite(teamId: string, id: string) {
+    const site = await Site.findOne({
+      where: { id, team_id: teamId },
+    });
+
+    if (!site) {
+      throw new Error('Site not found');
+    }
+
+    await CrawlJob.destroy({
+      where: { site_id: id },
+    });
+
+    await site.destroy();
   },
 };

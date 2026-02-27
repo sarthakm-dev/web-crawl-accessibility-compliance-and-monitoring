@@ -169,3 +169,31 @@ describe('SiteController', () => {
     });
   });
 });
+describe('SiteController - deleteSite', () => {
+  const mockJson = vi.fn();
+  const mockStatus = vi.fn(() => ({ json: mockJson }));
+
+  const mockRes = {
+    json: mockJson,
+    status: mockStatus,
+  } as any;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should call SiteService.deleteSite and return success message', async () => {
+    const mockReq = {
+      params: { id: 'site-1' },
+      teamId: 'team-1',
+    } as any;
+
+    await SiteController.deleteSite(mockReq, mockRes);
+
+    expect(SiteService.deleteSite).toHaveBeenCalledWith('team-1', 'site-1');
+
+    expect(mockJson).toHaveBeenCalledWith({
+      message: 'Site deleted successfully',
+    });
+  });
+});

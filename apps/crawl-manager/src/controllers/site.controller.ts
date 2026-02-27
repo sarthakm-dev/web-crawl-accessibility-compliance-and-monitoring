@@ -64,4 +64,12 @@ export const SiteController = {
       });
     }
   },
+  async deleteSite(req: Request<{ id: string }>, res: Response) {
+    const teamId = (req as any).teamId;
+    const { id } = req.params;
+
+    await SiteService.deleteSite(teamId, id);
+
+    res.json({ message: 'Site deleted successfully' });
+  },
 };

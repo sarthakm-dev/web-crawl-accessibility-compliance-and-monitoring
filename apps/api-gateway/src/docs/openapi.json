@@ -151,6 +151,125 @@
           }
         }
       }
+    },
+    "/site": {
+      "get": {
+        "summary": "Get all sites",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 5 }
+          }
+        ],
+        "responses": {
+          "200": { "description": "List of sites" },
+          "401": { "description": "Unauthorized" }
+        }
+      },
+      "post": {
+        "summary": "Create a site",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSiteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Site created" },
+          "400": { "description": "Validation error" }
+        }
+      }
+    },
+    "/site/{id}": {
+      "get": {
+        "summary": "Get site by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Site details" },
+          "404": { "description": "Site not found" }
+        }
+      },
+      "delete": {
+        "summary": "Delete site",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Site deleted" },
+          "400": { "description": "Cannot delete site" }
+        }
+      }
+    },
+    "/crawl": {
+      "get": {
+        "summary": "Get all crawl jobs",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 }
+          }
+        ],
+        "responses": {
+          "200": { "description": "List of crawl jobs" }
+        }
+      },
+      "post": {
+        "summary": "Start a crawl job",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCrawlRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Crawl started" },
+          "400": { "description": "Invalid request" }
+        }
+      }
+    },
+    "/crawl/{id}": {
+      "get": {
+        "summary": "Get crawl job by ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Crawl job details" },
+          "404": { "description": "Not found" }
+        }
+      }
     }
   },
   "components": {
