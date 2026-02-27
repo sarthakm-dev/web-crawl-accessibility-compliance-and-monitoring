@@ -142,4 +142,22 @@ describe('CrawlController', () => {
       message: 'Invalid query',
     });
   });
+  it('should return 400 if id is missing in deleteSite', async () => {
+    const req = {
+      params: {},
+      teamId: 'team-1',
+    } as any;
+
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    } as any;
+
+    await CrawlController.getById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Id is required',
+    });
+  });
 });

@@ -54,8 +54,11 @@ export const SiteController = {
   async getById(req: Request<{ id: string }>, res: Response) {
     try {
       const teamId = (req as any).teamId;
-
-      const site = await SiteService.getSiteById(teamId, req.params.id);
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ error: 'Id is required' });
+      }
+      const site = await SiteService.getSiteById(teamId, id);
 
       return res.status(200).json(site);
     } catch (err: any) {
@@ -65,11 +68,19 @@ export const SiteController = {
     }
   },
   async deleteSite(req: Request<{ id: string }>, res: Response) {
-    const teamId = (req as any).teamId;
-    const { id } = req.params;
+    try {
+      const teamId = (req as any).teamId;
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ error: 'Id is required' });
+      }
+      await SiteService.deleteSite(teamId, id);
 
-    await SiteService.deleteSite(teamId, id);
-
-    res.json({ message: 'Site deleted successfully' });
+      return res.json({ message: 'Site deleted successfully' });
+    } catch (err: any) {
+      return res.status(err.message === 'Site not found' ? 404 : 400).json({
+        error: err.message,
+      });
+    }
   },
 };

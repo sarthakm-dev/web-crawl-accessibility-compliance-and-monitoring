@@ -196,4 +196,78 @@ describe('SiteController - deleteSite', () => {
       message: 'Site deleted successfully',
     });
   });
+  it('should return 404 if site not found in getById', async () => {
+    const req = {
+      params: { id: '123' },
+      teamId: 'team-1',
+    } as any;
+
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    } as any;
+
+    (SiteService.getSiteById as any).mockRejectedValue(
+      new Error('Site not found')
+    );
+
+    await SiteController.getById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+  it('should return 404 if site not found in deleteSite', async () => {
+    const req = {
+      params: { id: '123' },
+      teamId: 'team-1',
+    } as any;
+
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    } as any;
+
+    (SiteService.deleteSite as any).mockRejectedValue(
+      new Error('Site not found')
+    );
+
+    await SiteController.deleteSite(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+  it('should return 400 if id is missing in deleteSite', async () => {
+    const req = {
+      params: {},
+      teamId: 'team-1',
+    } as any;
+
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    } as any;
+
+    await SiteController.deleteSite(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Id is required',
+    });
+  });
+  it('should return 400 if id is missing in getById', async () => {
+    const req = {
+      params: {},
+      teamId: 'team-1',
+    } as any;
+
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    } as any;
+
+    await SiteController.getById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      error: 'Id is required',
+    });
+  });
 });

@@ -29,7 +29,11 @@ export const CrawlController = {
 
   async getById(req: Request<{ id: string }>, res: Response) {
     try {
-      const result = await CrawlService.getCrawlById(req.params.id);
+      const { id } = req.params;
+      if (!id) {
+        return res.status(400).json({ error: 'Id is required' });
+      }
+      const result = await CrawlService.getCrawlById(id);
       return res.status(200).json(result);
     } catch (error: any) {
       return res
