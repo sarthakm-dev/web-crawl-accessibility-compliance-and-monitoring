@@ -60,7 +60,7 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
-      <Toaster />
+      <Toaster richColors/>
     </>
   );
 }

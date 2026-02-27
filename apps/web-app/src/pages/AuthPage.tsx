@@ -5,10 +5,7 @@ import { type Mode } from "../../../../packages/shared-types/auth.types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/api",
-  withCredentials: true,
-});
+import api from "../utils/api";
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -73,7 +70,7 @@ export default function AuthPage() {
 
     try {
       if (mode === "login") {
-        await api.post("/auth/login", { email, password });
+        await api.post("/api/auth/login", { email, password });
 
         toast.success("Login Successful");
 
@@ -81,15 +78,15 @@ export default function AuthPage() {
       }
 
       else if (mode === "signup") {
-        await api.post("/auth/signup", { name, email, password });
+        await api.post("/api/auth/signup", { name, email, password });
 
         toast.success("Account Created");
 
-        navigate("/dashboard");
+        navigate("/");
       }
 
       else if (mode === "forgot") {
-        await api.post("/auth/forgot-password", { email });
+        await api.post("/api/auth/forgot-password", { email });
 
         toast.success("OTP Sent");
 
@@ -97,7 +94,7 @@ export default function AuthPage() {
       }
 
       else if (mode === "otp") {
-        await api.post("/auth/verify-otp", { email, otp });
+        await api.post("/api/auth/verify-otp", { email, otp });
 
         toast.success("OTP Verified");
 
@@ -105,7 +102,7 @@ export default function AuthPage() {
       }
 
       else if (mode === "reset") {
-        await api.post("/auth/reset-password", {
+        await api.post("/api/auth/reset-password", {
           email,
           otp,
           newPassword: password,
