@@ -31,9 +31,20 @@ import {
   DialogFooter,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
-import PlayIcon from "@/assets/icons/play.svg?react";
+import { BugIcon, TrashIcon } from 'lucide-react';
 
 export default function SitesPage() {
   const navigate = useNavigate();
@@ -145,7 +156,7 @@ export default function SitesPage() {
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               {hasPermission('site:create') && (
-                <Button className="bg-blue-700 rounded-lg shadow-sm hover:bg-primary/90">
+                <Button className="bg-blue-700 hover:bg-blue-800 rounded-lg shadow-sm">
                   + Add Site
                 </Button>
               )}
@@ -207,12 +218,15 @@ export default function SitesPage() {
             <Table className="border-none">
               <TableHeader>
                 <TableRow className="bg-muted/50 border-none">
-                  <TableHead className='text-center'>Name</TableHead>
-                  <TableHead className='text-center'>Base URL</TableHead>
-                  <TableHead className='text-center'>Status</TableHead>
-                  <TableHead className='text-center'>Created At</TableHead>
+                  <TableHead className="text-center">Name</TableHead>
+                  <TableHead className="text-center">Base URL</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-center">Created At</TableHead>
                   {hasPermission('crawl:trigger') && (
-                    <TableHead className='text-center'>Start Crawl</TableHead>
+                    <TableHead className="text-center">Start Crawl</TableHead>
+                  )}
+                  {hasPermission('site:delete') && (
+                    <TableHead className="text-center">Delete</TableHead>
                   )}
                 </TableRow>
               </TableHeader>
@@ -251,13 +265,15 @@ export default function SitesPage() {
                       onClick={() => navigate(`/sites/${site.id}`)}
                       className="cursor-pointer border-none hover:bg-muted/40 transition-colors"
                     >
-                      <TableCell className="font-medium text-center">{site.name}</TableCell>
+                      <TableCell className="font-medium text-center">
+                        {site.name}
+                      </TableCell>
 
                       <TableCell className="text-muted-foreground text-center">
                         {site.base_url}
                       </TableCell>
 
-                      <TableCell className='text-center'>
+                      <TableCell className="text-center">
                         <Badge
                           variant="secondary"
                           className={
@@ -265,7 +281,6 @@ export default function SitesPage() {
                               ? 'bg-green-100 text-green-700 hover:bg-green-100'
                               : 'bg-gray-100 text-gray-600'
                           }
-                          
                         >
                           {site.is_active ? 'Active' : 'Inactive'}
                         </Badge>
@@ -273,31 +288,71 @@ export default function SitesPage() {
 
                       <TableCell className="text-muted-foreground text-center">
                         {new Date(site.created_at).toLocaleDateString()}
-                      </TableCell >
-                      {hasPermission('crawl:trigger') && (<TableCell className='text-center'>
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={async e => {
-                            e.stopPropagation();
+                      </TableCell>
+                      {hasPermission('crawl:trigger') && (
+                        <TableCell className="text-center">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            onClick={async e => {
+                              e.stopPropagation();
 
-                            try {
-                              await api.post('/api/crawl', {
-                                siteId: site.id,
-                                triggerType: 'manual',
-                              });
+                              try {
+                                await api.post('/api/crawl', {
+                                  siteId: site.id,
+                                  triggerType: 'manual',
+                                });
 
-                              toast.success('Crawl started successfully');
-                            } catch (err) {
-                              console.error(err);
-                              toast.error('Failed to start crawl');
-                            }
-                          }}
-                       
-                        >
-                          <PlayIcon />
-                        </Button>
-                      </TableCell>)}
+                                toast.success('Crawl started successfully');
+                              } catch (err) {
+                                console.error(err);
+                                toast.error('Failed to start crawl');
+                              }
+                            }}
+                            className="cursor-pointer"
+                          >
+                            <BugIcon className="text-blue-700" />
+                          </Button>
+                        </TableCell>
+                      )}
+                      <TableCell className='text-center'>
+                        {hasPermission('site:delete') && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="icon" onClick={(e)=>e.stopPropagation()}>
+                                <TrashIcon className='text-red-500'/>
+                              </Button>
+                            </AlertDialogTrigger>
+
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete this site?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    await api.delete(`/api/site/${site.id}`);
+                                    setSites(prev =>
+                                      prev.filter(s => s.id !== site.id)
+                                    );
+                                  }}
+                                  className='bg-red-500 hover:bg-red-600'
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

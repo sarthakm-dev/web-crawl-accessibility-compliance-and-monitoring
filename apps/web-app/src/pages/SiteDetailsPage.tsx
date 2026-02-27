@@ -43,7 +43,19 @@ export default function SiteDetailsPage() {
 
     fetchData();
   }, [id]);
-
+  useEffect(()=> {
+   const fetchJobs = async () => {
+      try {
+        const crawlRes = await api.get(`/api/crawl?siteId=${id}&page=1&limit=10`);
+        setJobs(crawlRes.data.data ?? []);
+      } catch {
+        toast.error("Failed to load site");
+      }
+    };
+    fetchJobs();
+    const interval = setInterval(fetchJobs,5000);
+    return ()=> clearInterval(interval);
+  },[id]);  
   const startCrawl = async () => {
     try {
       await api.post("/api/crawl", {
@@ -162,11 +174,11 @@ export default function SiteDetailsPage() {
                       </TableCell>
 
                       <TableCell className="text-center">
-                        {job.trigger_type}
+                        {job.triggerType}
                       </TableCell>
 
                       <TableCell className="text-center">
-                        {new Date(job.created_at).toLocaleDateString()}
+                        {new Date(job.createdAt).toLocaleDateString()}
                       </TableCell>
                     </TableRow>
                   ))
