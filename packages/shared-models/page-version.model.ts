@@ -11,6 +11,7 @@ export class PageVersion extends Model {
   public content_size!: number;
   public html_content!: string;
   public crawled_at!: Date;
+  public analysis_status!: 'pending' | 'completed' | 'failed';
 }
 
 PageVersion.init(
@@ -39,6 +40,11 @@ PageVersion.init(
     crawled_at: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
+    },
+    analysis_status: {
+      type: DataTypes.ENUM('pending', 'completed', 'failed'),
+      allowNull: false,
+      defaultValue: 'pending',
     },
   },
   {
