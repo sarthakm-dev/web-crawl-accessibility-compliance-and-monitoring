@@ -18,7 +18,7 @@ PageVersion.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: sequelize.literal('uuid_generate_v4()'),
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     page_id: {
@@ -51,5 +51,11 @@ PageVersion.init(
     sequelize,
     tableName: 'page_versions',
     timestamps: false,
+    indexes: [
+      {
+        unique: true,
+        fields: ['page_id', 'content_hash'],
+      },
+    ],
   }
 );

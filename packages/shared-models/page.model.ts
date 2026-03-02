@@ -14,7 +14,7 @@ Page.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: sequelize.literal('uuid_generate_v4()'),
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     site_id: {
@@ -40,5 +40,11 @@ Page.init(
     tableName: 'pages',
     underscored: true,
     timestamps: false,
+    indexes: [
+      {
+        unique: true,
+        fields: ['site_id', 'url'],
+      },
+    ],
   }
 );
