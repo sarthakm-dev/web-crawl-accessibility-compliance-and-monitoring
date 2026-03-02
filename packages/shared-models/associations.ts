@@ -77,6 +77,12 @@ export function setupAssociations() {
   IssueStatusHistory.belongsTo(IssueInstance, {
     foreignKey: 'issue_instance_id',
   });
+  IssueStatusHistory.belongsTo(User, {
+    foreignKey: 'changed_by',
+  });
+  User.hasMany(IssueStatusHistory, {
+    foreignKey: 'changed_by',
+  });
   IssueNote.belongsTo(User, {
     foreignKey: 'user_id',
   });
