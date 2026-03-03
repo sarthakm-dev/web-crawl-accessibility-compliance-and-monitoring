@@ -52,9 +52,13 @@ export const IssuesRepository = {
         {
           model: IssueStatusHistory,
           include: [User],
+          separate: true,
+          order: [['changed_at', 'ASC']],
         },
         {
           model: IssueNote,
+          separate: true,
+          order: [['created_at', 'DESC']],
           include: [User],
         },
       ],
