@@ -6,6 +6,7 @@ import { Site } from '@packages/shared-models/site.model';
 import { IssueNote } from '@packages/shared-models/issue-note.model';
 import { IssueStatusHistory } from '@packages/shared-models/issue-status-history.model';
 import { User } from '@packages/shared-models/user.model';
+import { sequelize } from '@packages/shared-config/database';
 import { Op } from 'sequelize';
 
 export const IssuesRepository = {
@@ -71,5 +72,40 @@ export const IssuesRepository = {
 
   async createNote(data: any) {
     return IssueNote.create(data);
+  },
+  async updateStatusWithHistory(
+    issueId: string,
+    userId: string,
+    newStatus: string,
+    note?: string
+  ) {
+    const transaction = await sequelize.transaction();
+
+    try {
+      const issue = await IssueInstance.findByPk(issueId, { transaction });
+      if (!issue) throw new Error('Issue not found');
+
+      const previousStatus = issue.current_status;
+
+      await issue.update({ current_status: newStatus }, { transaction });
+
+      await IssueStatusHistory.create(
+        {
+          issue_instance_id: issueId,
+          previous_status: previousStatus,
+          new_status: newStatus,
+          changed_by: userId,
+          changed_at: new Date(),
+          note: note ?? null,
+        },
+        { transaction }
+      );
+
+      await transaction.commit();
+      return issue;
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   },
 };
