@@ -3,16 +3,16 @@ import { Badge } from '@/components/ui/badge';
 import { Check } from 'lucide-react';
 import { getImpactColor, getStatusColor } from '@/utils/color';
 import { useAuthStore } from '@/store/authStore';
-import { statusOptions } from '@/config/issue-config';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import type { IssuesTableProps } from '../../../../../packages/shared-types/issue.types';
+import type { Issue, IssuesTableProps } from '../../../../../packages/shared-types/issue.types';
 import { useCallback, useEffect, useState } from 'react';
 import { TableFilters } from '../common/TableFilters';
+import { issueFilterConfig } from '@/config/table-filter-config';
 
 export function IssuesCardList({
   issues,
@@ -56,9 +56,10 @@ export function IssuesCardList({
 
       {/* Filters */}
       <TableFilters
-        search={search}
+        search={searchInput}
         status={status}
         limit={limit}
+        statusOptions={issueFilterConfig.statusOptions}
         searchPlaceholder="Search issues..."
         onSearchChange={setSearchInput}
         onStatusChange={value => updateParams({ status: value })}
@@ -92,16 +93,16 @@ export function IssuesCardList({
                       </DropdownMenuTrigger>
 
                       <DropdownMenuContent>
-                        {statusOptions.map(status => (
+                        {issueFilterConfig.statusOptions.map(status => (
                           <DropdownMenuItem
-                            key={status}
-                            onClick={() => onStatusChange(issue.id, status)}
+                            key={status.label}
+                            onClick={() => onStatusChange(issue.id, status.value as Issue['status'])}
                             className="capitalize"
                           >
-                            {issue.status === status && (
+                            {issue.status === status.value && (
                               <Check className="h-4 w-4" />
                             )}
-                            {status.replace('_', ' ')}
+                            {status.label.replace('_', ' ')}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>

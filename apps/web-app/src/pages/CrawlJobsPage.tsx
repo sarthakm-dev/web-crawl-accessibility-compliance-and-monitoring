@@ -15,6 +15,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/utils/api';
 import { type CrawlJob } from '../../../../packages/shared-types/crawl-job.types';
 import { RefreshCwIcon } from 'lucide-react';
+import { toast } from 'sonner';
+import axios from 'axios';
+import { statusConfig } from '@/config/status-config';
+import { columns } from '@/config/crawl-job-columns';
 
 export default function CrawlJobsPage() {
   const [jobs, setJobs] = useState<CrawlJob[]>([]);
@@ -24,46 +28,29 @@ export default function CrawlJobsPage() {
   const search = searchParams.get('search') || '';
   const page = Number(searchParams.get('page')) || 1;
   const limit = Number(searchParams.get('limit')) || 5;
-
   const status = searchParams.get('status') || 'all';
+
   const fetchJobs = useCallback(async () => {
-      setLoading(true);
-      try {
-        const res = await api.get(`/api/crawl?page=${page}`);
-        setJobs(res.data.data ?? []);
-        setTotalPages(res.data.pagination.totalPages);
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    try {
+      const res = await api.get(`/api/crawl?page=${page}&limit=${limit}`);
+      setJobs(res.data.data ?? []);
+      setTotalPages(res.data.pagination.totalPages);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        toast.error(
+          `${err.response?.data.error || err.response?.data.message || 'Something went wrong'}`
+        );
+      } else {
+        toast.error('Unexpected Error');
       }
-    },[page]);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, limit]);
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-            Completed
-          </Badge>
-        );
-      case 'failed':
-        return (
-          <Badge className="bg-red-100 text-red-700 hover:bg-red-100">
-            Failed
-          </Badge>
-        );
-      case 'running':
-        return (
-          <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100">
-            Running
-          </Badge>
-        );
-      default:
-        return <Badge>{status}</Badge>;
-    }
-  };
 
   return (
     <div className="p-8 space-y-8">
@@ -81,22 +68,21 @@ export default function CrawlJobsPage() {
           size="icon"
           onClick={fetchJobs}
           disabled={loading}
-          className='gap-2 text-blue-700'
+          className="gap-2 text-blue-700"
         >
-          <RefreshCwIcon/>
+          <RefreshCwIcon />
         </Button>
       </div>
-
+      {/* Crawl Jobs table */}
       <Card className="border-none rounded-xl shadow-sm bg-background/60 backdrop-blur-sm">
         <Table className="rounded-xl">
           <TableHeader>
-            <TableRow className="border-b bg-muted texe-center border-muted">
-              <TableHead className="text-center">Crawl ID</TableHead>
-              <TableHead className="text-center">Site Name</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-center">Trigger Type</TableHead>
-              <TableHead className="text-center">Requested By</TableHead>
-              <TableHead className="text-center">Created At</TableHead>
+            <TableRow className="border-b bg-muted border-muted">
+              {columns.map(col => (
+                <TableHead key={col.key} className="text-center">
+                  {col.label}
+                </TableHead>
+              ))}
             </TableRow>
           </TableHeader>
 
@@ -104,24 +90,11 @@ export default function CrawlJobsPage() {
             {loading
               ? [...Array(limit)].map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell>
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-24" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-32" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-4 w-28" />
-                    </TableCell>
+                    {columns.map((_, idx) => (
+                      <TableCell className="text-center" key={idx}>
+                        <Skeleton className="h-4 w-32" />
+                      </TableCell>
+                    ))}
                   </TableRow>
                 ))
               : jobs.map(job => (
@@ -130,7 +103,7 @@ export default function CrawlJobsPage() {
                     className="hover:bg-muted/40 bg-background border-none transition cursor-pointer"
                   >
                     <TableCell className="font-medium text-center">
-                      {job.id.slice(0, 8)}...
+                      {job.id}
                     </TableCell>
 
                     <TableCell className="text-muted-foreground text-center">
@@ -138,7 +111,9 @@ export default function CrawlJobsPage() {
                     </TableCell>
 
                     <TableCell className="text-center">
-                      {getStatusBadge(job.status)}
+                      <Badge className={statusConfig[job.status].className}>
+                        {statusConfig[job.status].label}
+                      </Badge>
                     </TableCell>
 
                     <TableCell className="text-center">

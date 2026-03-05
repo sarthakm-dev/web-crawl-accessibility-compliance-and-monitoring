@@ -30,7 +30,7 @@ import { useState } from 'react';
 import { getImpactColor, getStatusColor } from '@/utils/color';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuthStore } from '@/store/authStore';
-import { statusOptions } from '@/config/issue-config';
+import { issueFilterConfig } from '@/config/table-filter-config';
 
 export function IssueDetailsSheet({
   issue,
@@ -116,9 +116,9 @@ export function IssueDetailsSheet({
                 </SelectTrigger>
 
                 <SelectContent>
-                  {statusOptions.map(status => (
-                    <SelectItem value={status} className="capitalize">
-                      {status.replace('_', ' ')}
+                  {issueFilterConfig.statusOptions.map(status => (
+                    <SelectItem key={status.label} value={status.value} className="capitalize">
+                      {status.value.replace('_', ' ')}
                     </SelectItem>
                   ))}
                 </SelectContent>

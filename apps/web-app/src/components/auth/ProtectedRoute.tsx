@@ -16,7 +16,6 @@ export default function ProtectedRoute({
         const res = await api.get("/api/auth/me");
         setIsAuthenticated(true);
         setUser(res.data);
-        console.log(res.data);
       } catch {
         setIsAuthenticated(false);
       }
