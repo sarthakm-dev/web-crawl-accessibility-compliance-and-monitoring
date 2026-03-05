@@ -28,7 +28,9 @@ import {
 } from '../../../../../packages/shared-types/issue.types';
 import { useState } from 'react';
 import { getImpactColor, getStatusColor } from '@/utils/color';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuthStore } from '@/store/authStore';
+import { statusOptions } from '@/config/issue-config';
 
 export function IssueDetailsSheet({
   issue,
@@ -109,22 +111,23 @@ export function IssueDetailsSheet({
                   onStatusChange(issue.id, value as IssueStatus)
                 }
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full capitalize">
                   <SelectValue />
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
+                  {statusOptions.map(status => (
+                    <SelectItem value={status} className="capitalize">
+                      {status.replace('_', ' ')}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           )}
 
           {/*  Progress Timeline  */}
-          <div className="px-6 space-y-4">
+          <div className="space-y-4">
             <p className="text-sm font-semibold">Progress</p>
 
             <Timeline
@@ -188,7 +191,7 @@ export function IssueDetailsSheet({
 
           {/*  Comments  */}
           {hasPermission('issue:update') && (
-            <div className="bg-background rounded-2xl px-6 space-y-6">
+            <div className="bg-background rounded-2xl space-y-6">
               <p className="text-sm font-semibold">Comments</p>
 
               <div className="space-y-4">
@@ -214,7 +217,7 @@ export function IssueDetailsSheet({
               </div>
 
               <div className="space-y-3">
-                <textarea
+                <Textarea
                   value={comment}
                   onChange={e => setComment(e.target.value)}
                   placeholder="Write a comment..."

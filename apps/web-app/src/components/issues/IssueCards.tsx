@@ -11,16 +11,40 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import type { IssuesTableProps } from '../../../../../packages/shared-types/issue.types';
+import { useCallback, useEffect, useState } from 'react';
+import { TableFilters } from '../common/TableFilters';
 
 export function IssuesCardList({
   issues,
   onSelect,
   onStatusChange,
+  search,
+  status,
+  limit,
+  setSearchParams,
 }: IssuesTableProps) {
   const hasPermission = useAuthStore(state => state.hasPermission);
-
+  const [searchInput, setSearchInput] = useState(search);
+  const updateParams = useCallback(
+    (params: Record<string, string>) => {
+      setSearchParams({
+        page: '1',
+        limit: limit.toString(),
+        search,
+        status,
+        ...params,
+      });
+    },
+    [setSearchParams, limit, search, status]
+  );
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      updateParams({ search: searchInput });
+    }, 500);
+    return () => clearTimeout(timeout);
+  }, [searchInput, updateParams]);
   return (
-    <div className="space-y-4">
+    <div className="max-w-6xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">Issues</h1>
@@ -29,6 +53,18 @@ export function IssuesCardList({
           </p>
         </div>
       </div>
+
+      {/* Filters */}
+      <TableFilters
+        search={search}
+        status={status}
+        limit={limit}
+        searchPlaceholder="Search issues..."
+        onSearchChange={setSearchInput}
+        onStatusChange={value => updateParams({ status: value })}
+        onLimitChange={value => updateParams({ limit: value })}
+      />
+
       {issues.map(issue => (
         <Card
           key={issue.id}
@@ -51,7 +87,7 @@ export function IssuesCardList({
                         <Badge
                           className={`${getStatusColor(issue.status)} capitalize`}
                         >
-                          {issue.status.replace("_"," ")}
+                          {issue.status.replace('_', ' ')}
                         </Badge>
                       </DropdownMenuTrigger>
 

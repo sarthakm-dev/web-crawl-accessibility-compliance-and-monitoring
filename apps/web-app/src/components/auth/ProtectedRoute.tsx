@@ -23,7 +23,7 @@ export default function ProtectedRoute({
     };
 
     checkAuth();
-  }, []);
+  }, [setUser]);
 
   if (isAuthenticated === null) {
     return <div className="p-10">Checking authentication...</div>;
