@@ -6,7 +6,7 @@ import {
   type IssueDetail,
   type Issue,
   type IssueDetailApiResponse,
-} from '../../../../packages/shared-types/issue.types';
+} from '../types/issue.types';
 import api from '@/utils/api';
 import { mapIssueDetail, mapIssue } from '@/utils/mapper';
 import { PaginationControls } from '@/components/common/Pagination';
@@ -21,7 +21,7 @@ export default function IssuesPage() {
   const page = Number(searchParams.get('page') || 1);
   const limit = Number(searchParams.get('limit') || 10);
   const search = searchParams.get('search') || '';
-  const status = searchParams.get('status') || '';
+  const status = searchParams.get('status') || 'all';
 
   const [total, setTotal] = useState(0);
 
@@ -71,7 +71,6 @@ export default function IssuesPage() {
   return (
     <div className="p-6 space-y-6">
       
-
       {/* Issues */}
       <IssuesCardList
         issues={issues}

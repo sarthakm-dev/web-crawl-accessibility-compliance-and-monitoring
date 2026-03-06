@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import {
   type Props,
   type IssueStatus,
-} from '../../../../../packages/shared-types/issue.types';
+} from '../../types/issue.types';
 import { useState } from 'react';
 import { getImpactColor, getStatusColor } from '@/utils/color';
 import { Textarea } from '@/components/ui/textarea';
@@ -42,7 +42,7 @@ export function IssueDetailsSheet({
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
   const hasPermission = useAuthStore(state => state.hasPermission);
-
+  console.log(issue);
   if (!issue) return null;
 
   const handleAddComment = async () => {
@@ -72,7 +72,7 @@ export function IssueDetailsSheet({
         }`}
       >
         {/* Header */}
-        <SheetHeader className="pb-6">
+        <SheetHeader className="pb-2">
           <SheetTitle className="text-lg font-semibold">
             Issue Details
           </SheetTitle>
@@ -85,10 +85,25 @@ export function IssueDetailsSheet({
               {issue.title}
             </h2>
 
-            <p className="text-sm text-muted-foreground break-all">
-              {issue.url}
-            </p>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="text-shadow-muted-foreground font-medium">
+                  WCAG Reference
+                </span>
+                <p className="font-normal wrap-break-word">
+                  {issue.wcag_reference?.split(',').join(', ')}
+                </p>
+              </div>
 
+              <div>
+                <span className="text-shadow-muted-foreground font-medium">
+                  Element
+                </span>
+                <p className="font-mono text-xs bg-muted px-2 py-1 rounded w-fit">
+                  {issue.selector}
+                </p>
+              </div>
+            </div>
             <div className="flex items-center gap-3">
               <Badge className={`${getImpactColor(issue.impact)} capitalize`}>
                 {issue.impact}
@@ -117,7 +132,11 @@ export function IssueDetailsSheet({
 
                 <SelectContent>
                   {issueFilterConfig.statusOptions.map(status => (
-                    <SelectItem key={status.label} value={status.value} className="capitalize">
+                    <SelectItem
+                      key={status.label}
+                      value={status.value}
+                      className="capitalize"
+                    >
                       {status.value.replace('_', ' ')}
                     </SelectItem>
                   ))}

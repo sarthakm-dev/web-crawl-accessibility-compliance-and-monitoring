@@ -9,7 +9,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import type { Issue, IssuesTableProps } from '../../../../../packages/shared-types/issue.types';
+import type {
+  Issue,
+  IssuesTableProps,
+} from '../../types/issue.types';
 import { useCallback, useEffect, useState } from 'react';
 import { TableFilters } from '../common/TableFilters';
 import { issueFilterConfig } from '@/config/table-filter-config';
@@ -28,21 +31,33 @@ export function IssuesCardList({
   const updateParams = useCallback(
     (params: Record<string, string>) => {
       setSearchParams({
-        page: '1',
-        limit: limit.toString(),
-        search,
-        status,
-        ...params,
+        page: params.page ?? '1',
+        limit: params.limit ?? limit.toString(),
+        search: params.search ?? search,
+        status: params.status ?? status,
       });
     },
     [setSearchParams, limit, search, status]
   );
   useEffect(() => {
     const timeout = setTimeout(() => {
-      updateParams({ search: searchInput });
+      const params = new URLSearchParams(window.location.search);
+      const currentPage = params.get('page') || '1';
+
+      setSearchParams({
+        page: currentPage,
+        limit: limit.toString(),
+        search: searchInput,
+        status,
+      });
     }, 500);
+
     return () => clearTimeout(timeout);
-  }, [searchInput, updateParams]);
+  }, [searchInput, setSearchParams, limit, status]);
+
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
   return (
     <div className="max-w-6xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
@@ -60,6 +75,7 @@ export function IssuesCardList({
         status={status}
         limit={limit}
         statusOptions={issueFilterConfig.statusOptions}
+        limitOptions={issueFilterConfig.limitOptions}
         searchPlaceholder="Search issues..."
         onSearchChange={setSearchInput}
         onStatusChange={value => updateParams({ status: value })}
@@ -96,7 +112,12 @@ export function IssuesCardList({
                         {issueFilterConfig.statusOptions.map(status => (
                           <DropdownMenuItem
                             key={status.label}
-                            onClick={() => onStatusChange(issue.id, status.value as Issue['status'])}
+                            onClick={() =>
+                              onStatusChange(
+                                issue.id,
+                                status.value as Issue['status']
+                              )
+                            }
                             className="capitalize"
                           >
                             {issue.status === status.value && (
@@ -118,8 +139,10 @@ export function IssuesCardList({
               <p className="text-sm text-muted-foreground break-all line-clamp-1">
                 {issue.url}
               </p>
-
-              <p className="text-xs text-muted-foreground">
+              <p className='text-sm text-muted-foreground break-all'>
+                Element: {issue.selector}
+              </p>
+              <p className="text-sm text-muted-foreground">
                 First detected: {issue.firstDetected}
               </p>
             </div>

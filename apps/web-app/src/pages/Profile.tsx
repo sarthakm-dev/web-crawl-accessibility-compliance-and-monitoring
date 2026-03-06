@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { type UserType } from '../../../../packages/shared-types/user.types';
 import api from '@/utils/api';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -74,14 +76,14 @@ export default function Profile() {
                   } catch (err) {
                     console.error('Logout failed', err);
                   } finally {
-                    window.location.href = '/';
+                    navigate('/');
                   }
                 }}
               >
                 Logout
               </Button>
             </div>
-
+            {/* Profile Card */}
             <div className="md:space-y-6 space-y-2 p-12">
               <div>
                 <p className="text-sm text-gray-500">Full Name</p>

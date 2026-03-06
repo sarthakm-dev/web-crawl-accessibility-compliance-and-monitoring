@@ -12,13 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/utils/api';
 import { useCallback } from 'react';
@@ -41,10 +35,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from '@/components/ui/alert-dialog';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { BugIcon, TrashIcon } from 'lucide-react';
+import axios from 'axios';
+import { TableFilters } from '@/components/common/TableFilters';
+import { siteFilterConfig } from '@/config/table-filter-config';
+import { columns } from '@/config/site-columns';
+import { PaginationControls } from '@/components/common/Pagination';
 
 export default function SitesPage() {
   const navigate = useNavigate();
@@ -62,25 +61,30 @@ export default function SitesPage() {
 
   const status = searchParams.get('status') || 'all';
   const hasPermission = useAuthStore(state => state.hasPermission);
-  useEffect(() => {
-    const fetchSites = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get(
-          `/api/site?page=${page}&limit=${limit}&search=${search}&status=${status}`
+  const fetchSites = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get(
+        `/api/site?page=${page}&limit=${limit}&search=${search}&status=${status}`
+      );
+      setSites(res.data.data ?? []);
+      setTotalPages(res.data.pagination.totalPages);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        toast.error(
+          `${err.response?.data.error || err.response?.data.message || 'Something went wrong'}`
         );
-        console.log(res.data);
-        setSites(res.data.data ?? []);
-        setTotalPages(res.data.pagination.totalPages);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+      } else {
+        toast.error('Unexpected Error');
       }
-    };
-
-    fetchSites();
+    } finally {
+      setLoading(false);
+    }
   }, [page, limit, search, status]);
+
+  useEffect(() => {
+    fetchSites();
+  }, [fetchSites]);
 
   const updateParams = useCallback(
     (params: Record<string, string>) => {
@@ -101,10 +105,19 @@ export default function SitesPage() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      updateParams({ search: searchInput });
+      const params = new URLSearchParams(window.location.search);
+      const currentPage = params.get('page') || '1';
+
+      setSearchParams({
+        page: currentPage,
+        limit: limit.toString(),
+        search: searchInput,
+        status,
+      });
     }, 500);
+
     return () => clearTimeout(timeout);
-  }, [searchInput, updateParams]);
+  }, [searchInput, setSearchParams, limit, status]);
 
   return (
     <div className="min-h-screen bg-muted/40 p-8">
@@ -117,42 +130,22 @@ export default function SitesPage() {
             </p>
           </div>
         </div>
-
-        <div className="flex flex-wrap items-center gap-4 bg-transparent shadow-none rounded-xl border-none">
-          <Input
-            placeholder="Search sites..."
-            value={searchInput}
-            onChange={e => setSearchInput(e.target.value)}
-            className="w-72 bg-background"
+        {/* Filter */}
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Search Sites */}
+          <TableFilters
+            search={searchInput}
+            status={status}
+            limit={limit}
+            statusOptions={siteFilterConfig.statusOptions}
+            limitOptions={siteFilterConfig.limitOptions}
+            searchPlaceholder="Search sites..."
+            onSearchChange={setSearchInput}
+            onStatusChange={value => updateParams({ status: value })}
+            onLimitChange={value => updateParams({ limit: value })}
           />
 
-          <Select
-            value={status}
-            onValueChange={(value: string) => updateParams({ status: value })}
-          >
-            <SelectTrigger className="w-40 bg-background">
-              <SelectValue placeholder="Filter Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={limit.toString()}
-            onValueChange={(value: string) => updateParams({ limit: value })}
-          >
-            <SelectTrigger className="w-28 bg-background">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Add Site */}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               {hasPermission('site:create') && (
@@ -161,7 +154,6 @@ export default function SitesPage() {
                 </Button>
               )}
             </DialogTrigger>
-
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Add New Site</DialogTitle>
@@ -196,7 +188,7 @@ export default function SitesPage() {
                     setOpen(false);
                     setName('');
                     setBaseUrl('');
-                    window.location.reload();
+                    await fetchSites();
                   }}
                   className="bg-blue-700 hover:bg-blue-800 shadow-sm"
                 >
@@ -206,7 +198,7 @@ export default function SitesPage() {
             </DialogContent>
           </Dialog>
         </div>
-
+        {/* Table */}
         <Card className="rounded-xl border-none shadow-sm">
           <CardContent className="p-0">
             {loading && (
@@ -235,18 +227,11 @@ export default function SitesPage() {
                 {loading && sites.length === 0 ? (
                   [...Array(limit)].map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell>
-                        <Skeleton className="h-4 w-32" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-40" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-20" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-24" />
-                      </TableCell>
+                      {columns.map((_, idx) => (
+                        <TableCell className="text-center" key={idx}>
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                      ))}
                     </TableRow>
                   ))
                 ) : sites.length === 0 ? (
@@ -304,8 +289,7 @@ export default function SitesPage() {
                                 });
 
                                 toast.success('Crawl started successfully');
-                              } catch (err) {
-                                console.error(err);
+                              } catch {
                                 toast.error('Failed to start crawl');
                               }
                             }}
@@ -315,12 +299,17 @@ export default function SitesPage() {
                           </Button>
                         </TableCell>
                       )}
-                      <TableCell className='text-center'>
-                        {hasPermission('site:delete') && (
+                      {hasPermission('site:delete') && (
+                        <TableCell className="text-center">
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="icon" onClick={(e)=>e.stopPropagation()}>
-                                <TrashIcon className='text-red-500'/>
+                              <Button
+                                variant="outline"
+                                className="cursor-pointer"
+                                size="icon"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <TrashIcon className="text-red-500" />
                               </Button>
                             </AlertDialogTrigger>
 
@@ -337,22 +326,22 @@ export default function SitesPage() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={async (e) => {
+                                  onClick={async e => {
                                     e.stopPropagation();
                                     await api.delete(`/api/site/${site.id}`);
                                     setSites(prev =>
                                       prev.filter(s => s.id !== site.id)
                                     );
                                   }}
-                                  className='bg-red-500 hover:bg-red-600'
+                                  className="bg-red-500 hover:bg-red-600"
                                 >
                                   Delete
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-                        )}
-                      </TableCell>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))
                 )}
@@ -361,43 +350,14 @@ export default function SitesPage() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end items-center gap-4 pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page <= 1}
-            onClick={() =>
-              setSearchParams({
-                page: (page - 1).toString(),
-                limit: limit.toString(),
-                search,
-                status,
-              })
-            }
-          >
-            Previous
-          </Button>
-
-          <span className="text-sm text-muted-foreground">
-            Page {page} of {totalPages}
-          </span>
-
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={page >= totalPages}
-            onClick={() =>
-              setSearchParams({
-                page: (page + 1).toString(),
-                limit: limit.toString(),
-                search,
-                status,
-              })
-            }
-          >
-            Next
-          </Button>
-        </div>
+        <PaginationControls
+          page={page}
+          limit={limit}
+          totalPages={totalPages}
+          search={search}
+          status={status}
+          setSearchParams={setSearchParams}
+        />
       </div>
     </div>
   );

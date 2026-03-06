@@ -1,17 +1,8 @@
-import type { Issue } from '../../../../packages/shared-types/issue.types';
-
 export const columns = [
   { key: 'url', label: 'URL' },
   { key: 'status', label: 'Status' },
   { key: 'impact', label: 'Impact' },
   { key: 'firstDetected', label: 'First Detected' },
-];
-
-export const statusOptions: Issue['status'][] = [
-  'open',
-  'in_progress',
-  'resolved',
-  'closed',
 ];
 
 export const severityStyles = {
