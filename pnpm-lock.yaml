@@ -500,9 +500,15 @@ importers:
 
   packages/shared-types:
     dependencies:
+      axios:
+        specifier: ^1.13.5
+        version: 1.13.5
       express:
         specifier: ^5.2.1
         version: 5.2.1
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
     devDependencies:
       '@types/express':
         specifier: ^5.0.6
