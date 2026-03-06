@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "ts-node-dev -r tsconfig-paths/register src/index.ts",
     "build": "tsup src/index.ts --format cjs --out-dir dist --clean",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest  run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest  run --coverage"
   },
   "keywords": [],
   "author": "",
@@ -18,9 +21,11 @@
     "pg": "^8.18.0",
     "pg-hstore": "^2.3.4",
     "puppeteer": "^24.37.3",
-    "tsup": "^8.5.1"
+    "tsup": "^8.5.1",
+    "vitest": "^4.0.18"
   },
   "devDependencies": {
-    "@types/amqplib": "^0.10.8"
+    "@types/amqplib": "^0.10.8",
+    "@vitest/coverage-v8": "4.0.18"
   }
 }
