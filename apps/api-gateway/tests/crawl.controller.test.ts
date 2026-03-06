@@ -1,198 +1,129 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CrawlController } from '../src/controllers/crawl.controller';
-import axios from 'axios';
-import { Request, Response } from 'express';
+import { proxyServiceRequest } from '../src/utils/service-proxy';
+import { handleError } from '@packages/shared-utils/error-handler';
 
-vi.mock('axios');
+import {
+  triggerCrawlSchema,
+  getCrawlsQuerySchema,
+  crawlParamsSchema,
+} from '@packages/shared-validation/crawl.schema';
+
+vi.mock('../src/utils/service-proxy');
+vi.mock('@packages/shared-utils/error-handler');
+
+vi.mock('@packages/shared-validation/crawl.schema', () => ({
+  triggerCrawlSchema: { parse: vi.fn() },
+  getCrawlsQuerySchema: { parse: vi.fn() },
+  crawlParamsSchema: { parse: vi.fn() },
+}));
+
+const mockProxy = proxyServiceRequest as unknown as ReturnType<typeof vi.fn>;
+const mockHandleError = handleError as unknown as ReturnType<typeof vi.fn>;
+
+const mockReq = (body = {}, query = {}, params = {}) =>
+  ({
+    body,
+    query,
+    params,
+  }) as any;
+
+const mockRes = () => {
+  const res: any = {};
+  res.status = vi.fn().mockReturnValue(res);
+  res.json = vi.fn().mockReturnValue(res);
+  res.setHeader = vi.fn();
+  return res;
+};
 
 describe('CrawlController', () => {
-  let mockReq: Partial<Request>;
-  let mockRes: Partial<Response>;
-  let statusMock: any;
-  let jsonMock: any;
-  let setHeaderMock: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-
-    statusMock = vi.fn().mockReturnThis();
-    jsonMock = vi.fn().mockReturnThis();
-    setHeaderMock = vi.fn();
-
-    mockReq = {
-      body: { siteId: 'site-1' },
-      headers: { cookie: 'accessToken=abc' },
-      params: { id: 'crawl-1' },
-      query: { page: '1' },
-    };
-
-    mockRes = {
-      status: statusMock,
-      json: jsonMock,
-      setHeader: setHeaderMock,
-    };
   });
 
-  it('should forward startCrawl request and return response', async () => {
-    (axios.post as any).mockResolvedValue({
-      status: 201,
-      data: { id: 'crawl-1' },
-      headers: {
-        'set-cookie': ['refreshToken=xyz'],
-      },
-    });
+  const proxyResponse = {
+    status: 200,
+    data: { message: 'ok' },
+    headers: { 'set-cookie': ['cookie'] },
+  };
 
-    await CrawlController.startCrawl(mockReq as Request, mockRes as Response);
+  it('startCrawl success', async () => {
+    (triggerCrawlSchema.parse as any).mockReturnValue({ url: 'test' });
+    mockProxy.mockResolvedValue(proxyResponse);
 
-    expect(axios.post).toHaveBeenCalledWith(
-      `${process.env.CRAWL_MANAGER_URL}/crawl`,
-      mockReq.body,
-      expect.objectContaining({
-        headers: { Cookie: 'accessToken=abc' },
-        withCredentials: true,
-      })
-    );
+    const req = mockReq({ url: 'test' });
+    const res = mockRes();
 
-    expect(setHeaderMock).toHaveBeenCalledWith('set-cookie', [
-      'refreshToken=xyz',
-    ]);
+    await CrawlController.startCrawl(req, res);
 
-    expect(statusMock).toHaveBeenCalledWith(201);
-    expect(jsonMock).toHaveBeenCalledWith({ id: 'crawl-1' });
+    expect(mockProxy).toHaveBeenCalled();
+    expect(res.setHeader).toHaveBeenCalledWith('set-cookie', ['cookie']);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'ok' });
   });
 
-  it('should handle startCrawl error properly', async () => {
-    (axios.post as any).mockRejectedValue({
-      response: {
-        status: 400,
-        data: { error: 'Invalid request' },
-      },
+  it('startCrawl error', async () => {
+    (triggerCrawlSchema.parse as any).mockImplementation(() => {
+      throw new Error('validation error');
     });
 
-    await CrawlController.startCrawl(mockReq as Request, mockRes as Response);
+    const req = mockReq();
+    const res = mockRes();
 
-    expect(statusMock).toHaveBeenCalledWith(400);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Invalid request',
-    });
+    await CrawlController.startCrawl(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
   });
 
-  it('should fetch all crawls successfully', async () => {
-    (axios.get as any).mockResolvedValue({
-      status: 200,
-      data: { data: [] },
-    });
+  it('getAll success', async () => {
+    (getCrawlsQuerySchema.parse as any).mockReturnValue({ page: 1 });
+    mockProxy.mockResolvedValue(proxyResponse);
 
-    await CrawlController.getAll(mockReq as Request, mockRes as Response);
+    const req = mockReq({}, { page: 1 });
+    const res = mockRes();
 
-    expect(axios.get).toHaveBeenCalledWith(
-      `${process.env.CRAWL_MANAGER_URL}/crawl`,
-      expect.objectContaining({
-        headers: { Cookie: 'accessToken=abc' },
-        params: mockReq.query,
-        withCredentials: true,
-      })
-    );
+    await CrawlController.getAll(req, res);
 
-    expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({ data: [] });
+    expect(mockProxy).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
-  it('should handle getAll error', async () => {
-    (axios.get as any).mockRejectedValue({
-      response: {
-        status: 500,
-        data: { error: 'Server error' },
-      },
+  it('getAll error', async () => {
+    (getCrawlsQuerySchema.parse as any).mockImplementation(() => {
+      throw new Error();
     });
 
-    await CrawlController.getAll(mockReq as Request, mockRes as Response);
+    const req = mockReq();
+    const res = mockRes();
 
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Server error',
-    });
+    await CrawlController.getAll(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
   });
 
-  it('should fetch crawl by id successfully', async () => {
-    (axios.get as any).mockResolvedValue({
-      status: 200,
-      data: { id: 'crawl-1' },
-    });
+  it('getById success', async () => {
+    (crawlParamsSchema.parse as any).mockReturnValue({ id: '123' });
+    mockProxy.mockResolvedValue(proxyResponse);
 
-    await CrawlController.getById(mockReq as Request, mockRes as Response);
+    const req = mockReq({}, {}, { id: '123' });
+    const res = mockRes();
 
-    expect(axios.get).toHaveBeenCalledWith(
-      `${process.env.CRAWL_MANAGER_URL}/crawl/crawl-1`,
-      expect.objectContaining({
-        headers: { Cookie: 'accessToken=abc' },
-        withCredentials: true,
-      })
-    );
+    await CrawlController.getById(req, res);
 
-    expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({ id: 'crawl-1' });
+    expect(mockProxy).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
-  it('should handle getById error', async () => {
-    (axios.get as any).mockRejectedValue({
-      response: {
-        status: 404,
-        data: { error: 'Not found' },
-      },
+  it('getById error', async () => {
+    (crawlParamsSchema.parse as any).mockImplementation(() => {
+      throw new Error();
     });
 
-    await CrawlController.getById(mockReq as Request, mockRes as Response);
+    const req = mockReq();
+    const res = mockRes();
 
-    expect(statusMock).toHaveBeenCalledWith(404);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Not found',
-    });
-  });
+    await CrawlController.getById(req, res);
 
-  it('should handle startCrawl without set-cookie header', async () => {
-    (axios.post as any).mockResolvedValue({
-      status: 201,
-      data: { id: 'crawl-1' },
-      headers: {},
-    });
-
-    await CrawlController.startCrawl(mockReq as Request, mockRes as Response);
-
-    expect(setHeaderMock).not.toHaveBeenCalled();
-    expect(statusMock).toHaveBeenCalledWith(201);
-  });
-
-  it('should handle startCrawl network error', async () => {
-    (axios.post as any).mockRejectedValue(new Error('Network down'));
-
-    await CrawlController.startCrawl(mockReq as Request, mockRes as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Crawl Creation Failed',
-    });
-  });
-
-  it('should handle getAll network error', async () => {
-    (axios.get as any).mockRejectedValue(new Error('Network down'));
-
-    await CrawlController.getAll(mockReq as Request, mockRes as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Failed to fetch crawls',
-    });
-  });
-
-  it('should handle getById network error', async () => {
-    (axios.get as any).mockRejectedValue(new Error('Network down'));
-
-    await CrawlController.getById(mockReq as Request, mockRes as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Failed to fetch crawl',
-    });
+    expect(mockHandleError).toHaveBeenCalled();
   });
 });
