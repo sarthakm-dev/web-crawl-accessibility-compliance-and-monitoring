@@ -14,12 +14,13 @@ export const CrawlService = {
   }) {
     const { jobId, siteId, baseUrl } = payload;
 
-    const browser = await getBrowser();
+    let browser;
     const baseHost = new URL(baseUrl).hostname;
     const MAX_PAGES = Number(process.env.MAX_PAGES) || 200;
     let processedCount = 0;
 
     try {
+      browser = await getBrowser();
       await CrawlJobRepository.updateStatus(jobId, 'running');
 
       await CrawlQueueRepository.createIfNotExists({
@@ -57,7 +58,6 @@ export const CrawlService = {
             .digest('hex');
 
           const contentSize = Buffer.byteLength(html, 'utf8');
-
           const dbPage = await PageRepository.upsert({
             site_id: siteId,
             url: queueItem.url,
@@ -104,8 +104,8 @@ export const CrawlService = {
           await CrawlQueueRepository.updateStatus(queueItem.id, 'completed');
           console.log('Processed Count', processedCount + 1);
           processedCount++;
-        } catch (error) {
-          console.error(`Failed crawling ${queueItem.url}`, error);
+        } catch {
+          console.error(`Failed crawling ${queueItem.url}`);
           await CrawlQueueRepository.updateStatus(queueItem.id, 'failed');
         }
 
