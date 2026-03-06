@@ -2,15 +2,13 @@
 
 This project is a backend-driven system that crawls websites, analyzes pages for accessibility issues, and stores the results so teams can monitor and fix them over time.
 
-The main idea behind this system is pretty simple: automatically scan websites, detect accessibility problems (like missing alt tags or improper heading structure), and provide a structured way to track and resolve those issues.
+The main idea behind this system is: automatically scan websites, detect accessibility problems (like missing alt tags or improper heading structure), and provide a structured way to track and resolve those issues.
 
 Instead of manually checking pages, this system continuously crawls a site and reports accessibility violations.
 
 ---
 
 ## Why This Project Exists
-
-Accessibility is often ignored until late in development, and by that time fixing issues becomes expensive.
 
 The goal of this system is to make accessibility monitoring automatic. It periodically crawls websites, analyzes the content using accessibility tools, and keeps track of issues across different page versions.
 
