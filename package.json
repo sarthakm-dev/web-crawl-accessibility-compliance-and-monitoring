@@ -28,7 +28,7 @@
     "tsconfig-paths": "^4.2.0"
   },
   "lint-staged": {
-    "**/*.{js,ts}": [
+    "**/*.{js,ts,tsx}": [
       "prettier --write",
       "eslint ."
     ],
