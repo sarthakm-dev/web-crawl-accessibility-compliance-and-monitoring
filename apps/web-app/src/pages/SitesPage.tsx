@@ -61,6 +61,26 @@ export default function SitesPage() {
 
   const status = searchParams.get('status') || 'all';
   const hasPermission = useAuthStore(state => state.hasPermission);
+
+  const handleCreateSite = async () => {
+    try {
+      await api.post('/api/site', {
+        name,
+        baseUrl,
+      });
+
+      setOpen(false);
+      setName('');
+      setBaseUrl('');
+
+      await fetchSites();
+
+      toast.success('Site created successfully');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to create site');
+    }
+  };
   const fetchSites = useCallback(async () => {
     setLoading(true);
     try {
@@ -179,17 +199,7 @@ export default function SitesPage() {
                 </Button>
 
                 <Button
-                  onClick={async () => {
-                    await api.post('/api/site', {
-                      name,
-                      baseUrl,
-                    });
-
-                    setOpen(false);
-                    setName('');
-                    setBaseUrl('');
-                    await fetchSites();
-                  }}
+                  onClick={handleCreateSite}
                   className="bg-blue-700 hover:bg-blue-800 shadow-sm"
                 >
                   Create

@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { type UserType } from '../../../../packages/shared-types/user.types';
 import api from '@/utils/api';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -18,8 +19,8 @@ export default function Profile() {
         const res = await api.get('/api/auth/me');
         console.log(res.data);
         setUser(res.data);
-      } catch (err) {
-        console.error('Failed to fetch profile', err);
+      } catch {
+        toast.error('Failed to fetch profile');
       } finally {
         setLoading(false);
       }
