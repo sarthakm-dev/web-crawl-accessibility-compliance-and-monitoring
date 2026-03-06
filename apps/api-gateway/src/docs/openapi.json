@@ -164,7 +164,17 @@
           {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "default": 5 }
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
@@ -230,6 +240,11 @@
             "name": "page",
             "in": "query",
             "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer" }
           }
         ],
         "responses": {
@@ -268,6 +283,53 @@
         "responses": {
           "200": { "description": "Crawl job details" },
           "404": { "description": "Not found" }
+        }
+      }
+    },
+    "/issues": {
+      "get": {
+        "summary": "Get accessibility issues",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "List of issues" }
+        }
+      }
+    },
+    "/issues/{id}": {
+      "get": {
+        "summary": "Get issue details",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Issue details" },
+          "404": { "description": "Issue not found" }
         }
       }
     }
