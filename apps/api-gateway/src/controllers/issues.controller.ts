@@ -1,82 +1,93 @@
 import { Request, Response } from 'express';
-import axios from 'axios';
+import { proxyServiceRequest } from '../utils/service-proxy';
 
-const CRAWL_MANAGER_URL = process.env.CRAWL_MANAGER_URL;
+import {
+  issuesQuerySchema,
+  issueParamsSchema,
+  updateIssueStatusSchema,
+  addNoteSchema,
+} from '@packages/shared-validation/issue.schema';
+import { handleError } from '@packages/shared-utils/error-handler';
+
+const CRAWL_MANAGER_URL = process.env.CRAWL_MANAGER_URL!;
 
 export const IssuesController = {
   async getAll(req: Request, res: Response) {
     try {
-      const response = await axios.get(`${CRAWL_MANAGER_URL}/issues`, {
-        params: req.query,
-        headers: {
-          Cookie: req.headers.cookie || '',
-        },
-      });
+      const query = issuesQuerySchema.parse(req.query);
 
+      const response = await proxyServiceRequest(
+        req,
+        'get',
+        `${CRAWL_MANAGER_URL}/issues`,
+        undefined,
+        query
+      );
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Failed to fetch issues',
-      });
+    } catch (error) {
+      handleError(res, error);
     }
   },
 
   async getById(req: Request, res: Response) {
     try {
-      const response = await axios.get(
-        `${CRAWL_MANAGER_URL}/issues/${req.params.id}`,
-        {
-          headers: {
-            Cookie: req.headers.cookie || '',
-          },
-        }
-      );
+      const { id } = issueParamsSchema.parse(req.params);
 
+      const response = await proxyServiceRequest(
+        req,
+        'get',
+        `${CRAWL_MANAGER_URL}/issues/${id}`,
+        undefined
+      );
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Failed to fetch issue',
-      });
+    } catch (error) {
+      handleError(res, error);
     }
   },
 
   async updateStatus(req: Request, res: Response) {
     try {
-      const response = await axios.patch(
-        `${CRAWL_MANAGER_URL}/issues/${req.params.id}/status`,
-        req.body,
-        {
-          headers: {
-            Cookie: req.headers.cookie || '',
-          },
-        }
-      );
+      const { id } = issueParamsSchema.parse(req.params);
+      const body = updateIssueStatusSchema.parse(req.body);
 
+      const response = await proxyServiceRequest(
+        req,
+        'patch',
+        `${CRAWL_MANAGER_URL}/issues/${id}/status`,
+        body
+      );
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Failed to update status',
-      });
+    } catch (error) {
+      handleError(res, error);
     }
   },
 
   async addNote(req: Request, res: Response) {
     try {
-      const response = await axios.post(
-        `${CRAWL_MANAGER_URL}/issues/${req.params.id}/notes`,
-        req.body,
-        {
-          headers: {
-            Cookie: req.headers.cookie || '',
-          },
-        }
-      );
+      const { id } = issueParamsSchema.parse(req.params);
+      const body = addNoteSchema.parse(req.body);
 
+      const response = await proxyServiceRequest(
+        req,
+        'post',
+        `${CRAWL_MANAGER_URL}/issues/${id}/notes`,
+        body
+      );
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Failed to add note',
-      });
+    } catch (error) {
+      handleError(res, error);
     }
   },
 };

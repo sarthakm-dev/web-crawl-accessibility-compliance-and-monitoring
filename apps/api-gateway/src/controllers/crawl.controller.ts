@@ -1,69 +1,71 @@
 import { Request, Response } from 'express';
-import axios from 'axios';
+import { proxyServiceRequest } from '../utils/service-proxy';
 
-const CRAWL_MANAGER_URL = process.env.CRAWL_MANAGER_URL;
+import {
+  triggerCrawlSchema,
+  getCrawlsQuerySchema,
+  crawlParamsSchema,
+} from '@packages/shared-validation/crawl.schema';
+import { handleError } from '@packages/shared-utils/error-handler';
+
+const CRAWL_MANAGER_URL = process.env.CRAWL_MANAGER_URL!;
 
 export const CrawlController = {
   async startCrawl(req: Request, res: Response) {
     try {
-      const response = await axios.post(
-        `${CRAWL_MANAGER_URL}/crawl`,
-        req.body,
-        {
-          headers: {
-            Cookie: req.headers.cookie || '',
-          },
-          withCredentials: true,
-        }
-      );
+      const body = triggerCrawlSchema.parse(req.body);
 
+      const response = await proxyServiceRequest(
+        req,
+        'post',
+        `${CRAWL_MANAGER_URL}/crawl`,
+        body
+      );
       if (response.headers['set-cookie']) {
         res.setHeader('set-cookie', response.headers['set-cookie']);
       }
-
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Crawl Creation Failed',
-      });
+    } catch (error) {
+      handleError(res, error);
     }
   },
 
   async getAll(req: Request, res: Response) {
     try {
-      const response = await axios.get(`${CRAWL_MANAGER_URL}/crawl`, {
-        headers: {
-          Cookie: req.headers.cookie || '',
-        },
-        params: req.query,
-        withCredentials: true,
-      });
+      const query = getCrawlsQuerySchema.parse(req.query);
 
+      const response = await proxyServiceRequest(
+        req,
+        'get',
+        `${CRAWL_MANAGER_URL}/crawl`,
+        undefined,
+        query
+      );
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Failed to fetch crawls',
-      });
+    } catch (error) {
+      handleError(res, error);
     }
   },
 
   async getById(req: Request, res: Response) {
     try {
-      const response = await axios.get(
-        `${CRAWL_MANAGER_URL}/crawl/${req.params.id}`,
-        {
-          headers: {
-            Cookie: req.headers.cookie || '',
-          },
-          withCredentials: true,
-        }
-      );
+      const { id } = crawlParamsSchema.parse(req.params);
 
+      const response = await proxyServiceRequest(
+        req,
+        'get',
+        `${CRAWL_MANAGER_URL}/crawl/${id}`,
+        undefined
+      );
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Failed to fetch crawl',
-      });
+    } catch (error) {
+      handleError(res, error);
     }
   },
 };
