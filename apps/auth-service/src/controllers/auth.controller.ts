@@ -143,38 +143,4 @@ export const AuthController = {
       return handleError(res, error);
     }
   },
-  async forgotPassword(req: Request, res: Response) {
-    try {
-      const parsed = forgotPasswordSchema.parse(req.body);
-
-      const result = await AuthService.forgotPassword(parsed.email);
-      return res.json(result);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
-    }
-  },
-
-  async resetPassword(req: Request, res: Response) {
-    try {
-      const parsed = resetPasswordSchema.parse(req.body);
-
-      const result = await AuthService.resetPassword(
-        parsed.email,
-        parsed.otp,
-        parsed.newPassword
-      );
-      return res.json(result);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
-    }
-  },
-  async verifyOtp(req: Request, res: Response) {
-    try {
-      const parsed = verifyOTPSchema.parse(req.body);
-      const result = await AuthService.verifyOtp(parsed.email, parsed.otp);
-      return res.json(result);
-    } catch (err: any) {
-      return res.status(400).json({ error: err.message });
-    }
-  },
 };

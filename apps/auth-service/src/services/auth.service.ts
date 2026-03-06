@@ -42,7 +42,7 @@ export const AuthService = {
     const activeTeamId = user.Teams[0].id;
 
     const roles = user.Roles?.map((role: any) => role.name) ?? [];
-    ``;
+
     const permissions =
       user.Roles?.flatMap((role: any) =>
         role.Permissions?.map((perm: any) => perm.name)
@@ -183,60 +183,6 @@ export const AuthService = {
     }
 
     const user = await UserRepository.findByEmail(email);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    return { message: 'Otp verification successful' };
-  },
-
-  async forgotPassword(email: string) {
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    await redis.set(
-      `reset:${email}`,
-      otp,
-      'EX',
-      Number(process.env.OTP_EXPIRY) || 600
-    );
-
-    await sendOTP(email, otp);
-
-    return { message: 'OTP sent to email' };
-  },
-
-  async resetPassword(email: string, otp: string, newPassword: string) {
-    const storedOtp = await redis.get(`reset:${email}`);
-
-    if (!storedOtp || storedOtp !== otp) {
-      throw new Error('Invalid Credentials');
-    }
-
-    const user = await User.findOne({ where: { email } });
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    const hashed = await bcrypt.hash(newPassword, 10);
-
-    user.passwordHash = hashed;
-    await user.save();
-
-    await redis.del(`reset:${email}`);
-
-    return { message: 'Password reset successful' };
-  },
-  async verifyOtp(email: string, otp: string) {
-    const storedOtp = await redis.get(`reset:${email}`);
-    if (!storedOtp || storedOtp !== otp) {
-      throw new Error('Invalid credentials');
-    }
-
-    const user = await User.findOne({ where: { email } });
     if (!user) {
       throw new Error('User not found');
     }
