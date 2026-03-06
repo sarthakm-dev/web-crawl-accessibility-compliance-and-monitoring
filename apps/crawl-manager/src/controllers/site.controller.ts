@@ -1,86 +1,80 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { SiteService } from '../services/site.service';
 import {
   createSiteSchema,
   getSitesQuerySchema,
+  siteParamsSchema,
 } from '@packages/shared-validation/site.schema';
+import { AuthenticatedRequest } from '@packages/shared-types/express';
+import { handleError } from '@packages/shared-utils/error-handler';
 
 export const SiteController = {
-  async createSite(req: Request, res: Response) {
+  async createSite(req: AuthenticatedRequest, res: Response) {
     try {
-      const parsed = createSiteSchema.parse(req.body);
-
-      const teamId = (req as any).teamId;
-      if (!teamId) {
+      if (!req.teamId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const site = await SiteService.createSite(teamId, parsed);
+      const body = createSiteSchema.parse(req.body);
+
+      const site = await SiteService.createSite(req.teamId, body);
 
       return res.status(201).json(site);
-    } catch (err: any) {
-      return res.status(400).json({
-        error: err.message,
-      });
+    } catch (error: unknown) {
+      return handleError(res, error);
     }
   },
 
-  async getAll(req: Request, res: Response) {
+  async getAll(req: AuthenticatedRequest, res: Response) {
     try {
-      const parsed = getSitesQuerySchema.parse(req.query) as {
-        page: number;
-        limit: number;
-        search?: string;
-        status?: string;
-      };
-      const teamId = (req as any).teamId;
+      if (!req.teamId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const query = getSitesQuerySchema.parse(req.query);
 
       const result = await SiteService.getAllSites({
-        teamId,
-        page: parsed.page,
-        limit: parsed.limit,
-        search: parsed.search,
-        status: parsed.status,
+        teamId: req.teamId,
+        ...query,
       });
 
       return res.status(200).json(result);
-    } catch (err: any) {
-      return res.status(400).json({
-        error: err.message,
-      });
+    } catch (error: unknown) {
+      return handleError(res, error);
     }
   },
 
-  async getById(req: Request<{ id: string }>, res: Response) {
+  async getById(req: AuthenticatedRequest<{ id: string }>, res: Response) {
     try {
-      const teamId = (req as any).teamId;
-      const { id } = req.params;
-      if (!id) {
-        return res.status(400).json({ error: 'Id is required' });
+      if (!req.teamId) {
+        return res.status(401).json({ error: 'Unauthorized' });
       }
-      const site = await SiteService.getSiteById(teamId, id);
+
+      const { id } = siteParamsSchema.parse(req.params);
+
+      const site = await SiteService.getSiteById(req.teamId, id);
 
       return res.status(200).json(site);
-    } catch (err: any) {
-      return res.status(err.message === 'Site not found' ? 404 : 400).json({
-        error: err.message,
-      });
+    } catch (error: unknown) {
+      return handleError(res, error);
     }
   },
-  async deleteSite(req: Request<{ id: string }>, res: Response) {
-    try {
-      const teamId = (req as any).teamId;
-      const { id } = req.params;
-      if (!id) {
-        return res.status(400).json({ error: 'Id is required' });
-      }
-      await SiteService.deleteSite(teamId, id);
 
-      return res.json({ message: 'Site deleted successfully' });
-    } catch (err: any) {
-      return res.status(err.message === 'Site not found' ? 404 : 400).json({
-        error: err.message,
+  async deleteSite(req: AuthenticatedRequest<{ id: string }>, res: Response) {
+    try {
+      if (!req.teamId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { id } = siteParamsSchema.parse(req.params);
+
+      await SiteService.deleteSite(req.teamId, id);
+
+      return res.status(200).json({
+        message: 'Site deleted successfully',
       });
+    } catch (error: unknown) {
+      return handleError(res, error);
     }
   },
 };

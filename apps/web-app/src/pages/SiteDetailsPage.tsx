@@ -17,14 +17,15 @@ import { toast } from 'sonner';
 import { type Site } from '../../../../packages/shared-types/site.types';
 import { type CrawlJob } from '../../../../packages/shared-types/crawl-job.types';
 import { useAuthStore } from '@/store/authStore';
+import { columns } from '@/config/site-columns';
 
 export default function SiteDetailsPage() {
   const { id } = useParams();
-
   const [site, setSite] = useState<Site | null>(null);
   const [jobs, setJobs] = useState<CrawlJob[]>([]);
   const [loading, setLoading] = useState(true);
   const hasPermission = useAuthStore(state => state.hasPermission);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -44,6 +45,7 @@ export default function SiteDetailsPage() {
 
     fetchData();
   }, [id]);
+
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -59,6 +61,7 @@ export default function SiteDetailsPage() {
     const interval = setInterval(fetchJobs, 5000);
     return () => clearInterval(interval);
   }, [id]);
+
   const startCrawl = async () => {
     try {
       await api.post('/api/crawl', {
@@ -88,6 +91,7 @@ export default function SiteDetailsPage() {
   return (
     <div className="min-h-screen bg-muted/40 p-8">
       <div className="max-w-6xl mx-auto space-y-6">
+        {/* Site Details */}
         <Card className="rounded-xl shadow-sm border-none">
           <CardContent className="p-6 space-y-4">
             <div className="flex justify-between items-center">
@@ -124,15 +128,17 @@ export default function SiteDetailsPage() {
             </div>
           </CardContent>
         </Card>
+        {/* Crawl Jobs */}
         <Card className="rounded-xl shadow-sm border-none">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
-                  <TableHead className="text-center">Job ID</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-center">Trigger</TableHead>
-                  <TableHead className="text-center">Created At</TableHead>
+                  {columns.map(col => (
+                    <TableHead key={col.key} className="text-center">
+                      {col.label}
+                    </TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
 

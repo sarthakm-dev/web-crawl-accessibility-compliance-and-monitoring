@@ -4,6 +4,7 @@ import swaggerDocument from './docs/openapi.json';
 import authRoutes from './routes/auth.routes';
 import siteRoutes from './routes/site.routes';
 import crawlRoutes from './routes/crawl.routes';
+import issuesRoutes from './routes/issues.routes';
 import dotenv from 'dotenv';
 import logger from 'morgan';
 import cors from 'cors';
@@ -23,6 +24,7 @@ app.use(helmet());
 app.use('/api/auth', authRoutes);
 app.use('/api/site', siteRoutes);
 app.use('/api/crawl', crawlRoutes);
+app.use('/api/issues', issuesRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get('/api/health', (_, res) => {

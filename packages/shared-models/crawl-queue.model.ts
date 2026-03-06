@@ -15,7 +15,7 @@ CrawlQueue.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: sequelize.literal('uuid_generate_v4()'),
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     crawl_job_id: {

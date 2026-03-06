@@ -1,183 +1,155 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SiteController } from '../src/controllers/site.controller';
-import axios from 'axios';
-import { Request, Response } from 'express';
+import { proxyServiceRequest } from '../src/utils/service-proxy';
+import { handleError } from '@packages/shared-utils/error-handler';
 
-vi.mock('axios');
+import {
+  createSiteSchema,
+  getSitesQuerySchema,
+  siteParamsSchema,
+} from '@packages/shared-validation/site.schema';
+
+vi.mock('../src/utils/service-proxy');
+vi.mock('@packages/shared-utils/error-handler');
+
+vi.mock('@packages/shared-validation/site.schema', () => ({
+  createSiteSchema: { parse: vi.fn() },
+  getSitesQuerySchema: { parse: vi.fn() },
+  siteParamsSchema: { parse: vi.fn() },
+}));
+
+const mockProxy = proxyServiceRequest as unknown as ReturnType<typeof vi.fn>;
+const mockHandleError = handleError as unknown as ReturnType<typeof vi.fn>;
+
+const mockReq = (body = {}, query = {}, params = {}) =>
+  ({
+    body,
+    query,
+    params,
+  }) as any;
+
+const mockRes = () => {
+  const res: any = {};
+  res.status = vi.fn().mockReturnValue(res);
+  res.json = vi.fn().mockReturnValue(res);
+  res.setHeader = vi.fn();
+  return res;
+};
 
 describe('SiteController', () => {
-  let mockReq: Partial<Request>;
-  let mockRes: Partial<Response>;
-  let statusMock: any;
-  let jsonMock: any;
-  let setHeaderMock: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-
-    process.env.CRAWL_MANAGER_URL = 'http://localhost:3002';
-
-    statusMock = vi.fn().mockReturnThis();
-    jsonMock = vi.fn().mockReturnThis();
-    setHeaderMock = vi.fn();
-
-    mockReq = {
-      body: { name: 'Test Site' },
-      headers: { cookie: 'accessToken=abc' },
-      params: { id: 'site-1' },
-      query: { page: '1' },
-    };
-
-    mockRes = {
-      status: statusMock,
-      json: jsonMock,
-      setHeader: setHeaderMock,
-    };
   });
 
-  it('should create site successfully with set-cookie', async () => {
-    (axios.post as any).mockResolvedValue({
-      status: 201,
-      data: { id: 'site-1' },
-      headers: { 'set-cookie': ['refreshToken=xyz'] },
-    });
+  const proxyResponse = {
+    status: 200,
+    data: { success: true },
+    headers: { 'set-cookie': ['cookie'] },
+  };
 
-    await SiteController.createSite(mockReq as Request, mockRes as Response);
+  it('createSite success', async () => {
+    (createSiteSchema.parse as any).mockReturnValue({ name: 'test' });
+    mockProxy.mockResolvedValue(proxyResponse);
 
-    expect(setHeaderMock).toHaveBeenCalledWith('set-cookie', [
-      'refreshToken=xyz',
-    ]);
+    const req = mockReq({ name: 'test' });
+    const res = mockRes();
 
-    expect(statusMock).toHaveBeenCalledWith(201);
-    expect(jsonMock).toHaveBeenCalledWith({ id: 'site-1' });
+    await SiteController.createSite(req, res);
+
+    expect(mockProxy).toHaveBeenCalled();
+    expect(res.setHeader).toHaveBeenCalledWith('set-cookie', ['cookie']);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ success: true });
   });
 
-  it('should create site without set-cookie header', async () => {
-    (axios.post as any).mockResolvedValue({
-      status: 201,
-      data: { id: 'site-1' },
-      headers: {},
+  it('createSite validation error', async () => {
+    (createSiteSchema.parse as any).mockImplementation(() => {
+      throw new Error('validation');
     });
 
-    await SiteController.createSite(mockReq as Request, mockRes as Response);
+    const req = mockReq();
+    const res = mockRes();
 
-    expect(setHeaderMock).not.toHaveBeenCalled();
+    await SiteController.createSite(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
   });
 
-  it('should handle createSite error with response', async () => {
-    (axios.post as any).mockRejectedValue({
-      response: {
-        status: 400,
-        data: { error: 'Invalid site' },
-      },
-    });
+  it('getAll success', async () => {
+    (getSitesQuerySchema.parse as any).mockReturnValue({ page: 1 });
+    mockProxy.mockResolvedValue(proxyResponse);
 
-    await SiteController.createSite(mockReq as Request, mockRes as Response);
+    const req = mockReq({}, { page: 1 });
+    const res = mockRes();
 
-    expect(statusMock).toHaveBeenCalledWith(400);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Invalid site',
-    });
+    await SiteController.getAll(req, res);
+
+    expect(mockProxy).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
-  it('should handle createSite network error', async () => {
-    (axios.post as any).mockRejectedValue(new Error('Network down'));
-
-    await SiteController.createSite(mockReq as Request, mockRes as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Site Creation Failed',
+  it('getAll error', async () => {
+    (getSitesQuerySchema.parse as any).mockImplementation(() => {
+      throw new Error();
     });
+
+    const req = mockReq();
+    const res = mockRes();
+
+    await SiteController.getAll(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
   });
 
-  it('should fetch all sites successfully', async () => {
-    (axios.get as any).mockResolvedValue({
-      status: 200,
-      data: { data: [] },
-    });
+  it('getById success', async () => {
+    (siteParamsSchema.parse as any).mockReturnValue({ id: '123' });
+    mockProxy.mockResolvedValue(proxyResponse);
 
-    await SiteController.getAll(mockReq as Request, mockRes as Response);
+    const req = mockReq({}, {}, { id: '123' });
+    const res = mockRes();
 
-    expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({ data: [] });
+    await SiteController.getById(req, res);
+
+    expect(mockProxy).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
-  it('should handle getAll error without response', async () => {
-    (axios.get as any).mockRejectedValue(new Error('Network error'));
-
-    await SiteController.getAll(mockReq as Request, mockRes as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Failed to fetch sites',
+  it('getById error', async () => {
+    (siteParamsSchema.parse as any).mockImplementation(() => {
+      throw new Error();
     });
+
+    const req = mockReq();
+    const res = mockRes();
+
+    await SiteController.getById(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
   });
 
-  it('should fetch site by id successfully', async () => {
-    (axios.get as any).mockResolvedValue({
-      status: 200,
-      data: { id: 'site-1' },
-    });
+  it('deleteSite success', async () => {
+    (siteParamsSchema.parse as any).mockReturnValue({ id: '123' });
+    mockProxy.mockResolvedValue(proxyResponse);
 
-    await SiteController.getById(mockReq as Request, mockRes as Response);
+    const req = mockReq({}, {}, { id: '123' });
+    const res = mockRes();
 
-    expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({ id: 'site-1' });
+    await SiteController.deleteSite(req, res);
+
+    expect(mockProxy).toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 
-  it('should handle getById error with response', async () => {
-    (axios.get as any).mockRejectedValue({
-      response: {
-        status: 404,
-        data: { error: 'Not found' },
-      },
+  it('deleteSite error', async () => {
+    (siteParamsSchema.parse as any).mockImplementation(() => {
+      throw new Error();
     });
 
-    await SiteController.getById(mockReq as Request, mockRes as Response);
+    const req = mockReq();
+    const res = mockRes();
 
-    expect(statusMock).toHaveBeenCalledWith(404);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Not found',
-    });
-  });
+    await SiteController.deleteSite(req, res);
 
-  it('should delete site successfully', async () => {
-    (axios.delete as any).mockResolvedValue({
-      status: 200,
-      data: { message: 'Deleted' },
-    });
-
-    await SiteController.deleteSite(mockReq as Request, mockRes as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(200);
-    expect(jsonMock).toHaveBeenCalledWith({ message: 'Deleted' });
-  });
-
-  it('should handle deleteSite error with response', async () => {
-    (axios.delete as any).mockRejectedValue({
-      response: {
-        status: 403,
-        data: { error: 'Forbidden' },
-      },
-    });
-
-    await SiteController.deleteSite(mockReq as Request, mockRes as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(403);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Forbidden',
-    });
-  });
-
-  it('should handle deleteSite error without response (fallback to message)', async () => {
-    (axios.delete as any).mockRejectedValue(new Error('Network crash'));
-
-    await SiteController.deleteSite(mockReq as Request, mockRes as Response);
-
-    expect(statusMock).toHaveBeenCalledWith(500);
-    expect(jsonMock).toHaveBeenCalledWith({
-      error: 'Network crash',
-    });
+    expect(mockHandleError).toHaveBeenCalled();
   });
 });

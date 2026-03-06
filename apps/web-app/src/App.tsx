@@ -9,6 +9,7 @@ import { Toaster } from 'sonner';
 import SitesPage from './pages/SitesPage';
 import CrawlJobsPage from './pages/CrawlJobsPage';
 import SiteDetailsPage from './pages/SiteDetailsPage';
+import IssuesPage from './pages/Issues';
 function App() {
   return (
     <>
@@ -54,6 +55,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SiteDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/issues"
+              element={
+                <ProtectedRoute>
+                  <IssuesPage />
                 </ProtectedRoute>
               }
             />

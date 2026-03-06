@@ -9,8 +9,13 @@ router.post(
   authorize('site:create'),
   SiteController.createSite
 );
-router.get('/', authenticate, SiteController.getAll);
-router.get('/:id', authenticate, SiteController.getById);
+router.get('/', authenticate, authorize('site:view'), SiteController.getAll);
+router.get(
+  '/:id',
+  authenticate,
+  authorize('site:view'),
+  SiteController.getById
+);
 router.delete(
   '/:id',
   authenticate,

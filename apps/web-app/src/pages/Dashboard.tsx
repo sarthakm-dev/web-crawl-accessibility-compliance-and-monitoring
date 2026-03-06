@@ -2,10 +2,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatBox } from '@/components/cards/StatBox';
 import { JobRow } from '@/components/cards/JobRow';
+import { useNavigate } from 'react-router-dom';
 import { AccessibilityTrendChart } from '@/components/charts/AccessibilityTrendChart';
 import { IssueBreakdownChart } from '@/components/charts/IssueBreakdownChart';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   return (
     <div className="flex-1 min-h-screen bg-linear-to-br from-blue-50 via-blue-100 to-blue-200 p-6 space-y-6">
       <div className="grid md:grid-cols-4 grid-cols-2 gap-6">
@@ -49,7 +51,10 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <Button className="mt-6 bg-white text-blue-700 hover:bg-gray-100">
+            <Button
+              className="mt-6 bg-white text-blue-700 hover:bg-gray-100"
+              onClick={() => navigate('/sites')}
+            >
               Start New Crawl
             </Button>
           </CardContent>

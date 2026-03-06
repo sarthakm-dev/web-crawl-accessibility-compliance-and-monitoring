@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const createSiteSchema = z.object({
   name: z.string().min(1),
-  baseUrl: z.string().url(),
+  baseUrl: z.url(),
 });
 
 export const getSitesQuerySchema = z.object({
@@ -10,4 +10,8 @@ export const getSitesQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(10),
   search: z.string().optional(),
   status: z.string().optional(),
+});
+
+export const siteParamsSchema = z.object({
+  id: z.uuid(),
 });

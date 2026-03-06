@@ -84,7 +84,8 @@ services:
       - apps/crawl-manager/.env
     restart: always
     depends_on:
-      - auth-service
+      - postgres
+      - rabbitmq
     environment:
       AUTH_SERVICE_URL: http://auth-service:5000/api/auth
       JWT_SECRET: your_access_secret
@@ -125,6 +126,20 @@ services:
       - api-gateway
     ports:
       - "80:80"
+    networks:
+      - webcrawl-net
+
+  analysis-service:
+    build:
+      context: .
+      dockerfile: apps/analysis-service/Dockerfile
+    container_name: webcrawl-analyze
+    env_file:
+      - apps/analysis-service/.env
+    restart: always
+    depends_on:
+      - postgres
+      - rabbitmq
     networks:
       - webcrawl-net
 

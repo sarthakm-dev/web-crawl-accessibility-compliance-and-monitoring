@@ -1,55 +1,37 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User } from '@packages/shared-models/user.model';
 import { redis } from '@packages/shared-config/redis';
-import { Role } from '@packages/shared-models/role.model';
-import { Permission } from '@packages/shared-models/permission.model';
 import { sendOTP } from '../utils/mailer';
-import { Team } from '@packages/shared-models/team.model';
+import { UserRepository } from '../repositories/user.repository';
+import { TeamRepository } from '../repositories/team.repository';
+import { RoleRepository } from '../repositories/role.repository';
 
 export const AuthService = {
   async signup(name: string, email: string, password: string) {
-    const existing = await User.findOne({ where: { email } });
+    const existing = await UserRepository.findByEmail(email);
     if (existing) throw new Error('User already exists');
 
     const hash = await bcrypt.hash(password, 10);
-    const user = await User.create({
+
+    const user = await UserRepository.create({
       name,
       email,
       passwordHash: hash,
     });
-    const defaultTeam = await Team.findOne({
-      where: { name: 'Default team' },
-    });
-    if (!defaultTeam) {
-      throw new Error('Default team not found');
-    }
-    await user.addTeam(defaultTeam);
-    const viewerRole = await Role.findOne({ where: { name: 'viewer' } });
+
+    const [defaultTeam] = await TeamRepository.findOrCreateDefault();
+    await UserRepository.addTeam(user, defaultTeam);
+
+    const viewerRole = await RoleRepository.findByName('viewer');
     if (viewerRole) {
-      await user.addRole(viewerRole);
+      await UserRepository.addRole(user, viewerRole);
     }
+
     return user;
   },
 
   async login(email: string, password: string) {
-    const user = await User.findOne({
-      where: { email },
-      include: [
-        {
-          model: Role,
-          include: [
-            {
-              model: Permission,
-            },
-          ],
-        },
-        {
-          model: Team,
-          through: { attributes: [] },
-        },
-      ],
-    });
+    const user = await UserRepository.findByEmailWithRelations(email);
 
     if (!user) throw new Error('Invalid credentials');
     const valid = await bcrypt.compare(password, user.passwordHash);
@@ -60,7 +42,7 @@ export const AuthService = {
     const activeTeamId = user.Teams[0].id;
 
     const roles = user.Roles?.map((role: any) => role.name) ?? [];
-``
+    ``;
     const permissions =
       user.Roles?.flatMap((role: any) =>
         role.Permissions?.map((perm: any) => perm.name)
@@ -107,18 +89,7 @@ export const AuthService = {
         throw new Error('Invalid refresh token');
       }
 
-      const user = await User.findByPk(payload.userId, {
-        include: [
-          {
-            model: Role,
-            include: [{ model: Permission }],
-          },
-          {
-            model: Team,
-            through: { attributes: [] },
-          },
-        ],
-      });
+      const user = await UserRepository.findByIdWithRelations(payload.userId);
 
       if (!user) throw new Error('User not found');
       if (!user.Teams || user.Teams.length === 0) {
@@ -157,20 +128,8 @@ export const AuthService = {
   },
 
   async me(userId: string) {
-    const user = await User.findByPk(userId, {
-      attributes: ['id', 'email', 'name', 'isActive', 'created_at'],
-      include: [
-        {
-          model: Team,
-          attributes: ['id', 'name'],
-          through: { attributes: [] },
-        },
-      ],
-    });
-
-    if (!user) {
-      throw new Error('Cannot find user');
-    }
+    const user = await UserRepository.findBasicById(userId);
+    if (!user) throw new Error('Cannot find user');
 
     return {
       id: user.id,
@@ -180,6 +139,54 @@ export const AuthService = {
       createdAt: user.getDataValue('created_at'),
       teams: user.Teams ?? [],
     };
+  },
+
+  async forgotPassword(email: string) {
+    const user = await UserRepository.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await redis.set(
+      `reset:${email}`,
+      otp,
+      'EX',
+      Number(process.env.OTP_EXPIRY) || 600
+    );
+
+    await sendOTP(email, otp);
+
+    return { message: 'OTP sent to email' };
+  },
+
+  async resetPassword(email: string, otp: string, newPassword: string) {
+    const storedOtp = await redis.get(`reset:${email}`);
+    if (!storedOtp || storedOtp !== otp) throw new Error('Invalid credentials');
+
+    const user = await UserRepository.findByEmail(email);
+    if (!user) throw new Error('User not found');
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await UserRepository.updatePassword(user, hashed);
+
+    await redis.del(`reset:${email}`);
+
+    return { message: 'Password reset successful' };
+  },
+
+  async verifyOtp(email: string, otp: string) {
+    const storedOtp = await redis.get(`reset:${email}`);
+    if (!storedOtp || storedOtp !== otp) {
+      throw new Error('Invalid credentials');
+    }
+
+    const user = await UserRepository.findByEmail(email);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return { message: 'Otp verification successful' };
   },
 
   async forgotPassword(email: string) {

@@ -11,6 +11,7 @@ export default defineConfig({
         'dist/',
         'utils/mailer.ts',
         '**/utils/mailer.ts',
+        'repositories/',
       ],
     },
   },

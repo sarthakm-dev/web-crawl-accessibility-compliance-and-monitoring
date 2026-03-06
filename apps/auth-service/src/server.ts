@@ -30,7 +30,6 @@ sequelize.authenticate().then(() => {
   console.log('Database connected');
 });
 
-
 initModels();
 app.listen(PORT, () => {
   console.log(`Auth Service running on port ${PORT}`);

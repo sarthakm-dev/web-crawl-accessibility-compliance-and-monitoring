@@ -11,6 +11,11 @@ router.post(
   authorize('crawl:trigger'),
   CrawlController.trigger
 );
-router.get('/', authenticate, CrawlController.getAll);
-router.get('/:id', authenticate, CrawlController.getById);
+router.get('/', authenticate, authorize('crawl:view'), CrawlController.getAll);
+router.get(
+  '/:id',
+  authenticate,
+  authorize('crawl:view'),
+  CrawlController.getById
+);
 export default router;

@@ -1,135 +1,152 @@
 import { Request, Response } from 'express';
-import axios from 'axios';
+import {
+  signupSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  verifyOTPSchema,
+  resetPasswordSchema,
+} from '@packages/shared-validation/auth.schema';
+import { handleError } from '@packages/shared-utils/error-handler';
+import { proxyServiceRequest } from '../utils/service-proxy';
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL!;
 export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
-      const response = await axios.post(`${AUTH_SERVICE_URL}/signup`, req.body);
-
+      const body = signupSchema.parse(req.body);
+      const response = await proxyServiceRequest(
+        req,
+        'post',
+        `${AUTH_SERVICE_URL}/signup`,
+        body
+      );
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Signup failed',
-      });
+    } catch (error) {
+      handleError(res, error);
     }
   },
 
   async login(req: Request, res: Response) {
     try {
-      const response = await axios.post(`${AUTH_SERVICE_URL}/login`, req.body);
-
+      const body = loginSchema.parse(req.body);
+      const response = await proxyServiceRequest(
+        req,
+        'post',
+        `${AUTH_SERVICE_URL}/login`,
+        body
+      );
       if (response.headers['set-cookie']) {
         res.setHeader('set-cookie', response.headers['set-cookie']);
       }
-
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Login failed',
-      });
+    } catch (error) {
+      handleError(res, error, 401);
     }
   },
 
   async refresh(req: Request, res: Response) {
     try {
-      const response = await axios.post(
+      const response = await proxyServiceRequest(
+        req,
+        'post',
         `${AUTH_SERVICE_URL}/refresh`,
-        {},
-        {
-          headers: {
-            Cookie: req.headers.cookie || '',
-          },
-        }
+        {}
       );
       if (response.headers['set-cookie']) {
         res.setHeader('set-cookie', response.headers['set-cookie']);
       }
-
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Refresh failed',
-      });
+    } catch (error) {
+      handleError(res, error, 401);
     }
   },
 
   async me(req: Request, res: Response) {
     try {
-      const response = await axios.get(`${AUTH_SERVICE_URL}/me`, {
-        headers: {
-          Cookie: req.headers.cookie || '',
-        },
-      });
-
+      const response = await proxyServiceRequest(
+        req,
+        'get',
+        `${AUTH_SERVICE_URL}/me`
+      );
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Failed to fetch user',
-      });
+    } catch (error) {
+      handleError(res, error, 401);
     }
   },
 
   async logout(req: Request, res: Response) {
     try {
-      const response = await axios.post(
-        `${AUTH_SERVICE_URL}/logout`,
-        {},
-        {
-          headers: {
-            Cookie: req.headers.cookie || '',
-          },
-        }
+      const response = await proxyServiceRequest(
+        req,
+        'post',
+        `${AUTH_SERVICE_URL}/logout`
       );
-
       if (response.headers['set-cookie']) {
         res.setHeader('set-cookie', response.headers['set-cookie']);
       }
-
       return res.status(response.status).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Logout failed',
-      });
+    } catch (error) {
+      handleError(res, error, 401);
     }
   },
+
   async forgotPassword(req: Request, res: Response) {
     try {
-      const response = await axios.post(
+      const body = forgotPasswordSchema.parse(req.body);
+      const response = await proxyServiceRequest(
+        req,
+        'post',
         `${AUTH_SERVICE_URL}/forgot-password`,
-        req.body
+        body
       );
-      return res.status(200).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Could not send OTP',
-      });
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
+      return res.status(response.status).json(response.data);
+    } catch (error) {
+      handleError(res, error);
     }
   },
-  async resetPassword(req: Request, res: Response) {
-    try {
-      const response = await axios.post(
-        `${AUTH_SERVICE_URL}/reset-password`,
-        req.body
-      );
-      return res.status(200).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'Password Reset Failed',
-      });
-    }
-  },
+
   async verifyOtp(req: Request, res: Response) {
     try {
-      const response = await axios.post(
+      const body = verifyOTPSchema.parse(req.body);
+      const response = await proxyServiceRequest(
+        req,
+        'post',
         `${AUTH_SERVICE_URL}/verify-otp`,
-        req.body
+        body
       );
-      return res.status(200).json(response.data);
-    } catch (err: any) {
-      return res.status(err.response?.status || 500).json({
-        error: err.response?.data?.error || 'OTP Verification Failed',
-      });
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
+      return res.status(response.status).json(response.data);
+    } catch (error) {
+      handleError(res, error);
+    }
+  },
+
+  async resetPassword(req: Request, res: Response) {
+    try {
+      const body = resetPasswordSchema.parse(req.body);
+      const response = await proxyServiceRequest(
+        req,
+        'post',
+        `${AUTH_SERVICE_URL}/reset-password`,
+        body
+      );
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
+      return res.status(response.status).json(response.data);
+    } catch (error) {
+      handleError(res, error);
     }
   },
 };

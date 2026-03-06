@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import {type IssueRowProps} from '../../../../../packages/shared-types/issue.types'
+import {type IssueRowProps} from '../../types/issue.types'
+import { severityStyles, statusStyles } from "@/config/issue-config";
 
 
 export function IssueRow({
@@ -9,18 +10,7 @@ export function IssueRow({
   pages,
   status,
 }: IssueRowProps) {
-  const severityStyles = {
-    Critical: "bg-red-100 text-red-700",
-    High: "bg-orange-100 text-orange-700",
-    Medium: "bg-yellow-100 text-yellow-700",
-    Low: "bg-gray-100 text-gray-700",
-  };
-
-  const statusStyles = {
-    Open: "bg-blue-100 text-blue-700",
-    "In Progress": "bg-purple-100 text-purple-700",
-    Resolved: "bg-green-100 text-green-700",
-  };
+  
 
   return (
     <div className="grid grid-cols-[2fr_1fr_1fr_1fr] items-center py-4 border-b last:border-none">

@@ -1,0 +1,17 @@
+export const statusConfig: Record<
+  string,
+  { label: string; className: string }
+> = {
+  completed: {
+    label: 'Completed',
+    className: 'bg-green-100 hover:bg-green-200 text-green-700',
+  },
+  failed: {
+    label: 'Failed',
+    className: 'bg-red-100 hover:bg-red-200 text-red-700',
+  },
+  running: {
+    label: 'Running',
+    className: 'bg-yellow-100 hover:bg-yellow-200 text-yellow-700',
+  },
+};

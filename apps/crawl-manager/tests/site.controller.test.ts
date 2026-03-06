@@ -1,273 +1,217 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SiteController } from '../src/controllers/site.controller';
 import { SiteService } from '../src/services/site.service';
+import { handleError } from '@packages/shared-utils/error-handler';
+
 import {
   createSiteSchema,
   getSitesQuerySchema,
+  siteParamsSchema,
 } from '@packages/shared-validation/site.schema';
 
 vi.mock('../src/services/site.service');
-vi.mock('@packages/shared-validation/site.schema');
+vi.mock('@packages/shared-utils/error-handler');
+
+vi.mock('@packages/shared-validation/site.schema', () => ({
+  createSiteSchema: { parse: vi.fn() },
+  getSitesQuerySchema: { parse: vi.fn() },
+  siteParamsSchema: { parse: vi.fn() },
+}));
+
+const mockService = SiteService as unknown as {
+  createSite: any;
+  getAllSites: any;
+  getSiteById: any;
+  deleteSite: any;
+};
+
+const mockHandleError = handleError as unknown as ReturnType<typeof vi.fn>;
+
+const mockRes = () => {
+  const res: any = {};
+  res.status = vi.fn().mockReturnValue(res);
+  res.json = vi.fn().mockReturnValue(res);
+  return res;
+};
 
 describe('SiteController', () => {
-  let req: any;
-  let res: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-
-    req = {
-      body: {},
-      query: {},
-      params: {},
-      teamId: 'team-1',
-    };
-
-    res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
-    };
   });
 
-  it('should create site successfully', async () => {
-    req.body = { name: 'Test Site', baseUrl: 'https://example.com' };
-
-    (createSiteSchema.parse as any).mockReturnValue(req.body);
-
-    (SiteService.createSite as any).mockResolvedValue({
-      id: 'site-1',
-      name: 'Test Site',
-    });
-
-    await SiteController.createSite(req, res);
-
-    expect(createSiteSchema.parse).toHaveBeenCalledWith(req.body);
-    expect(SiteService.createSite).toHaveBeenCalledWith('team-1', req.body);
-
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith({
-      id: 'site-1',
-      name: 'Test Site',
-    });
-  });
-
-  it('should return 401 if teamId missing in createSite()', async () => {
-    req.teamId = undefined;
-    req.body = { name: 'Test Site', baseUrl: 'https://example.com' };
-
-    (createSiteSchema.parse as any).mockReturnValue(req.body);
+  it('should return 401 if teamId missing', async () => {
+    const req: any = { body: {} };
+    const res = mockRes();
 
     await SiteController.createSite(req, res);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Unauthorized',
-    });
   });
 
-  it('should return 400 if validation fails in createSite()', async () => {
+  it('should create site successfully', async () => {
+    const req: any = {
+      teamId: 'team1',
+      body: { name: 'test' },
+    };
+
+    const res = mockRes();
+
+    (createSiteSchema.parse as any).mockReturnValue({ name: 'test' });
+
+    mockService.createSite.mockResolvedValue({ id: 'site1' });
+
+    await SiteController.createSite(req, res);
+
+    expect(mockService.createSite).toHaveBeenCalledWith('team1', {
+      name: 'test',
+    });
+
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('should handle error in createSite', async () => {
+    const req: any = { teamId: 'team1', body: {} };
+    const res = mockRes();
+
     (createSiteSchema.parse as any).mockImplementation(() => {
-      throw new Error('Invalid input');
+      throw new Error('error');
     });
 
     await SiteController.createSite(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Invalid input',
-    });
+    expect(mockHandleError).toHaveBeenCalled();
   });
 
-  it('should return paginated sites', async () => {
-    req.query = { page: '1', limit: '10' };
-
-    const parsedQuery = { page: 1, limit: 10 };
-
-    (getSitesQuerySchema.parse as any).mockReturnValue(parsedQuery);
-
-    (SiteService.getAllSites as any).mockResolvedValue({
-      data: [],
-      pagination: {},
-    });
+  it('should return 401 if teamId missing in getAll', async () => {
+    const req: any = { query: {} };
+    const res = mockRes();
 
     await SiteController.getAll(req, res);
 
-    expect(getSitesQuerySchema.parse).toHaveBeenCalledWith(req.query);
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
 
-    expect(SiteService.getAllSites).toHaveBeenCalledWith({
-      teamId: 'team-1',
-      page: 1,
-      limit: 10,
+  it('should fetch sites', async () => {
+    const req: any = {
+      teamId: 'team1',
+      query: {},
+    };
+
+    const res = mockRes();
+
+    (getSitesQuerySchema.parse as any).mockReturnValue({});
+
+    mockService.getAllSites.mockResolvedValue({ rows: [], count: 0 });
+
+    await SiteController.getAll(req, res);
+
+    expect(mockService.getAllSites).toHaveBeenCalledWith({
+      teamId: 'team1',
     });
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({
-      data: [],
-      pagination: {},
-    });
   });
 
-  it('should return 400 if query validation fails in getAll()', async () => {
+  it('should handle error in getAll', async () => {
+    const req: any = { teamId: 'team1', query: {} };
+    const res = mockRes();
+
     (getSitesQuerySchema.parse as any).mockImplementation(() => {
-      throw new Error('Invalid query');
+      throw new Error();
     });
 
     await SiteController.getAll(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Invalid query',
-    });
+    expect(mockHandleError).toHaveBeenCalled();
+  });
+
+  it('should return 401 if teamId missing in getById', async () => {
+    const req: any = { params: { id: '1' } };
+    const res = mockRes();
+
+    await SiteController.getById(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
   });
 
   it('should return site by id', async () => {
-    req.params.id = 'site-1';
+    const req: any = {
+      teamId: 'team1',
+      params: { id: '1' },
+    };
 
-    (SiteService.getSiteById as any).mockResolvedValue({
-      id: 'site-1',
-      name: 'Test Site',
-    });
+    const res = mockRes();
+
+    (siteParamsSchema.parse as any).mockReturnValue({ id: '1' });
+
+    mockService.getSiteById.mockResolvedValue({ id: '1' });
 
     await SiteController.getById(req, res);
 
-    expect(SiteService.getSiteById).toHaveBeenCalledWith('team-1', 'site-1');
+    expect(mockService.getSiteById).toHaveBeenCalledWith('team1', '1');
 
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({
-      id: 'site-1',
-      name: 'Test Site',
-    });
   });
 
-  it('should return 404 if site not found', async () => {
-    req.params.id = 'site-1';
+  it('should handle error in getById', async () => {
+    const req: any = {
+      teamId: 'team1',
+      params: { id: '1' },
+    };
 
-    (SiteService.getSiteById as any).mockRejectedValue(
-      new Error('Site not found')
-    );
+    const res = mockRes();
+
+    (siteParamsSchema.parse as any).mockImplementation(() => {
+      throw new Error();
+    });
 
     await SiteController.getById(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Site not found',
-    });
+    expect(mockHandleError).toHaveBeenCalled();
   });
 
-  it('should return 400 for other errors in getById()', async () => {
-    req.params.id = 'site-1';
-
-    (SiteService.getSiteById as any).mockRejectedValue(
-      new Error('Something else')
-    );
-
-    await SiteController.getById(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Something else',
-    });
-  });
-});
-describe('SiteController - deleteSite', () => {
-  const mockJson = vi.fn();
-  const mockStatus = vi.fn(() => ({ json: mockJson }));
-
-  const mockRes = {
-    json: mockJson,
-    status: mockStatus,
-  } as any;
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('should call SiteService.deleteSite and return success message', async () => {
-    const mockReq = {
-      params: { id: 'site-1' },
-      teamId: 'team-1',
-    } as any;
-
-    await SiteController.deleteSite(mockReq, mockRes);
-
-    expect(SiteService.deleteSite).toHaveBeenCalledWith('team-1', 'site-1');
-
-    expect(mockJson).toHaveBeenCalledWith({
-      message: 'Site deleted successfully',
-    });
-  });
-  it('should return 404 if site not found in getById', async () => {
-    const req = {
-      params: { id: '123' },
-      teamId: 'team-1',
-    } as any;
-
-    const res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
-    } as any;
-
-    (SiteService.getSiteById as any).mockRejectedValue(
-      new Error('Site not found')
-    );
-
-    await SiteController.getById(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(404);
-  });
-  it('should return 404 if site not found in deleteSite', async () => {
-    const req = {
-      params: { id: '123' },
-      teamId: 'team-1',
-    } as any;
-
-    const res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
-    } as any;
-
-    (SiteService.deleteSite as any).mockRejectedValue(
-      new Error('Site not found')
-    );
+  it('should return 401 if teamId missing in deleteSite', async () => {
+    const req: any = { params: { id: '1' } };
+    const res = mockRes();
 
     await SiteController.deleteSite(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(404);
+    expect(res.status).toHaveBeenCalledWith(401);
   });
-  it('should return 400 if id is missing in deleteSite', async () => {
-    const req = {
-      params: {},
-      teamId: 'team-1',
-    } as any;
 
-    const res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
-    } as any;
+  it('should delete site', async () => {
+    const req: any = {
+      teamId: 'team1',
+      params: { id: '1' },
+    };
+
+    const res = mockRes();
+
+    (siteParamsSchema.parse as any).mockReturnValue({ id: '1' });
+
+    mockService.deleteSite.mockResolvedValue(undefined);
 
     await SiteController.deleteSite(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Id is required',
-    });
+    expect(mockService.deleteSite).toHaveBeenCalledWith('team1', '1');
+
+    expect(res.status).toHaveBeenCalledWith(200);
   });
-  it('should return 400 if id is missing in getById', async () => {
-    const req = {
-      params: {},
-      teamId: 'team-1',
-    } as any;
 
-    const res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn(),
-    } as any;
+  it('should handle error in deleteSite', async () => {
+    const req: any = {
+      teamId: 'team1',
+      params: { id: '1' },
+    };
 
-    await SiteController.getById(req, res);
+    const res = mockRes();
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Id is required',
+    (siteParamsSchema.parse as any).mockImplementation(() => {
+      throw new Error();
     });
+
+    await SiteController.deleteSite(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
   });
 });

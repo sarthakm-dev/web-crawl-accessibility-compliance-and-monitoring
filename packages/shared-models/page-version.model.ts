@@ -11,13 +11,14 @@ export class PageVersion extends Model {
   public content_size!: number;
   public html_content!: string;
   public crawled_at!: Date;
+  public analysis_status!: 'pending' | 'completed' | 'failed';
 }
 
 PageVersion.init(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: sequelize.literal('uuid_generate_v4()'),
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
     page_id: {
@@ -40,10 +41,21 @@ PageVersion.init(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+    analysis_status: {
+      type: DataTypes.ENUM('pending', 'completed', 'failed'),
+      allowNull: false,
+      defaultValue: 'pending',
+    },
   },
   {
     sequelize,
     tableName: 'page_versions',
     timestamps: false,
+    indexes: [
+      {
+        unique: true,
+        fields: ['page_id', 'content_hash'],
+      },
+    ],
   }
 );
