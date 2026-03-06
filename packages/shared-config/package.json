@@ -13,5 +13,8 @@
   "dependencies": {
     "ioredis": "^5.9.2",
     "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.4"
   }
 }

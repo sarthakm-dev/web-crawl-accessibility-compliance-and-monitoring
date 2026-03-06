@@ -51,8 +51,7 @@ services:
       DB_PORT: 5432
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      JWT_SECRET: your_access_secret
-      JWT_REFRESH_SECRET: your_refresh_secret
+      
     ports:
       - "5000:5000"
     networks:
@@ -88,8 +87,7 @@ services:
       - rabbitmq
     environment:
       AUTH_SERVICE_URL: http://auth-service:5000/api/auth
-      JWT_SECRET: your_access_secret
-      JWT_REFRESH_SECRET: your_refresh_secret
+      
     ports:
       - "3002:3002"
     networks:
