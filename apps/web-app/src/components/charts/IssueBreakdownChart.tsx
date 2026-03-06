@@ -2,29 +2,52 @@ import {
   BarChart,
   Bar,
   XAxis,
-  Tooltip,
-  ResponsiveContainer,
   CartesianGrid,
+  Cell,
 } from "recharts"
 
-const data = [
-  { severity: "Critical", value: 0 },
-  { severity: "High", value: 0 },
-  { severity: "Medium", value: 0 },
-  { severity: "Low", value: 0 },
-]
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+
+import { data, COLORS } from "../../config/issue-config"
 
 export function IssueBreakdownChart() {
   return (
-    <div className="h-56">
-      <ResponsiveContainer width="100%" height="100%">
+ 
+      <ChartContainer
+        className="h-56 w-full"
+        config={{
+          value: {
+            label: "Issues",
+            color: "#3b82f6",
+          },
+        }}
+      >
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="severity" />
-          <Tooltip />
-          <Bar dataKey="value" radius={[8, 8, 0, 0]} fill="#3b82f6" />
+          <CartesianGrid vertical={false} strokeDasharray="3 3" />
+
+          <XAxis
+            dataKey="severity"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+          />
+
+          <ChartTooltip content={<ChartTooltipContent />} />
+
+          <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+            {data.map((entry) => (
+              <Cell
+                key={entry.severity}
+                fill={COLORS[entry.severity]}
+              />
+            ))}
+          </Bar>
         </BarChart>
-      </ResponsiveContainer>
-    </div>
+      </ChartContainer>
+    
   )
 }

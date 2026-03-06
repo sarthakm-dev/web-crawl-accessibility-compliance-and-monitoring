@@ -17,3 +17,17 @@ export const statusStyles = {
   'In Progress': 'bg-purple-100 text-purple-700',
   Resolved: 'bg-green-100 text-green-700',
 };
+
+export const data = [
+  { severity: "Critical", value: 0 },
+  { severity: "High", value: 0 },
+  { severity: "Medium", value: 0 },
+  { severity: "Low", value: 0 },
+]
+
+export const COLORS: Record<string, string> = {
+  Critical: "#ef4444",
+  High: "#f97316",
+  Medium: "#eab308",
+  Low: "#22c55e",
+}

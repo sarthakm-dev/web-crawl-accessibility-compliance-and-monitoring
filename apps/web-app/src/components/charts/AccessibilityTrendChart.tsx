@@ -2,10 +2,14 @@ import {
   LineChart,
   Line,
   XAxis,
-  Tooltip,
-  ResponsiveContainer,
   CartesianGrid,
 } from "recharts"
+
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
 
 const data = [
   { date: "Feb 15", score: 0 },
@@ -17,21 +21,41 @@ const data = [
 
 export function AccessibilityTrendChart() {
   return (
-    <div className="h-56">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="score"
-            stroke="#2563eb"
-            strokeWidth={3}
-            dot={{ r: 4 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <ChartContainer
+      className="h-56 w-full"
+      config={{
+        score: {
+          label: "Accessibility Score",
+          color: "#2563eb",
+        },
+      }}
+    >
+      <LineChart data={data}>
+        <CartesianGrid vertical={false} strokeDasharray="3 3" />
+
+        <XAxis
+          dataKey="date"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+        />
+
+        <ChartTooltip
+          content={
+            <ChartTooltipContent
+              formatter={(value) => [`${value}%`, "Score"]}
+            />
+          }
+        />
+
+        <Line
+          type="monotone"
+          dataKey="score"
+          stroke="#2563eb"
+          strokeWidth={3}
+          dot={{ r: 4 }}
+        />
+      </LineChart>
+    </ChartContainer>
   )
 }

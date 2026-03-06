@@ -32,7 +32,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>Issue Severity Breakdown</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className='p-0'>
             <IssueBreakdownChart />
           </CardContent>
         </Card>
