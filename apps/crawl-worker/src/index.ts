@@ -1,10 +1,11 @@
 import amqp from 'amqplib';
 import { CrawlService } from './services/crawl.service';
 import { sequelize } from '@packages/shared-config/database';
-
+import { ensureBucket } from '@packages/shared-config/create-bucket';
 async function startWorker() {
   try {
     await sequelize.sync();
+    await ensureBucket();
     const connection = await amqp.connect(process.env.RABBITMQ_URL!);
     const channel = await connection.createChannel();
 

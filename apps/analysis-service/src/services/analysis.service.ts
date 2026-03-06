@@ -4,6 +4,7 @@ import { PageVersionRepository } from '../repositories/page-version.repository';
 import { IssueDefinitionRepository } from '../repositories/issue-definition.repository';
 import { IssueInstanceRepository } from '../repositories/issue-instance.repository';
 import { IssueStatusHistoryRepository } from '../repositories/issue-status-history.repository';
+import { getHtmlFromStorage } from '../storage/get-html';
 
 export const AnalysisService = {
   async process(payload: { pageVersionId: string }) {
@@ -11,8 +12,8 @@ export const AnalysisService = {
 
     const pageVersion = await PageVersionRepository.findById(pageVersionId);
 
-    if (!pageVersion || !pageVersion.html_content) {
-      throw new Error('Page version or HTML not found');
+    if (!pageVersion || !pageVersion.html_path) {
+      throw new Error('Page version or HTML path not found');
     }
 
     if (pageVersion.analysis_status === 'completed') {
@@ -22,7 +23,9 @@ export const AnalysisService = {
 
     await PageVersionRepository.updateStatus(pageVersionId, 'pending');
 
-    const results = await AxeAnalyzer.analyze(pageVersion.html_content);
+    const html = await getHtmlFromStorage(pageVersion.html_path);
+
+    const results = await AxeAnalyzer.analyze(html);
 
     const transaction = await sequelize.transaction();
 

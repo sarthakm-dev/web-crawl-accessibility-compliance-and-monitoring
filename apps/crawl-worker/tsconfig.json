@@ -3,5 +3,10 @@
   "compilerOptions": {
     "outDir": "dist"
   },
-  "include": ["src", "tests"]
+  "include": [
+    "src",
+    "tests",
+    "../../packages/shared-config/minio.ts",
+    "../../packages/shared-config/create-bucket.ts"
+  ]
 }

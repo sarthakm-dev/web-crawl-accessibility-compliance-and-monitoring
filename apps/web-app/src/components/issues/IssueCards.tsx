@@ -2,17 +2,14 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Check } from 'lucide-react';
 import { getImpactColor, getStatusColor } from '@/utils/color';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/auth-store';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import type {
-  Issue,
-  IssuesTableProps,
-} from '../../types/issue.types';
+import type { Issue, IssuesTableProps } from '../../types/issue.types';
 import { useCallback, useEffect, useState } from 'react';
 import { TableFilters } from '../common/TableFilters';
 import { issueFilterConfig } from '@/config/table-filter-config';
@@ -139,7 +136,7 @@ export function IssuesCardList({
               <p className="text-sm text-muted-foreground break-all line-clamp-1">
                 {issue.url}
               </p>
-              <p className='text-sm text-muted-foreground break-all'>
+              <p className="text-sm text-muted-foreground break-all">
                 Element: {issue.selector}
               </p>
               <p className="text-sm text-muted-foreground">

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
-import api from "@/utils/api";
-import { useAuthStore } from "@/store/authStore"
+import { useEffect, useState } from 'react';
+import { Navigate } from 'react-router-dom';
+import api from '@/utils/api';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function ProtectedRoute({
   children,
@@ -13,7 +13,7 @@ export default function ProtectedRoute({
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await api.get("/api/auth/me");
+        const res = await api.get('/api/auth/me');
         setIsAuthenticated(true);
         setUser(res.data);
       } catch {
