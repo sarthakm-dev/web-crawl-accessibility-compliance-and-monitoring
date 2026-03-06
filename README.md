@@ -85,6 +85,10 @@ Messaging:
 
 - Queue based communication between services
 
+Reverse Proxy:
+
+- Nginx
+
 ---
 
 ## Project Structure
@@ -111,6 +115,15 @@ infra
 The idea here is that reusable logic (models, validation, config, etc.) lives inside `packages`, while the actual services live inside `apps`.
 
 ---
+
+## Swagger Docs
+
+The swagger documentation can be found in http://localhost/api/docs
+
+## System Architecture Diagram
+
+Find the architecture diagram here:
+https://drive.google.com/file/d/1thZ8dVFunbFtJCXpFJB0sB2fPESnxAwQ/view?usp=sharing
 
 ## Running the Project
 
