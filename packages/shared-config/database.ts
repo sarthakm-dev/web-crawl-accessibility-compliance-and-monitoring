@@ -1,16 +1,19 @@
 import { Sequelize } from 'sequelize';
+import dotenv from 'dotenv';
+dotenv.config();
 
-declare global {
-  // eslint-disable-next-line no-unused-vars
-  var _sequelize_: Sequelize | undefined;
-}
+type GlobalWithSequelize = typeof globalThis & {
+  sequelizeInstance?: Sequelize;
+};
+
+const globalWithSequelize = globalThis as GlobalWithSequelize;
 
 export const sequelize =
-  global._sequelize_ ??
+  globalWithSequelize.sequelizeInstance ??
   new Sequelize(
     process.env.DB_NAME || 'webcrawl',
     process.env.DB_USER || 'postgres',
-    process.env.DB_PASSWORD || 'postgres',
+    process.env.DB_PASSWORD as string,
     {
       host: process.env.DB_HOST || 'postgres',
       port: Number(process.env.DB_PORT) || 5432,
@@ -19,6 +22,6 @@ export const sequelize =
     }
   );
 
-if (!global._sequelize_) {
-  global._sequelize_ = sequelize;
+if (!globalWithSequelize.sequelizeInstance) {
+  globalWithSequelize.sequelizeInstance = sequelize;
 }

@@ -491,6 +491,10 @@ importers:
       sequelize:
         specifier: ^6.37.7
         version: 6.37.7(pg-hstore@2.3.4)(pg@8.18.0)
+    devDependencies:
+      dotenv:
+        specifier: ^17.2.4
+        version: 17.2.4
 
   packages/shared-models:
     dependencies:
