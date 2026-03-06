@@ -21,6 +21,7 @@ export const IssuesRepository = {
         },
         {
           model: PageVersion,
+          attributes: { exclude: ['html_content'] },
           include: [
             {
               model: Page,
@@ -35,7 +36,7 @@ export const IssuesRepository = {
         },
       ],
       where: {
-        ...(status && { current_status: status }),
+        ...(status && status !== 'all' && { current_status: status }),
         ...(search && {
           message: { [Op.iLike]: `%${search}%` },
         }),

@@ -11,7 +11,7 @@ export const SiteRepository = {
       },
     });
   },
-  create(teamId: string, name: string, baseUrl: string) {
+  async create(teamId: string, name: string, baseUrl: string) {
     return Site.create({
       team_id: teamId,
       name,
@@ -20,7 +20,7 @@ export const SiteRepository = {
     });
   },
 
-  findAllWithPagination(params: {
+  async findAllWithPagination(params: {
     teamId: string;
     page: number;
     limit: number;
@@ -53,7 +53,7 @@ export const SiteRepository = {
     });
   },
 
-  findById(teamId: string, id: string) {
+  async findById(teamId: string, id: string) {
     return Site.findOne({
       where: { id, team_id: teamId },
     });
