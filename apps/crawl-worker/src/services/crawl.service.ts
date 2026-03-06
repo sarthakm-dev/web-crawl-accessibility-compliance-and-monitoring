@@ -5,7 +5,7 @@ import { CrawlQueueRepository } from '../repositories/crawl-queue.repository';
 import { PageRepository } from '../repositories/page.repository';
 import { PageVersionRepository } from '../repositories/page-version.repository';
 import { publishToAnalysis } from '../publishers/analysis.publisher';
-
+import { uploadHtml } from '../storage/upload-html';
 export const CrawlService = {
   async processJob(payload: {
     jobId: string;
@@ -65,13 +65,20 @@ export const CrawlService = {
             status: httpStatus === 200 ? 'active' : 'error',
           });
 
+          const htmlPath = await uploadHtml(
+            siteId,
+            dbPage.id,
+            contentHash,
+            html
+          );
+
           const pageVersion = await PageVersionRepository.create({
             page_id: dbPage.id,
             crawl_job_id: jobId,
             http_status: httpStatus,
             content_hash: contentHash,
             title,
-            html_content: html,
+            html_path: htmlPath,
             content_size: contentSize,
           });
 
@@ -104,8 +111,8 @@ export const CrawlService = {
           await CrawlQueueRepository.updateStatus(queueItem.id, 'completed');
           console.log('Processed Count', processedCount + 1);
           processedCount++;
-        } catch {
-          console.error(`Failed crawling ${queueItem.url}`);
+        } catch (err) {
+          console.error(`Failed crawling ${queueItem.url}`, err);
           await CrawlQueueRepository.updateStatus(queueItem.id, 'failed');
         }
 

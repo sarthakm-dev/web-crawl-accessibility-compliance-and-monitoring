@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/auth-store';
 import { toast } from 'sonner';
 import { BugIcon, TrashIcon } from 'lucide-react';
 import axios from 'axios';

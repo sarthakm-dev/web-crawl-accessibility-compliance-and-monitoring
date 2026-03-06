@@ -9,7 +9,7 @@ export class PageVersion extends Model {
   public content_hash!: string;
   public title!: string;
   public content_size!: number;
-  public html_content!: string;
+  public html_path!: string;
   public crawled_at!: Date;
   public analysis_status!: 'pending' | 'completed' | 'failed';
 }
@@ -33,7 +33,7 @@ PageVersion.init(
     content_hash: DataTypes.TEXT,
     title: DataTypes.TEXT,
     content_size: DataTypes.INTEGER,
-    html_content: {
+    html_path: {
       type: DataTypes.TEXT,
       allowNull: true,
     },

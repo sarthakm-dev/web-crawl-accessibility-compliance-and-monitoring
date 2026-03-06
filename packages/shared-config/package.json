@@ -12,6 +12,7 @@
   "packageManager": "pnpm@10.29.2",
   "dependencies": {
     "ioredis": "^5.9.2",
+    "minio": "^8.0.7",
     "sequelize": "^6.37.7"
   },
   "devDependencies": {

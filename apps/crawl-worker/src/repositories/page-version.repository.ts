@@ -8,7 +8,7 @@ export const PageVersionRepository = {
     content_hash: string;
     title: string;
     content_size: number;
-    html_content: string;
+    html_path: string;
     crawled_at?: Date;
   }) {
     return PageVersion.create({

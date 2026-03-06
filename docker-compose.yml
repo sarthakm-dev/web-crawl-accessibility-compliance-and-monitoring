@@ -1,5 +1,4 @@
 services:
-
   postgres:
     image: postgres:15
     container_name: webcrawl-postgres
@@ -9,7 +8,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: webcrawl
     ports:
-      - "5433:5432"
+      - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -20,7 +19,7 @@ services:
     container_name: webcrawl-redis
     restart: always
     ports:
-      - "6379:6379"
+      - '6379:6379'
     networks:
       - webcrawl-net
 
@@ -29,8 +28,20 @@ services:
     container_name: webcrawl-rabbitmq
     restart: always
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - webcrawl-net
+
+  minio:
+    image: minio/minio
+    container_name: webcrawl-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio_data:/data
     networks:
       - webcrawl-net
 
@@ -51,9 +62,9 @@ services:
       DB_PORT: 5432
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      
+
     ports:
-      - "5000:5000"
+      - '5000:5000'
     networks:
       - webcrawl-net
 
@@ -70,7 +81,7 @@ services:
     environment:
       AUTH_SERVICE_URL: http://auth-service:5000/api/auth
     ports:
-      - "4000:4000"
+      - '4000:4000'
     networks:
       - webcrawl-net
 
@@ -87,9 +98,9 @@ services:
       - rabbitmq
     environment:
       AUTH_SERVICE_URL: http://auth-service:5000/api/auth
-      
+
     ports:
-      - "3002:3002"
+      - '3002:3002'
     networks:
       - webcrawl-net
 
@@ -104,6 +115,7 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+      - minio
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
       DB_HOST: postgres
@@ -123,7 +135,7 @@ services:
     depends_on:
       - api-gateway
     ports:
-      - "80:80"
+      - '80:80'
     networks:
       - webcrawl-net
 
@@ -138,11 +150,13 @@ services:
     depends_on:
       - postgres
       - rabbitmq
+      - minio
     networks:
       - webcrawl-net
 
 volumes:
   postgres_data:
+  minio_data:
 
 networks:
   webcrawl-net:
