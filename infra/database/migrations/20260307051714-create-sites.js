@@ -2,27 +2,32 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('users', {
+    await queryInterface.createTable('sites', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
         primaryKey: true,
+        allowNull: false,
       },
 
-      email: {
-        type: Sequelize.STRING,
+      team_id: {
+        type: Sequelize.UUID,
         allowNull: false,
-        unique: true,
-      },
-
-      password_hash: {
-        type: Sequelize.STRING,
-        allowNull: false,
+        references: {
+          model: 'teams',
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
       },
 
       name: {
         type: Sequelize.STRING,
+        allowNull: false,
+      },
+
+      base_url: {
+        type: Sequelize.TEXT,
+        allowNull: false,
       },
 
       is_active: {
@@ -35,18 +40,13 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW,
       },
-
-      updated_at: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW,
-      },
     });
 
-    await queryInterface.addIndex('users', ['email']);
+    // Helpful index
+    await queryInterface.addIndex('sites', ['team_id']);
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('users');
+    await queryInterface.dropTable('sites');
   },
 };

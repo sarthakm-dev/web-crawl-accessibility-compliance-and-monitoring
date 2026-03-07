@@ -2,35 +2,35 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('role_permissions', {
-      role_id: {
+    await queryInterface.createTable('team_members', {
+      team_id: {
         type: Sequelize.UUID,
         allowNull: false,
         primaryKey: true,
         references: {
-          model: 'roles',
+          model: 'teams',
           key: 'id',
         },
         onDelete: 'CASCADE',
       },
 
-      permission_id: {
+      user_id: {
         type: Sequelize.UUID,
         allowNull: false,
         primaryKey: true,
         references: {
-          model: 'permissions',
+          model: 'users',
           key: 'id',
         },
         onDelete: 'CASCADE',
       },
     });
 
-    await queryInterface.addIndex('role_permissions', ['role_id']);
-    await queryInterface.addIndex('role_permissions', ['permission_id']);
+    await queryInterface.addIndex('team_members', ['team_id']);
+    await queryInterface.addIndex('team_members', ['user_id']);
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('role_permissions');
+    await queryInterface.dropTable('team_members');
   },
 };
