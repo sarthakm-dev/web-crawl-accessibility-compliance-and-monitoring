@@ -2,32 +2,37 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('users', {
+    await queryInterface.createTable('crawl_jobs', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
-        allowNull: false,
         primaryKey: true,
       },
 
-      email: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true,
-      },
-
-      password_hash: {
-        type: Sequelize.STRING,
+      site_id: {
+        type: Sequelize.UUID,
         allowNull: false,
       },
 
-      name: {
+      status: {
+        type: Sequelize.STRING,
+        defaultValue: 'pending',
+      },
+
+      trigger_type: {
         type: Sequelize.STRING,
       },
 
-      is_active: {
-        type: Sequelize.BOOLEAN,
-        defaultValue: true,
+      requested_by: {
+        type: Sequelize.UUID,
+      },
+
+      started_at: {
+        type: Sequelize.DATE,
+      },
+
+      completed_at: {
+        type: Sequelize.DATE,
       },
 
       created_at: {
@@ -35,18 +40,10 @@ module.exports = {
         allowNull: false,
         defaultValue: Sequelize.NOW,
       },
-
-      updated_at: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.NOW,
-      },
     });
-
-    await queryInterface.addIndex('users', ['email']);
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('users');
+    await queryInterface.dropTable('crawl_jobs');
   },
 };

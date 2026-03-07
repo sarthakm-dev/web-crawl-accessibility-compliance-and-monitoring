@@ -1,10 +1,10 @@
 import amqp from 'amqplib';
 import { CrawlService } from './services/crawl.service';
-import { sequelize } from '@packages/shared-config/database';
+import { initModels } from '@packages/shared-models/init-models';
 
 async function startWorker() {
   try {
-    await sequelize.sync();
+    initModels();
     const connection = await amqp.connect(process.env.RABBITMQ_URL!);
     const channel = await connection.createChannel();
 

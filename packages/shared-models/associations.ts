@@ -13,19 +13,19 @@ import { IssueNote } from './issue-note.model';
 import { IssueDefinition } from './issue-definition.model';
 import { PageVersion } from './page-version.model';
 import { IssueStatusHistory } from './issue-status-history.model';
-
+import { TeamMember } from './team-member.model';
 export function setupAssociations() {
   User.belongsToMany(Role, {
     through: UserRole,
     foreignKey: 'user_id',
   });
   User.belongsToMany(Team, {
-    through: 'team_members',
+    through: TeamMember,
     foreignKey: 'user_id',
   });
 
   Team.belongsToMany(User, {
-    through: 'team_members',
+    through: TeamMember,
     foreignKey: 'team_id',
   });
   Role.belongsToMany(User, {
@@ -85,5 +85,16 @@ export function setupAssociations() {
   });
   IssueNote.belongsTo(User, {
     foreignKey: 'user_id',
+  });
+  User.hasMany(IssueNote, {
+    foreignKey: 'user_id',
+  });
+
+  Team.hasMany(Site, {
+    foreignKey: 'team_id',
+  });
+
+  Site.belongsTo(Team, {
+    foreignKey: 'team_id',
   });
 }

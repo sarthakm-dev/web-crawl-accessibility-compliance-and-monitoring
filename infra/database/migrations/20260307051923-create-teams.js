@@ -2,7 +2,7 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('permissions', {
+    await queryInterface.createTable('teams', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -11,18 +11,25 @@ module.exports = {
       },
 
       name: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
         allowNull: false,
-        unique: true,
       },
 
       description: {
-        type: Sequelize.STRING,
+        type: Sequelize.TEXT,
+      },
+
+      created_at: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
       },
     });
+
+    // Helpful index
+    await queryInterface.addIndex('teams', ['name']);
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('permissions');
+    await queryInterface.dropTable('teams');
   },
 };
