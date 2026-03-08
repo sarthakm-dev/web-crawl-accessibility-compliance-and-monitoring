@@ -143,4 +143,22 @@ describe('CrawlService', () => {
 
     expect(result).toEqual(mockResult);
   });
+  it('should bulk delete crawl jobs', async () => {
+    const ids = ['job-1', 'job-2'];
+
+    (CrawlJobRepository.bulkDelete as any).mockResolvedValue(2);
+
+    await CrawlService.bulkDeleteCrawls(ids);
+
+    expect(CrawlJobRepository.bulkDelete).toHaveBeenCalledWith(ids);
+  });
+  it('should throw if no crawl jobs deleted', async () => {
+    const ids = ['job-1', 'job-2'];
+
+    (CrawlJobRepository.bulkDelete as any).mockResolvedValue(0);
+
+    await expect(CrawlService.bulkDeleteCrawls(ids)).rejects.toThrow(
+      'Crawl jobs not found'
+    );
+  });
 });

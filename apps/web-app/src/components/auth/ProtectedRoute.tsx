@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import api from '@/utils/api';
 import { useAuthStore } from '@/store/auth-store';
-
+import { socket } from '@/utils/socket';
 export default function ProtectedRoute({
   children,
 }: {
@@ -23,6 +23,18 @@ export default function ProtectedRoute({
 
     checkAuth();
   }, [setUser]);
+
+  useEffect(() => {
+    if (isAuthenticated === true) {
+      socket.connect();
+    } else if (isAuthenticated === false) {
+      socket.disconnect();
+    }
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [isAuthenticated]);
 
   if (isAuthenticated === null) {
     return <div className="p-10">Checking authentication...</div>;

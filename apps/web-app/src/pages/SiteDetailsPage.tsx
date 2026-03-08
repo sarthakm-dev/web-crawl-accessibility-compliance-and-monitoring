@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import api from '@/utils/api';
+import { socket } from '@/utils/socket';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+
 import {
   Table,
   TableBody,
@@ -12,30 +15,57 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+
 import { type Site } from '../../../../packages/shared-types/site.types';
 import { type CrawlJob } from '../../../../packages/shared-types/crawl-job.types';
+
 import { useAuthStore } from '@/store/auth-store';
 import { columns } from '@/config/site-columns';
 
+import { PaginationControls } from '@/components/common/Pagination';
+
 export default function SiteDetailsPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const page = Number(searchParams.get('page') || 1);
+  const limit = Number(searchParams.get('limit') || 10);
+
   const [site, setSite] = useState<Site | null>(null);
   const [jobs, setJobs] = useState<CrawlJob[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+
   const hasPermission = useAuthStore(state => state.hasPermission);
 
+  const fetchJobs = useCallback(async () => {
+    if (!id) return;
+
+    try {
+      const res = await api.get(
+        `/api/crawl?siteId=${id}&page=${page}&limit=${limit}`
+      );
+      console.log(res.data);
+      setJobs(res.data.data ?? []);
+      setTotalPages(res.data.pagination?.totalPages ?? 1);
+    } catch {
+      toast.error('Failed to load jobs');
+    }
+  }, [id, page, limit]);
+
   useEffect(() => {
+    if (!id) return;
+
     const fetchData = async () => {
       try {
         const siteRes = await api.get(`/api/site/${id}`);
-        const crawlRes = await api.get(
-          `/api/crawl?siteId=${id}&page=1&limit=10`
-        );
 
         setSite(siteRes.data);
-        setJobs(crawlRes.data.data ?? []);
+
+        await fetchJobs();
       } catch {
         toast.error('Failed to load site');
       } finally {
@@ -44,32 +74,46 @@ export default function SiteDetailsPage() {
     };
 
     fetchData();
-  }, [id]);
+  }, [id, fetchJobs]);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const crawlRes = await api.get(
-          `/api/crawl?siteId=${id}&page=1&limit=10`
-        );
-        setJobs(crawlRes.data.data ?? []);
-      } catch {
-        toast.error('Failed to load site');
-      }
+    if (!id) return;
+
+    socket.connect();
+
+    const handleUpdate = (event: {
+      jobId: string;
+      siteId: string;
+      status: string;
+    }) => {
+      if (event.siteId !== id) return;
+
+      setJobs(prev =>
+        prev.map(job =>
+          job.id === event.jobId ? { ...job, status: event.status } : job
+        )
+      );
     };
-    fetchJobs();
-    const interval = setInterval(fetchJobs, 5000);
-    return () => clearInterval(interval);
+
+    socket.on('crawl-job-updated', handleUpdate);
+
+    return () => {
+      socket.off('crawl-job-updated', handleUpdate);
+    };
   }, [id]);
 
   const startCrawl = async () => {
+    if (!id) return;
+
     try {
       await api.post('/api/crawl', {
         siteId: id,
         triggerType: 'manual',
       });
 
-      toast.success('Crawl started ');
+      await fetchJobs();
+
+      toast.success('Crawl started');
     } catch {
       toast.error('Failed to start crawl');
     }
@@ -92,6 +136,7 @@ export default function SiteDetailsPage() {
     <div className="min-h-screen bg-muted/40 p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Site Details */}
+
         <Card className="rounded-xl shadow-sm border-none">
           <CardContent className="p-6 space-y-4">
             <div className="flex justify-between items-center">
@@ -128,7 +173,9 @@ export default function SiteDetailsPage() {
             </div>
           </CardContent>
         </Card>
+
         {/* Crawl Jobs */}
+
         <Card className="rounded-xl shadow-sm border-none">
           <CardContent className="p-0">
             <Table>
@@ -154,7 +201,7 @@ export default function SiteDetailsPage() {
                   </TableRow>
                 ) : (
                   jobs.map(job => (
-                    <TableRow key={job.id}>
+                    <TableRow key={job.id} className="border-none">
                       <TableCell className="font-mono text-xs text-center">
                         {job.id}
                       </TableCell>
@@ -188,6 +235,13 @@ export default function SiteDetailsPage() {
             </Table>
           </CardContent>
         </Card>
+        {/* Pagination */}
+        <PaginationControls
+          page={page}
+          limit={limit}
+          totalPages={totalPages}
+          setSearchParams={setSearchParams}
+        />
       </div>
     </div>
   );

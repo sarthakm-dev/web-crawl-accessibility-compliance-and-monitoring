@@ -15,3 +15,7 @@ export const getCrawlsQuerySchema = z.object({
 export const crawlParamsSchema = z.object({
   id: z.uuid(),
 });
+
+export const bulkDeleteCrawlsSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1),
+});

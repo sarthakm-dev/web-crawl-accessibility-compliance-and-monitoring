@@ -68,4 +68,12 @@ export const SiteRepository = {
       where: { id },
     });
   },
+  async bulkDelete(teamId: string, ids: string[]) {
+    return Site.destroy({
+      where: {
+        id: ids,
+        team_id: teamId,
+      },
+    });
+  },
 };

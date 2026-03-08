@@ -6,4 +6,5 @@ const router = Router();
 router.post('/', CrawlController.startCrawl);
 router.get('/', CrawlController.getAll);
 router.get('/:id', CrawlController.getById);
+router.delete('/bulk', CrawlController.bulkDelete);
 export default router;

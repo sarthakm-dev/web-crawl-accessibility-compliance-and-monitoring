@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { SiteService } from '../services/site.service';
 import {
+  bulkDeleteSitesSchema,
   createSiteSchema,
   getSitesQuerySchema,
   siteParamsSchema,
@@ -72,6 +73,23 @@ export const SiteController = {
 
       return res.status(200).json({
         message: 'Site deleted successfully',
+      });
+    } catch (error: unknown) {
+      return handleError(res, error);
+    }
+  },
+  async bulkDeleteSites(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.teamId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { ids } = bulkDeleteSitesSchema.parse(req.body);
+
+      await SiteService.bulkDeleteSites(req.teamId, ids);
+
+      return res.status(200).json({
+        message: 'Sites deleted successfully',
       });
     } catch (error: unknown) {
       return handleError(res, error);

@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import amqp from 'amqplib';
 import { getBrowser } from '../browser/browser';
 import { CrawlJobRepository } from '../repositories/crawl-job.repository';
 import { CrawlQueueRepository } from '../repositories/crawl-queue.repository';
@@ -6,22 +7,41 @@ import { PageRepository } from '../repositories/page.repository';
 import { PageVersionRepository } from '../repositories/page-version.repository';
 import { publishToAnalysis } from '../publishers/analysis.publisher';
 import { uploadHtml } from '../storage/upload-html';
+
 export const CrawlService = {
-  async processJob(payload: {
-    jobId: string;
-    siteId: string;
-    baseUrl: string;
-  }) {
+  async processJob(
+    payload: {
+      jobId: string;
+      siteId: string;
+      baseUrl: string;
+    },
+    channel: amqp.Channel
+  ) {
     const { jobId, siteId, baseUrl } = payload;
 
     let browser;
     const baseHost = new URL(baseUrl).hostname;
+
     const MAX_PAGES = Number(process.env.MAX_PAGES) || 200;
+
     let processedCount = 0;
+
+    const publishEvent = (data: any) => {
+      channel.sendToQueue('crawl_events', Buffer.from(JSON.stringify(data)), {
+        persistent: true,
+      });
+    };
 
     try {
       browser = await getBrowser();
+
       await CrawlJobRepository.updateStatus(jobId, 'running');
+
+      publishEvent({
+        jobId,
+        siteId,
+        status: 'running',
+      });
 
       await CrawlQueueRepository.createIfNotExists({
         crawl_job_id: jobId,
@@ -34,9 +54,7 @@ export const CrawlService = {
       while (processedCount < MAX_PAGES) {
         const queueItem = await CrawlQueueRepository.getNextPending(jobId);
 
-        if (!queueItem) {
-          break;
-        }
+        if (!queueItem) break;
 
         const page = await browser.newPage();
 
@@ -49,6 +67,7 @@ export const CrawlService = {
           });
 
           const httpStatus = response?.status() ?? 0;
+
           const html = await page.content();
           const title = await page.title();
 
@@ -58,6 +77,7 @@ export const CrawlService = {
             .digest('hex');
 
           const contentSize = Buffer.byteLength(html, 'utf8');
+
           const dbPage = await PageRepository.upsert({
             site_id: siteId,
             url: queueItem.url,
@@ -109,10 +129,21 @@ export const CrawlService = {
           }
 
           await CrawlQueueRepository.updateStatus(queueItem.id, 'completed');
-          console.log('Processed Count', processedCount + 1);
+
           processedCount++;
+
+          console.log('Processed Count', processedCount);
+
+          if (processedCount % 5 === 0) {
+            publishEvent({
+              jobId,
+              status: 'running',
+              processedPages: processedCount,
+            });
+          }
         } catch (err) {
           console.error(`Failed crawling ${queueItem.url}`, err);
+
           await CrawlQueueRepository.updateStatus(queueItem.id, 'failed');
         }
 
@@ -120,9 +151,22 @@ export const CrawlService = {
       }
 
       await CrawlJobRepository.updateStatus(jobId, 'completed');
+
+      publishEvent({
+        jobId,
+        siteId,
+        status: 'completed',
+      });
     } catch (error) {
       console.error('Crawl job failed:', error);
+
       await CrawlJobRepository.updateStatus(jobId, 'failed');
+
+      publishEvent({
+        jobId,
+        siteId,
+        status: 'failed',
+      });
     }
   },
 };

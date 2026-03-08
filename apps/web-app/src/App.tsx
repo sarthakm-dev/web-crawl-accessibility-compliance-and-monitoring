@@ -10,6 +10,7 @@ import SitesPage from './pages/SitesPage';
 import CrawlJobsPage from './pages/CrawlJobsPage';
 import SiteDetailsPage from './pages/SiteDetailsPage';
 import IssuesPage from './pages/Issues';
+
 function App() {
   return (
     <>
@@ -17,59 +18,24 @@ function App() {
         <Routes>
           <Route path="/" element={<AuthPage />} />
 
-          <Route element={<AppLayout />}>
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sites"
-              element={
-                <ProtectedRoute>
-                  <SitesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/crawl-jobs"
-              element={
-                <ProtectedRoute>
-                  <CrawlJobsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/sites/:id"
-              element={
-                <ProtectedRoute>
-                  <SiteDetailsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/issues"
-              element={
-                <ProtectedRoute>
-                  <IssuesPage />
-                </ProtectedRoute>
-              }
-            />
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/sites" element={<SitesPage />} />
+            <Route path="/crawl-jobs" element={<CrawlJobsPage />} />
+            <Route path="/sites/:id" element={<SiteDetailsPage />} />
+            <Route path="/issues" element={<IssuesPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
-      <Toaster richColors/>
+
+      <Toaster richColors />
     </>
   );
 }

@@ -55,4 +55,11 @@ export const CrawlService = {
       limit,
     });
   },
+  async bulkDeleteCrawls(ids: string[]) {
+    const deleted = await CrawlJobRepository.bulkDelete(ids);
+    if (!deleted) {
+      throw new Error('Crawl jobs not found');
+    }
+    return deleted;
+  },
 };

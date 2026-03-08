@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { proxyServiceRequest } from '../utils/service-proxy';
 
 import {
+  bulkDeleteSitesSchema,
   createSiteSchema,
   getSitesQuerySchema,
   siteParamsSchema,
@@ -82,6 +83,26 @@ export const SiteController = {
       if (response.headers['set-cookie']) {
         res.setHeader('set-cookie', response.headers['set-cookie']);
       }
+      return res.status(response.status).json(response.data);
+    } catch (error) {
+      handleError(res, error);
+    }
+  },
+  async bulkDelete(req: Request, res: Response) {
+    try {
+      const { ids } = bulkDeleteSitesSchema.parse(req.body);
+
+      const response = await proxyServiceRequest(
+        req,
+        'delete',
+        `${CRAWL_MANAGER_URL}/sites/bulk`,
+        { ids }
+      );
+
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
+
       return res.status(response.status).json(response.data);
     } catch (error) {
       handleError(res, error);

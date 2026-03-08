@@ -7,19 +7,25 @@ import dotenv from 'dotenv';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { jsonValidation } from '@packages/shared-validation/json.validation';
+import http from 'http';
+import { initSocket } from './socket/server';
+import { startCrawlEventsConsumer } from './consumers/crawl-events.consumer';
 dotenv.config();
 
 async function crawlManager() {
   initModels();
   await initPublisher();
   const app = express();
+  const server = http.createServer(app);
+  initSocket(server);
+  await startCrawlEventsConsumer();
   app.use(express.json());
   app.use(cookieParser());
   app.use(jsonValidation());
   app.use('/api/sites', siteRoutes);
   app.use('/api/crawl', crawlRoutes);
   app.use('/api/issues', issueRoutes);
-  app.listen(3002, () => {
+  server.listen(3002, () => {
     console.log(`Crawl Manager running on port 3002`);
   });
 }

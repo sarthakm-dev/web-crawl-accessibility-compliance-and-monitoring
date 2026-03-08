@@ -44,6 +44,7 @@ import { TableFilters } from '@/components/common/TableFilters';
 import { siteFilterConfig } from '@/config/table-filter-config';
 import { columns } from '@/config/site-columns';
 import { PaginationControls } from '@/components/common/Pagination';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function SitesPage() {
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ export default function SitesPage() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
+  const [selectedSites, setSelectedSites] = useState<string[]>([]);
   const page = Number(searchParams.get('page')) || 1;
   const limit = Number(searchParams.get('limit')) || 5;
 
@@ -102,6 +104,28 @@ export default function SitesPage() {
     }
   }, [page, limit, search, status]);
 
+  const toggleSiteSelection = (siteId: string) => {
+    setSelectedSites(prev =>
+      prev.includes(siteId)
+        ? prev.filter(id => id !== siteId)
+        : [...prev, siteId]
+    );
+  };
+  const handleBulkDelete = async () => {
+    if (selectedSites.length === 0) return;
+
+    try {
+      await api.delete('/api/site/bulk', {
+        data: { ids: selectedSites },
+      });
+      setSites(prev => prev.filter(site => !selectedSites.includes(site.id)));
+      setSelectedSites([]);
+
+      toast.success('Sites deleted successfully');
+    } catch (err) {
+      toast.error(`Failed to delete sites${err}`);
+    }
+  };
   useEffect(() => {
     fetchSites();
   }, [fetchSites]);
@@ -207,6 +231,16 @@ export default function SitesPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {selectedSites.length > 0 && hasPermission('site:delete') && (
+            <Button
+              variant="destructive"
+              className="ml-2"
+              onClick={handleBulkDelete}
+            >
+              Delete Selected ({selectedSites.length})
+            </Button>
+          )}
         </div>
         {/* Table */}
         <Card className="rounded-xl border-none shadow-sm">
@@ -220,6 +254,21 @@ export default function SitesPage() {
             <Table className="border-none">
               <TableHeader>
                 <TableRow className="bg-muted/50 border-none">
+                  <TableHead className="text-center">
+                    <Checkbox
+                      checked={
+                        sites.length > 0 &&
+                        selectedSites.length === sites.length
+                      }
+                      onCheckedChange={checked => {
+                        if (checked) {
+                          setSelectedSites(sites.map(site => site.id));
+                        } else {
+                          setSelectedSites([]);
+                        }
+                      }}
+                    />
+                  </TableHead>
                   <TableHead className="text-center">Name</TableHead>
                   <TableHead className="text-center">Base URL</TableHead>
                   <TableHead className="text-center">Status</TableHead>
@@ -247,7 +296,7 @@ export default function SitesPage() {
                 ) : sites.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={4}
+                      colSpan={7}
                       className="text-center py-12 text-muted-foreground"
                     >
                       No sites found.
@@ -260,6 +309,15 @@ export default function SitesPage() {
                       onClick={() => navigate(`/sites/${site.id}`)}
                       className="cursor-pointer border-none hover:bg-muted/40 transition-colors"
                     >
+                      <TableCell
+                        className="text-center"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={selectedSites.includes(site.id)}
+                          onCheckedChange={() => toggleSiteSelection(site.id)}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium text-center">
                         {site.name}
                       </TableCell>

@@ -15,3 +15,7 @@ export const getSitesQuerySchema = z.object({
 export const siteParamsSchema = z.object({
   id: z.uuid(),
 });
+
+export const bulkDeleteSitesSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1),
+});

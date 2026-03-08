@@ -7,6 +7,7 @@ import {
   triggerCrawlSchema,
   getCrawlsQuerySchema,
   crawlParamsSchema,
+  bulkDeleteCrawlsSchema,
 } from '@packages/shared-validation/crawl.schema';
 
 vi.mock('../src/services/crawl.service');
@@ -16,12 +17,14 @@ vi.mock('@packages/shared-validation/crawl.schema', () => ({
   triggerCrawlSchema: { parse: vi.fn() },
   getCrawlsQuerySchema: { parse: vi.fn() },
   crawlParamsSchema: { parse: vi.fn() },
+  bulkDeleteCrawlsSchema: { parse: vi.fn() },
 }));
 
 const mockService = CrawlService as unknown as {
   triggerCrawl: any;
   getCrawlById: any;
   getAllCrawls: any;
+  bulkDeleteCrawls: any;
 };
 
 const mockHandleError = handleError as unknown as ReturnType<typeof vi.fn>;
@@ -162,6 +165,68 @@ describe('CrawlController', () => {
     });
 
     await CrawlController.getAll(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
+  });
+  it('should return 401 if userId missing in bulkDelete', async () => {
+    const req: any = { body: { ids: ['1'] } };
+    const res = mockRes();
+
+    await CrawlController.bulkDelete(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+  it('should bulk delete crawls', async () => {
+    const req: any = {
+      userId: 'user1',
+      body: { ids: ['1', '2'] },
+    };
+
+    const res = mockRes();
+
+    (bulkDeleteCrawlsSchema.parse as any).mockReturnValue({
+      ids: ['1', '2'],
+    });
+
+    mockService.bulkDeleteCrawls.mockResolvedValue(undefined);
+
+    await CrawlController.bulkDelete(req, res);
+
+    expect(mockService.bulkDeleteCrawls).toHaveBeenCalledWith(['1', '2']);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+  it('should handle validation error in bulkDelete', async () => {
+    const req: any = {
+      userId: 'user1',
+      body: {},
+    };
+
+    const res = mockRes();
+
+    (bulkDeleteCrawlsSchema.parse as any).mockImplementation(() => {
+      throw new Error('validation error');
+    });
+
+    await CrawlController.bulkDelete(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
+  });
+  it('should handle service error in bulkDelete', async () => {
+    const req: any = {
+      userId: 'user1',
+      body: { ids: ['1'] },
+    };
+
+    const res = mockRes();
+
+    (bulkDeleteCrawlsSchema.parse as any).mockReturnValue({
+      ids: ['1'],
+    });
+
+    mockService.bulkDeleteCrawls.mockRejectedValue(new Error('DB error'));
+
+    await CrawlController.bulkDelete(req, res);
 
     expect(mockHandleError).toHaveBeenCalled();
   });

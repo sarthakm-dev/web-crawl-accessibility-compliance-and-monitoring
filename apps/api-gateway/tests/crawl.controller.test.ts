@@ -7,6 +7,7 @@ import {
   triggerCrawlSchema,
   getCrawlsQuerySchema,
   crawlParamsSchema,
+  bulkDeleteCrawlsSchema,
 } from '@packages/shared-validation/crawl.schema';
 
 vi.mock('../src/utils/service-proxy');
@@ -16,6 +17,7 @@ vi.mock('@packages/shared-validation/crawl.schema', () => ({
   triggerCrawlSchema: { parse: vi.fn() },
   getCrawlsQuerySchema: { parse: vi.fn() },
   crawlParamsSchema: { parse: vi.fn() },
+  bulkDeleteCrawlsSchema: { parse: vi.fn() },
 }));
 
 const mockProxy = proxyServiceRequest as unknown as ReturnType<typeof vi.fn>;
@@ -123,6 +125,35 @@ describe('CrawlController', () => {
     const res = mockRes();
 
     await CrawlController.getById(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
+  });
+  it('bulkDelete success', async () => {
+    (bulkDeleteCrawlsSchema.parse as any).mockReturnValue({
+      ids: ['1', '2'],
+    });
+
+    mockProxy.mockResolvedValue(proxyResponse);
+
+    const req = mockReq({ ids: ['1', '2'] });
+    const res = mockRes();
+
+    await CrawlController.bulkDelete(req, res);
+
+    expect(mockProxy).toHaveBeenCalled();
+    expect(res.setHeader).toHaveBeenCalledWith('set-cookie', ['cookie']);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: 'ok' });
+  });
+  it('bulkDelete validation error', async () => {
+    (bulkDeleteCrawlsSchema.parse as any).mockImplementation(() => {
+      throw new Error('validation');
+    });
+
+    const req = mockReq();
+    const res = mockRes();
+
+    await CrawlController.bulkDelete(req, res);
 
     expect(mockHandleError).toHaveBeenCalled();
   });

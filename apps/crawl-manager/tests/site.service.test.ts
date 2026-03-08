@@ -9,6 +9,7 @@ const mockRepo = SiteRepository as unknown as {
   findAllWithPagination: any;
   findById: any;
   deleteWithJobs: any;
+  bulkDelete: any;
 };
 
 describe('SiteService', () => {
@@ -104,6 +105,25 @@ describe('SiteService', () => {
 
     await expect(SiteService.deleteSite('team1', 'site1')).rejects.toThrow(
       'Site not found'
+    );
+  });
+
+  it('should bulk delete sites', async () => {
+    const ids = ['site1', 'site2'];
+
+    mockRepo.bulkDelete.mockResolvedValue(2);
+
+    await SiteService.bulkDeleteSites('team1', ids);
+
+    expect(mockRepo.bulkDelete).toHaveBeenCalledWith('team1', ids);
+  });
+  it('should throw error when no sites deleted', async () => {
+    const ids = ['site1', 'site2'];
+
+    mockRepo.bulkDelete.mockResolvedValue(0);
+
+    await expect(SiteService.bulkDeleteSites('team1', ids)).rejects.toThrow(
+      'Sites not found'
     );
   });
 });

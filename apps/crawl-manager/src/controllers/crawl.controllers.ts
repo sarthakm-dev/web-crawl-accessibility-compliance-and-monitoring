@@ -4,6 +4,7 @@ import {
   triggerCrawlSchema,
   getCrawlsQuerySchema,
   crawlParamsSchema,
+  bulkDeleteCrawlsSchema,
 } from '@packages/shared-validation/crawl.schema';
 import { AuthenticatedRequest } from '@packages/shared-types/express';
 import { handleError } from '@packages/shared-utils/error-handler';
@@ -52,6 +53,23 @@ export const CrawlController = {
       const result = await CrawlService.getAllCrawls(parsedQuery);
 
       return res.status(200).json(result);
+    } catch (error: unknown) {
+      return handleError(res, error);
+    }
+  },
+  async bulkDelete(req: AuthenticatedRequest, res: Response) {
+    try {
+      if (!req.userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const { ids } = bulkDeleteCrawlsSchema.parse(req.body);
+
+      await CrawlService.bulkDeleteCrawls(ids);
+
+      return res.status(200).json({
+        message: 'Crawl jobs deleted successfully',
+      });
     } catch (error: unknown) {
       return handleError(res, error);
     }

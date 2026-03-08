@@ -4,6 +4,7 @@ import { SiteService } from '../src/services/site.service';
 import { handleError } from '@packages/shared-utils/error-handler';
 
 import {
+  bulkDeleteSitesSchema,
   createSiteSchema,
   getSitesQuerySchema,
   siteParamsSchema,
@@ -16,6 +17,7 @@ vi.mock('@packages/shared-validation/site.schema', () => ({
   createSiteSchema: { parse: vi.fn() },
   getSitesQuerySchema: { parse: vi.fn() },
   siteParamsSchema: { parse: vi.fn() },
+  bulkDeleteSitesSchema: { parse: vi.fn() },
 }));
 
 const mockService = SiteService as unknown as {
@@ -23,6 +25,7 @@ const mockService = SiteService as unknown as {
   getAllSites: any;
   getSiteById: any;
   deleteSite: any;
+  bulkDeleteSites: any;
 };
 
 const mockHandleError = handleError as unknown as ReturnType<typeof vi.fn>;
@@ -211,6 +214,71 @@ describe('SiteController', () => {
     });
 
     await SiteController.deleteSite(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
+  });
+  it('should return 401 if teamId missing in bulkDeleteSites', async () => {
+    const req: any = { body: { ids: ['1'] } };
+    const res = mockRes();
+
+    await SiteController.bulkDeleteSites(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+  });
+  it('should bulk delete sites', async () => {
+    const req: any = {
+      teamId: 'team1',
+      body: { ids: ['1', '2'] },
+    };
+
+    const res = mockRes();
+
+    (bulkDeleteSitesSchema.parse as any).mockReturnValue({
+      ids: ['1', '2'],
+    });
+
+    mockService.bulkDeleteSites.mockResolvedValue(undefined);
+
+    await SiteController.bulkDeleteSites(req, res);
+
+    expect(mockService.bulkDeleteSites).toHaveBeenCalledWith('team1', [
+      '1',
+      '2',
+    ]);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+  it('should handle validation error in bulkDeleteSites', async () => {
+    const req: any = {
+      teamId: 'team1',
+      body: {},
+    };
+
+    const res = mockRes();
+
+    (bulkDeleteSitesSchema.parse as any).mockImplementation(() => {
+      throw new Error();
+    });
+
+    await SiteController.bulkDeleteSites(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
+  });
+  it('should handle service error in bulkDeleteSites', async () => {
+    const req: any = {
+      teamId: 'team1',
+      body: { ids: ['1'] },
+    };
+
+    const res = mockRes();
+
+    (bulkDeleteSitesSchema.parse as any).mockReturnValue({
+      ids: ['1'],
+    });
+
+    mockService.bulkDeleteSites.mockRejectedValue(new Error());
+
+    await SiteController.bulkDeleteSites(req, res);
 
     expect(mockHandleError).toHaveBeenCalled();
   });

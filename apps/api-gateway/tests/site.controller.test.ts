@@ -4,6 +4,7 @@ import { proxyServiceRequest } from '../src/utils/service-proxy';
 import { handleError } from '@packages/shared-utils/error-handler';
 
 import {
+  bulkDeleteSitesSchema,
   createSiteSchema,
   getSitesQuerySchema,
   siteParamsSchema,
@@ -16,6 +17,7 @@ vi.mock('@packages/shared-validation/site.schema', () => ({
   createSiteSchema: { parse: vi.fn() },
   getSitesQuerySchema: { parse: vi.fn() },
   siteParamsSchema: { parse: vi.fn() },
+  bulkDeleteSitesSchema: { parse: vi.fn() },
 }));
 
 const mockProxy = proxyServiceRequest as unknown as ReturnType<typeof vi.fn>;
@@ -149,6 +151,35 @@ describe('SiteController', () => {
     const res = mockRes();
 
     await SiteController.deleteSite(req, res);
+
+    expect(mockHandleError).toHaveBeenCalled();
+  });
+  it('bulkDelete success', async () => {
+    (bulkDeleteSitesSchema.parse as any).mockReturnValue({
+      ids: ['1', '2'],
+    });
+
+    mockProxy.mockResolvedValue(proxyResponse);
+
+    const req = mockReq({ ids: ['1', '2'] });
+    const res = mockRes();
+
+    await SiteController.bulkDelete(req, res);
+
+    expect(mockProxy).toHaveBeenCalled();
+    expect(res.setHeader).toHaveBeenCalledWith('set-cookie', ['cookie']);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ success: true });
+  });
+  it('bulkDelete validation error', async () => {
+    (bulkDeleteSitesSchema.parse as any).mockImplementation(() => {
+      throw new Error('validation');
+    });
+
+    const req = mockReq();
+    const res = mockRes();
+
+    await SiteController.bulkDelete(req, res);
 
     expect(mockHandleError).toHaveBeenCalled();
   });

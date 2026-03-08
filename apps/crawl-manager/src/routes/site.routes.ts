@@ -17,6 +17,12 @@ router.get(
   SiteController.getById
 );
 router.delete(
+  '/bulk',
+  authenticate,
+  authorize('site:delete'),
+  SiteController.bulkDeleteSites
+);
+router.delete(
   '/:id',
   authenticate,
   authorize('site:delete'),

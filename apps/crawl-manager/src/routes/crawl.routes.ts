@@ -18,4 +18,10 @@ router.get(
   authorize('crawl:view'),
   CrawlController.getById
 );
+router.delete(
+  '/bulk',
+  authenticate,
+  authorize('issue:update'),
+  CrawlController.bulkDelete
+);
 export default router;

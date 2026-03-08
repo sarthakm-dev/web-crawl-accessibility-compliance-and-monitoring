@@ -3,6 +3,7 @@ import { CrawlQueue } from '@packages/shared-models/crawl-queue.model';
 import { PageVersion } from '@packages/shared-models/page-version.model';
 import { Site } from '@packages/shared-models/site.model';
 import { User } from '@packages/shared-models/user.model';
+import { Op } from 'sequelize';
 
 export const CrawlJobRepository = {
   async create(data: {
@@ -26,15 +27,19 @@ export const CrawlJobRepository = {
     filters,
     page,
     limit,
+    search,
   }: {
     filters: any;
     page: number;
     limit: number;
+    search?: string;
   }) {
     const offset = (page - 1) * limit;
 
+    const where: any = { ...filters };
+
     const { rows, count } = await CrawlJob.findAndCountAll({
-      where: filters,
+      where,
       order: [['created_at', 'DESC']],
       limit,
       offset,
@@ -42,6 +47,13 @@ export const CrawlJobRepository = {
         {
           model: Site,
           attributes: ['id', 'name'],
+          where: search
+            ? {
+                name: {
+                  [Op.iLike]: `%${search}%`,
+                },
+              }
+            : undefined,
         },
         {
           model: User,
@@ -97,5 +109,12 @@ export const CrawlJobRepository = {
       pending,
       completed,
     };
+  },
+  async bulkDelete(ids: string[]) {
+    return CrawlJob.destroy({
+      where: {
+        id: ids,
+      },
+    });
   },
 };

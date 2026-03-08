@@ -1,4 +1,5 @@
 services:
+
   postgres:
     image: postgres:15
     container_name: webcrawl-postgres
@@ -8,114 +9,141 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: webcrawl
     ports:
-      - '5433:5432'
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - webcrawl-net
+
 
   redis:
     image: redis:7
     container_name: webcrawl-redis
     restart: always
     ports:
-      - '6379:6379'
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - webcrawl-net
+
 
   rabbitmq:
     image: rabbitmq:3-management
     container_name: webcrawl-rabbitmq
     restart: always
     ports:
-      - '5672:5672'
-      - '15672:15672'
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - webcrawl-net
+
 
   minio:
     image: minio/minio
     container_name: webcrawl-minio
     command: server /data --console-address ":9001"
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - "9000:9000"
+      - "9001:9001"
     volumes:
       - minio_data:/data
     networks:
       - webcrawl-net
+
 
   auth-service:
     build:
       context: .
       dockerfile: apps/auth-service/Dockerfile
     container_name: webcrawl-auth
+    restart: always
     env_file:
       - apps/auth-service/.env
-    restart: always
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
       DB_HOST: postgres
       DB_PORT: 5432
       REDIS_HOST: redis
       REDIS_PORT: 6379
-
     ports:
-      - '5000:5000'
+      - "5000:5000"
     networks:
       - webcrawl-net
+
 
   api-gateway:
     build:
       context: .
       dockerfile: apps/api-gateway/Dockerfile
     container_name: webcrawl-gateway
+    restart: always
     env_file:
       - apps/api-gateway/.env
-    restart: always
     depends_on:
       - auth-service
     environment:
       AUTH_SERVICE_URL: http://auth-service:5000/api/auth
     ports:
-      - '4000:4000'
+      - "4000:4000"
     networks:
       - webcrawl-net
+
 
   crawl-manager:
     build:
       context: .
       dockerfile: apps/crawl-manager/Dockerfile
     container_name: webcrawl-manager
+    restart: always
     env_file:
       - apps/crawl-manager/.env
-    restart: always
     depends_on:
-      - postgres
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       AUTH_SERVICE_URL: http://auth-service:5000/api/auth
-
     ports:
-      - '3002:3002'
+      - "3002:3002"
     networks:
       - webcrawl-net
+
 
   crawl-worker:
     build:
       context: .
       dockerfile: apps/crawl-worker/Dockerfile
     container_name: webcrawl-worker
+    restart: always
     env_file:
       - apps/crawl-worker/.env
-    restart: always
     depends_on:
-      - postgres
-      - rabbitmq
-      - minio
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
       DB_HOST: postgres
@@ -124,39 +152,46 @@ services:
     networks:
       - webcrawl-net
 
-  web-app:
-    build:
-      context: .
-      dockerfile: apps/web-app/Dockerfile
-    container_name: webcrawl-web
-    env_file:
-      - apps/web-app/.env
-    restart: always
-    depends_on:
-      - api-gateway
-    ports:
-      - '80:80'
-    networks:
-      - webcrawl-net
 
   analysis-service:
     build:
       context: .
       dockerfile: apps/analysis-service/Dockerfile
     container_name: webcrawl-analyze
+    restart: always
     env_file:
       - apps/analysis-service/.env
-    restart: always
     depends_on:
-      - postgres
-      - rabbitmq
-      - minio
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
     networks:
       - webcrawl-net
+
+
+  web-app:
+    build:
+      context: .
+      dockerfile: apps/web-app/Dockerfile
+    container_name: webcrawl-web
+    restart: always
+    env_file:
+      - apps/web-app/.env
+    depends_on:
+      - api-gateway
+    ports:
+      - "80:80"
+    networks:
+      - webcrawl-net
+
 
 volumes:
   postgres_data:
   minio_data:
+
 
 networks:
   webcrawl-net:

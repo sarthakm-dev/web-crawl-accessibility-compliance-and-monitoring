@@ -46,4 +46,11 @@ export const SiteService = {
 
     await SiteRepository.deleteWithJobs(id);
   },
+  async bulkDeleteSites(teamId: string, ids: string[]) {
+    const deleted = await SiteRepository.bulkDelete(teamId, ids);
+    if (!deleted) {
+      throw new Error('Sites not found');
+    }
+    return deleted;
+  },
 };

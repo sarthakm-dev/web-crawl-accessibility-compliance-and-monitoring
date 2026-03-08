@@ -23,7 +23,7 @@ async function startWorker() {
         console.log('Received job:', payload.jobId);
 
         try {
-          await CrawlService.processJob(payload);
+          await CrawlService.processJob(payload, channel);
           channel.ack(msg);
           console.log('Job Completed');
         } catch (error) {

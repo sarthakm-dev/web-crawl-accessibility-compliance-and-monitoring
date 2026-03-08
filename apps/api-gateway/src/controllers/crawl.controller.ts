@@ -5,6 +5,7 @@ import {
   triggerCrawlSchema,
   getCrawlsQuerySchema,
   crawlParamsSchema,
+  bulkDeleteCrawlsSchema,
 } from '@packages/shared-validation/crawl.schema';
 import { handleError } from '@packages/shared-utils/error-handler';
 
@@ -63,6 +64,26 @@ export const CrawlController = {
       if (response.headers['set-cookie']) {
         res.setHeader('set-cookie', response.headers['set-cookie']);
       }
+      return res.status(response.status).json(response.data);
+    } catch (error) {
+      handleError(res, error);
+    }
+  },
+  async bulkDelete(req: Request, res: Response) {
+    try {
+      const { ids } = bulkDeleteCrawlsSchema.parse(req.body);
+
+      const response = await proxyServiceRequest(
+        req,
+        'delete',
+        `${CRAWL_MANAGER_URL}/crawl/bulk`,
+        { ids }
+      );
+
+      if (response.headers['set-cookie']) {
+        res.setHeader('set-cookie', response.headers['set-cookie']);
+      }
+
       return res.status(response.status).json(response.data);
     } catch (error) {
       handleError(res, error);

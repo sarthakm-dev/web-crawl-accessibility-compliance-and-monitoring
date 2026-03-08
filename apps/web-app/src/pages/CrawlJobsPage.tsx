@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+
 import { Card } from '@/components/ui/card';
 import {
   Table,
@@ -9,22 +10,35 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import api from '@/utils/api';
-import { type CrawlJob } from '../../../../packages/shared-types/crawl-job.types';
-import { RefreshCwIcon } from 'lucide-react';
-import { toast } from 'sonner';
-import axios from 'axios';
-import { statusConfig } from '@/config/status-config';
-import { columns } from '@/config/crawl-job-columns';
 
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+
+import api from '@/utils/api';
+import { socket } from '@/utils/socket';
+
+import axios from 'axios';
+import { toast } from 'sonner';
+
+import { columns } from '@/config/crawl-job-columns';
+import { statusConfig } from '@/config/status-config';
+
+import { PaginationControls } from '@/components/common/Pagination';
+import { TableFilters } from '@/components/common/TableFilters';
+
+import { type CrawlJob } from '../../../../packages/shared-types/crawl-job.types';
+import { crawlJobFilterConfig } from '@/config/table-filter-config';
+import type { CrawlJobUpdatedEvent } from '@/types/crawl.types';
 export default function CrawlJobsPage() {
   const [jobs, setJobs] = useState<CrawlJob[]>([]);
   const [loading, setLoading] = useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const search = searchParams.get('search') || '';
   const page = Number(searchParams.get('page')) || 1;
   const limit = Number(searchParams.get('limit')) || 5;
@@ -32,52 +46,152 @@ export default function CrawlJobsPage() {
 
   const fetchJobs = useCallback(async () => {
     setLoading(true);
+
     try {
-      const res = await api.get(`/api/crawl?page=${page}&limit=${limit}`);
+      const res = await api.get('/api/crawl', {
+        params: {
+          page,
+          limit,
+          search,
+          status: status === 'all' ? undefined : status,
+        },
+      });
+
       setJobs(res.data.data ?? []);
-      setTotalPages(res.data.pagination.totalPages);
+      setTotalPages(res.data.pagination?.totalPages ?? 1);
     } catch (err) {
       if (axios.isAxiosError(err)) {
         toast.error(
-          `${err.response?.data.error || err.response?.data.message || 'Something went wrong'}`
+          err.response?.data?.error ||
+            err.response?.data?.message ||
+            'Something went wrong'
         );
       } else {
-        toast.error('Unexpected Error');
+        toast.error('Unexpected error');
       }
     } finally {
       setLoading(false);
     }
-  }, [page, limit]);
+  }, [page, limit, search, status]);
+
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
 
+  useEffect(() => {
+    const handleJobUpdate = (event: CrawlJobUpdatedEvent) => {
+      setJobs(prev =>
+        prev.map(job =>
+          job.id === event.jobId ? { ...job, status: event.status } : job
+        )
+      );
+    };
+    socket.connect();
+    socket.on('crawl-job-updated', handleJobUpdate);
+
+    return () => {
+      socket.off('crawl-job-updated', handleJobUpdate);
+    };
+  }, []);
+
+  const toggleJobSelection = (id: string) => {
+    setSelectedJobs(prev =>
+      prev.includes(id) ? prev.filter(j => j !== id) : [...prev, id]
+    );
+  };
+
+  const deleteJobs = async () => {
+    try {
+      await api.request({
+        method: 'delete',
+        url: '/api/crawl/bulk',
+        data: { ids: selectedJobs },
+      });
+
+      toast.success('Jobs deleted successfully');
+
+      setSelectedJobs([]);
+      fetchJobs();
+    } catch {
+      toast.error('Failed to delete jobs');
+    }
+  };
+
   return (
     <div className="p-8 space-y-8">
+      {/* Header */}
+
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">Crawl Jobs</h1>
         <p className="text-muted-foreground">Monitor crawl execution history</p>
       </div>
 
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">
-          Showing {jobs.length} crawl jobs
+      {/* Filters */}
+
+      <TableFilters
+        search={search}
+        status={status}
+        limit={limit}
+        searchPlaceholder="Search crawl jobs..."
+        statusOptions={crawlJobFilterConfig.statusOptions}
+        limitOptions={crawlJobFilterConfig.limitOptions}
+        onSearchChange={value =>
+          setSearchParams({
+            page: '1',
+            search: value,
+            status,
+            limit: limit.toString(),
+          })
+        }
+        onStatusChange={value =>
+          setSearchParams({
+            page: '1',
+            search,
+            status: value,
+            limit: limit.toString(),
+          })
+        }
+        onLimitChange={value =>
+          setSearchParams({
+            page: '1',
+            search,
+            status,
+            limit: value.toString(),
+          })
+        }
+      />
+
+      {/* Delete button */}
+
+      {selectedJobs.length > 0 && (
+        <div className="flex justify-end">
+          <Button variant="destructive" onClick={deleteJobs}>
+            Delete Selected ({selectedJobs.length})
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={fetchJobs}
-          disabled={loading}
-          className="gap-2 text-blue-700"
-        >
-          <RefreshCwIcon />
-        </Button>
-      </div>
-      {/* Crawl Jobs table */}
+      )}
+
+      {/* Table */}
+
       <Card className="border-none rounded-xl shadow-sm bg-background/60 backdrop-blur-sm">
-        <Table className="rounded-xl">
+        <Table>
           <TableHeader>
             <TableRow className="border-b bg-muted border-muted">
+              <TableHead className="text-center">
+                <Checkbox
+                  checked={
+                    jobs.length > 0 && selectedJobs.length === jobs.length
+                  }
+                  onCheckedChange={checked => {
+                    if (checked) {
+                      setSelectedJobs(jobs.map(j => j.id));
+                    } else {
+                      setSelectedJobs([]);
+                    }
+                  }}
+                />
+              </TableHead>
+
               {columns.map(col => (
                 <TableHead key={col.key} className="text-center">
                   {col.label}
@@ -90,9 +204,10 @@ export default function CrawlJobsPage() {
             {loading
               ? [...Array(limit)].map((_, i) => (
                   <TableRow key={i}>
+                    <TableCell />
                     {columns.map((_, idx) => (
-                      <TableCell className="text-center" key={idx}>
-                        <Skeleton className="h-4 w-32" />
+                      <TableCell key={idx} className="text-center">
+                        <Skeleton className="h-4 w-32 mx-auto" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -100,8 +215,17 @@ export default function CrawlJobsPage() {
               : jobs.map(job => (
                   <TableRow
                     key={job.id}
-                    className="hover:bg-muted/40 bg-background border-none transition cursor-pointer"
+                    className="hover:bg-muted/40 bg-background border-none transition"
                   >
+                    {/* Checkbox */}
+
+                    <TableCell className="text-center">
+                      <Checkbox
+                        checked={selectedJobs.includes(job.id)}
+                        onCheckedChange={() => toggleJobSelection(job.id)}
+                      />
+                    </TableCell>
+
                     <TableCell className="font-medium text-center">
                       {job.id}
                     </TableCell>
@@ -133,43 +257,16 @@ export default function CrawlJobsPage() {
         </Table>
       </Card>
 
-      <div className="flex justify-end items-center gap-4 pt-2">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={page <= 1}
-          onClick={() =>
-            setSearchParams({
-              page: (page - 1).toString(),
-              limit: limit.toString(),
-              search,
-              status,
-            })
-          }
-        >
-          Previous
-        </Button>
+      {/* Pagination */}
 
-        <span className="text-sm text-muted-foreground">
-          Page {page} of {totalPages}
-        </span>
-
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={page >= totalPages}
-          onClick={() =>
-            setSearchParams({
-              page: (page + 1).toString(),
-              limit: limit.toString(),
-              search,
-              status,
-            })
-          }
-        >
-          Next
-        </Button>
-      </div>
+      <PaginationControls
+        page={page}
+        limit={limit}
+        totalPages={totalPages}
+        search={search}
+        status={status}
+        setSearchParams={setSearchParams}
+      />
     </div>
   );
 }
