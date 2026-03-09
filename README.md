@@ -87,6 +87,10 @@ Reverse Proxy:
 
 - Nginx
 
+S3 Bucket Store:
+
+- Minio
+
 ---
 
 ## Project Structure
@@ -108,7 +112,9 @@ packages
 
 infra
 
-- migrations
+- database
+  - config
+  - migrations
 
 The idea here is that reusable logic (models, validation, config, etc.) lives inside `packages`, while the actual services live inside `apps`.
 
