@@ -152,7 +152,7 @@
         }
       }
     },
-    "/site": {
+    "/sites": {
       "get": {
         "summary": "Get all sites",
         "parameters": [
@@ -200,7 +200,7 @@
         }
       }
     },
-    "/site/{id}": {
+    "/sites/{id}": {
       "get": {
         "summary": "Get site by ID",
         "parameters": [
@@ -330,6 +330,126 @@
         "responses": {
           "200": { "description": "Issue details" },
           "404": { "description": "Issue not found" }
+        }
+      }
+    },
+    "/dashboard/summary": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get dashboard summary metrics",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Site ID to get summary for"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "activeSites": { "type": "number" },
+                    "activeCrawls": { "type": "number" },
+                    "openIssues": { "type": "number" },
+                    "complianceScore": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/dashboard/trend": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get accessibility score trend",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trend data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": { "type": "string", "format": "date" },
+                      "score": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/dashboard/issues-breakdown": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get issues breakdown",
+        "responses": {
+          "200": {
+            "description": "Issues grouped by severity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "critical": { "type": "number" },
+                    "serious": { "type": "number" },
+                    "moderate": { "type": "number" },
+                    "minor": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/dashboard/latest-crawls": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Get latest crawl jobs",
+        "responses": {
+          "200": {
+            "description": "Latest crawls list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

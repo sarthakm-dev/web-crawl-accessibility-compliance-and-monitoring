@@ -6,10 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev src/server.ts",
     "build": "tsup src/server.ts --format cjs --out-dir dist --clean",
-    "start": "node dist/server.js",
-    "test": "vitest  run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest  run --coverage"
+    "start": "node dist/server.js"
   },
   "keywords": [],
   "author": "",
