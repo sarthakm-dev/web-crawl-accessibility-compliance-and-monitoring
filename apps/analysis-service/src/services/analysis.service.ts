@@ -5,6 +5,8 @@ import { IssueDefinitionRepository } from '../repositories/issue-definition.repo
 import { IssueInstanceRepository } from '../repositories/issue-instance.repository';
 import { IssueStatusHistoryRepository } from '../repositories/issue-status-history.repository';
 import { getHtmlFromStorage } from '../storage/get-html';
+import { publishAnalysisCompleted } from '../publishers/analysis-event.publisher';
+import { PageRepository } from '../repositories/page.repository';
 
 export const AnalysisService = {
   async process(payload: { pageVersionId: string }) {
@@ -76,6 +78,14 @@ export const AnalysisService = {
       console.log(
         `Analysis complete for ${pageVersionId}. Violations: ${results.violations.length}`
       );
+      const page = await PageRepository.findById(pageVersion.page_id);
+      if (!page) {
+        throw new Error('Page not found for pageVersion');
+      }
+      await publishAnalysisCompleted({
+        siteId: page.site_id,
+        jobId: pageVersion.crawl_job_id,
+      });
     } catch (error) {
       await transaction.rollback();
       await PageVersionRepository.updateStatus(pageVersionId, 'failed');

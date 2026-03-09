@@ -1,181 +1,158 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-vi.mock('../src/repositories/page-version.repository', () => ({
-  PageVersionRepository: {
-    findById: vi.fn(),
-    updateStatus: vi.fn(),
-  },
-}));
-
-vi.mock('../src/repositories/issue-definition.repository', () => ({
-  IssueDefinitionRepository: {
-    findOrCreateByRule: vi.fn(),
-  },
-}));
-
-vi.mock('../src/repositories/issue-instance.repository', () => ({
-  IssueInstanceRepository: {
-    create: vi.fn(),
-  },
-}));
-
-vi.mock('../src/repositories/issue-status-history.repository', () => ({
-  IssueStatusHistoryRepository: {
-    create: vi.fn(),
-  },
-}));
-
-vi.mock('../src/analysers/axe.analyser', () => ({
-  AxeAnalyzer: {
-    analyze: vi.fn(),
-  },
-}));
-
-vi.mock('@packages/shared-config/database', () => ({
-  sequelize: {
-    transaction: vi.fn(),
-  },
-}));
-
 import { AnalysisService } from '../src/services/analysis.service';
-
 import { PageVersionRepository } from '../src/repositories/page-version.repository';
+import { AxeAnalyzer } from '../src/analysers/axe.analyser';
+import { getHtmlFromStorage } from '../src/storage/get-html';
+import { sequelize } from '@packages/shared-config/database';
 import { IssueDefinitionRepository } from '../src/repositories/issue-definition.repository';
 import { IssueInstanceRepository } from '../src/repositories/issue-instance.repository';
-import { AxeAnalyzer } from '../src/analysers/axe.analyser';
-import { sequelize } from '@packages/shared-config/database';
+import { PageRepository } from '../src/repositories/page.repository';
+import { publishAnalysisCompleted } from '../src/publishers/analysis-event.publisher';
 
-const mockPageRepo = vi.mocked(PageVersionRepository);
-const mockIssueDefRepo = vi.mocked(IssueDefinitionRepository);
-const mockInstanceRepo = vi.mocked(IssueInstanceRepository);
-const mockAnalyzer = vi.mocked(AxeAnalyzer);
-const mockSequelize = vi.mocked(sequelize);
+// Mock dependencies
+vi.mock('../src/repositories/page-version.repository');
+vi.mock('../src/repositories/page.repository');
+vi.mock('../src/repositories/issue-definition.repository');
+vi.mock('../src/repositories/issue-instance.repository');
+vi.mock('../src/repositories/issue-status-history.repository');
+vi.mock('../src/analysers/axe.analyser');
+vi.mock('../src/storage/get-html');
+vi.mock('../src/publishers/analysis-event.publisher');
 
 describe('AnalysisService', () => {
-  const transaction = {
-    commit: vi.fn(),
-    rollback: vi.fn(),
-  } as any;
+  const mockPayload = { pageVersionId: 'pv-123' };
+
+  let mockTransaction: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockSequelize.transaction.mockResolvedValue(transaction);
+
+    mockTransaction = {
+      commit: vi.fn(),
+      rollback: vi.fn(),
+    };
+
+    vi.spyOn(sequelize, 'transaction').mockResolvedValue(mockTransaction);
   });
 
-  it('should throw if page version not found', async () => {
-    mockPageRepo.findById.mockResolvedValue(null);
+  it('should process a page version and save violations successfully', async () => {
+    const mockPageVersion = {
+      id: 'pv-123',
+      html_path: 'path/to.html',
+      page_id: 'p-456',
+      crawl_job_id: 'job-1',
+      analysis_status: 'none',
+    };
 
-    await expect(
-      AnalysisService.process({ pageVersionId: '1' })
-    ).rejects.toThrow('Page version or HTML not found');
-  });
+    const mockPage = {
+      id: 'p-456',
+      site_id: 's-789',
+    };
 
-  it('should skip if analysis already completed', async () => {
-    mockPageRepo.findById.mockResolvedValue({
-      html_content: '<html/>',
-      analysis_status: 'completed',
-    } as any);
-
-    await AnalysisService.process({ pageVersionId: '1' });
-
-    expect(mockPageRepo.updateStatus).not.toHaveBeenCalled();
-  });
-
-  it('should process violations successfully', async () => {
-    mockPageRepo.findById.mockResolvedValue({
-      html_content: '<html/>',
-      analysis_status: 'pending',
-    } as any);
-
-    mockAnalyzer.analyze.mockResolvedValue({
+    const mockAxeResults = {
       violations: [
         {
+          id: 'color-contrast',
           impact: 'serious',
           nodes: [
             {
-              target: ['#main'],
-              failureSummary: 'failure',
+              target: ['button'],
+              failureSummary: 'Fix contrast',
             },
           ],
         },
       ],
-    } as any);
+    };
 
-    mockIssueDefRepo.findOrCreateByRule.mockResolvedValue([
-      { id: 'def1' },
+    vi.mocked(PageVersionRepository.findById).mockResolvedValue(
+      mockPageVersion as any
+    );
+    vi.mocked(getHtmlFromStorage).mockResolvedValue('<html></html>');
+    vi.mocked(AxeAnalyzer.analyze).mockResolvedValue(mockAxeResults as any);
+    vi.mocked(IssueDefinitionRepository.findOrCreateByRule).mockResolvedValue([
+      { id: 'def-1' },
     ] as any);
-
-    mockInstanceRepo.create.mockResolvedValue({ id: 'instance1' } as any);
-
-    await AnalysisService.process({ pageVersionId: '1' });
-
-    expect(transaction.commit).toHaveBeenCalled();
-  });
-
-  it('should rollback on error', async () => {
-    mockPageRepo.findById.mockResolvedValue({
-      html_content: '<html/>',
-      analysis_status: 'pending',
+    vi.mocked(IssueInstanceRepository.create).mockResolvedValue({
+      id: 'inst-1',
     } as any);
+    vi.mocked(PageRepository.findById).mockResolvedValue(mockPage as any);
 
-    mockAnalyzer.analyze.mockResolvedValue({
-      violations: [
-        {
-          nodes: [
-            {
-              target: ['#main'],
-              failureSummary: 'failure',
-            },
-          ],
-        },
-      ],
-    } as any);
+    await AnalysisService.process(mockPayload);
 
-    mockIssueDefRepo.findOrCreateByRule.mockRejectedValue(
-      new Error('DB error')
+    expect(PageVersionRepository.updateStatus).toHaveBeenCalledWith(
+      'pv-123',
+      'pending'
     );
 
-    await expect(
-      AnalysisService.process({ pageVersionId: '1' })
-    ).rejects.toThrow();
-
-    expect(transaction.rollback).toHaveBeenCalled();
-  });
-
-  it('should default impact to minor if violation impact missing', async () => {
-    mockPageRepo.findById.mockResolvedValue({
-      html_content: '<html/>',
-      analysis_status: 'pending',
-    } as any);
-
-    mockAnalyzer.analyze.mockResolvedValue({
-      violations: [
-        {
-          nodes: [
-            {
-              target: ['#main'],
-              failureSummary: 'failure',
-            },
-          ],
-        },
-      ],
-    } as any);
-
-    mockIssueDefRepo.findOrCreateByRule.mockResolvedValue([
-      { id: 'def1' },
-    ] as any);
-
-    mockInstanceRepo.create.mockResolvedValue({
-      id: 'instance1',
-    } as any);
-
-    await AnalysisService.process({ pageVersionId: '1' });
-
-    expect(mockInstanceRepo.create).toHaveBeenCalledWith(
+    expect(IssueInstanceRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        impact: 'minor',
+        issue_definition_id: 'def-1',
+        impact: 'serious',
+        element_selector: 'button',
       }),
-      expect.anything()
+      mockTransaction
     );
+
+    expect(mockTransaction.commit).toHaveBeenCalled();
+
+    expect(publishAnalysisCompleted).toHaveBeenCalledWith({
+      siteId: 's-789',
+      jobId: 'job-1',
+    });
+  });
+
+  it('should throw error if page version is missing or has no HTML path', async () => {
+    vi.mocked(PageVersionRepository.findById).mockResolvedValue(null);
+
+    await expect(AnalysisService.process(mockPayload)).rejects.toThrow(
+      'Page version or HTML path not found'
+    );
+  });
+
+  it('should rollback transaction and set status to failed on error', async () => {
+    vi.mocked(PageVersionRepository.findById).mockResolvedValue({
+      id: 'pv-123',
+      html_path: 'path/to.html',
+      page_id: 'p-456',
+      crawl_job_id: 'job-1',
+      analysis_status: 'none',
+    } as any);
+
+    vi.mocked(getHtmlFromStorage).mockResolvedValue('<html></html>');
+
+    vi.mocked(AxeAnalyzer.analyze).mockResolvedValue({
+      violations: [
+        {
+          impact: 'serious',
+          nodes: [],
+        },
+      ],
+    } as any);
+
+    vi.mocked(IssueDefinitionRepository.findOrCreateByRule).mockRejectedValue(
+      new Error('DB Error')
+    );
+
+    await expect(AnalysisService.process(mockPayload)).rejects.toThrow();
+
+    expect(mockTransaction.rollback).toHaveBeenCalled();
+
+    expect(PageVersionRepository.updateStatus).toHaveBeenCalledWith(
+      'pv-123',
+      'failed'
+    );
+  });
+
+  it('should skip processing if analysis is already completed', async () => {
+    vi.mocked(PageVersionRepository.findById).mockResolvedValue({
+      id: 'pv-123',
+      html_path: 'path/to.html',
+      analysis_status: 'completed',
+    } as any);
+
+    await AnalysisService.process(mockPayload);
+
+    expect(AxeAnalyzer.analyze).not.toHaveBeenCalled();
+    expect(getHtmlFromStorage).not.toHaveBeenCalled();
   });
 });
