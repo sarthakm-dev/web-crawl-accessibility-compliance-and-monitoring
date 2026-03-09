@@ -19,6 +19,7 @@ TeamMember.init(
   {
     sequelize,
     tableName: 'team_members',
-    timestamps: false,
+    timestamps: true,
+    underscored: true,
   }
 );
