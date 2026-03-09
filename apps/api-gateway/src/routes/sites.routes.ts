@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { crawlProxy } from '../proxies/crawl.proxy';
+import { sitesProxy } from '../proxies/sites.proxy';
 
 const router = Router();
 
-router.use('/', crawlProxy);
+router.use('/', sitesProxy);
 
 export default router;

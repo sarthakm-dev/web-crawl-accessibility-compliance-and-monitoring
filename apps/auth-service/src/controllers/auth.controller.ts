@@ -112,7 +112,7 @@ export const AuthController = {
 
       return res.status(200).json(result);
     } catch (error: unknown) {
-      return handleError(res, error);
+      return handleError(res, error, 404);
     }
   },
 
@@ -128,7 +128,7 @@ export const AuthController = {
 
       return res.status(200).json(result);
     } catch (error: unknown) {
-      return handleError(res, error);
+      return handleError(res, error, 401);
     }
   },
 
@@ -140,7 +140,7 @@ export const AuthController = {
 
       return res.status(200).json(result);
     } catch (error: unknown) {
-      return handleError(res, error);
+      return handleError(res, error, 401);
     }
   },
 };

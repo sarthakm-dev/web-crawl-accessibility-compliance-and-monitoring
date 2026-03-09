@@ -127,49 +127,50 @@ export default function CrawlJobsPage() {
       </div>
 
       {/* Filters */}
+      <div className="flex flex-wrap items-center gap-4">
+        <TableFilters
+          search={search}
+          status={status}
+          limit={limit}
+          searchPlaceholder="Search crawl jobs..."
+          statusOptions={crawlJobFilterConfig.statusOptions}
+          limitOptions={crawlJobFilterConfig.limitOptions}
+          onSearchChange={value =>
+            setSearchParams({
+              page: '1',
+              search: value,
+              status,
+              limit: limit.toString(),
+            })
+          }
+          onStatusChange={value =>
+            setSearchParams({
+              page: '1',
+              search,
+              status: value,
+              limit: limit.toString(),
+            })
+          }
+          onLimitChange={value =>
+            setSearchParams({
+              page: '1',
+              search,
+              status,
+              limit: value.toString(),
+            })
+          }
+        />
 
-      <TableFilters
-        search={search}
-        status={status}
-        limit={limit}
-        searchPlaceholder="Search crawl jobs..."
-        statusOptions={crawlJobFilterConfig.statusOptions}
-        limitOptions={crawlJobFilterConfig.limitOptions}
-        onSearchChange={value =>
-          setSearchParams({
-            page: '1',
-            search: value,
-            status,
-            limit: limit.toString(),
-          })
-        }
-        onStatusChange={value =>
-          setSearchParams({
-            page: '1',
-            search,
-            status: value,
-            limit: limit.toString(),
-          })
-        }
-        onLimitChange={value =>
-          setSearchParams({
-            page: '1',
-            search,
-            status,
-            limit: value.toString(),
-          })
-        }
-      />
+        {/* Delete button */}
 
-      {/* Delete button */}
-
-      {selectedJobs.length > 0 && (
-        <div className="flex justify-end">
-          <Button variant="destructive" onClick={deleteJobs}>
-            Delete Selected ({selectedJobs.length})
-          </Button>
-        </div>
-      )}
+        {selectedJobs.length > 0 && (
+          <div className="flex justify-end">
+            <Button variant="destructive" onClick={deleteJobs}>
+              Delete Selected ({selectedJobs.length})
+            </Button>
+          </div>
+        )}
+      </div>
 
       {/* Table */}
 
@@ -221,6 +222,7 @@ export default function CrawlJobsPage() {
 
                     <TableCell className="text-center">
                       <Checkbox
+                        className="text-blue-700"
                         checked={selectedJobs.includes(job.id)}
                         onCheckedChange={() => toggleJobSelection(job.id)}
                       />

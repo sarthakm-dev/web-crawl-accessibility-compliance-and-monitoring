@@ -206,7 +206,7 @@ describe('Auth Routes', () => {
     expect(res.status).toBe(400);
   });
 
-  it('POST /forgot-password should return 400 if service throws', async () => {
+  it('POST /forgot-password should return 404 if service throws', async () => {
     (AuthService.forgotPassword as any).mockRejectedValue(
       new Error('User not found')
     );
@@ -215,7 +215,7 @@ describe('Auth Routes', () => {
       .post('/forgot-password')
       .send({ email: 'test@test.com' });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(404);
     expect(res.body).toEqual({ error: 'User not found' });
   });
 
@@ -244,7 +244,7 @@ describe('Auth Routes', () => {
     expect(res.status).toBe(400);
   });
 
-  it('POST /reset-password should return 400 if service throws', async () => {
+  it('POST /reset-password should return 401 if service throws', async () => {
     (AuthService.resetPassword as any).mockRejectedValue(
       new Error('Invalid OTP')
     );
@@ -255,7 +255,7 @@ describe('Auth Routes', () => {
       newPassword: 'newpass123',
     });
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(401);
     expect(res.body).toEqual({
       error: 'Invalid OTP',
     });
@@ -301,7 +301,7 @@ describe('Auth Routes', () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalled();
   });
-  it('POST /verify-otp should return 400 if service throws', async () => {
+  it('POST /verify-otp should return 401 if service throws', async () => {
     vi.spyOn(AuthService, 'verifyOtp').mockRejectedValue(
       new Error('Invalid credentials')
     );
@@ -320,7 +320,7 @@ describe('Auth Routes', () => {
 
     await AuthController.verifyOtp(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
       error: 'Invalid credentials',
     });

@@ -21,7 +21,7 @@ router.get(
 router.delete(
   '/bulk',
   authenticate,
-  authorize('issue:update'),
+  authorize('crawl:delete'),
   CrawlController.bulkDelete
 );
 export default router;

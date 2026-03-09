@@ -1,36 +1,34 @@
-import {
-  LineChart,
-  Line,
-  XAxis,
-  CartesianGrid,
-} from "recharts"
+import { LineChart, Line, XAxis, CartesianGrid } from 'recharts';
 
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from '@/components/ui/chart';
+import type { Props } from '@/types/page.types';
 
-const data = [
-  { date: "Feb 15", score: 0 },
-  { date: "Feb 16", score: 0 },
-  { date: "Feb 17", score: 0 },
-  { date: "Feb 18", score: 0 },
-  { date: "Feb 19", score: 0 },
-]
+export function AccessibilityTrendChart({ data = [] }: Props) {
+  const chartData = data.map(item => ({
+    date: new Date(item.created_at).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+    score: item.accessibility_score,
+  }));
 
-export function AccessibilityTrendChart() {
   return (
     <ChartContainer
-      className="h-56 w-full"
+      className="h-50 w-full"
       config={{
         score: {
-          label: "Accessibility Score",
-          color: "#2563eb",
+          label: 'Accessibility Score',
+          color: '#2563eb',
         },
       }}
     >
-      <LineChart data={data}>
+      <LineChart data={chartData}>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
 
         <XAxis
@@ -42,9 +40,7 @@ export function AccessibilityTrendChart() {
 
         <ChartTooltip
           content={
-            <ChartTooltipContent
-              formatter={(value) => [`${value}%`, "Score"]}
-            />
+            <ChartTooltipContent formatter={value => [`${value}%`, 'Score']} />
           }
         />
 
@@ -57,5 +53,5 @@ export function AccessibilityTrendChart() {
         />
       </LineChart>
     </ChartContainer>
-  )
+  );
 }

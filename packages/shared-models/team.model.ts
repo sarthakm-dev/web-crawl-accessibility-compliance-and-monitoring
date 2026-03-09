@@ -30,6 +30,7 @@ Team.init(
   {
     sequelize,
     tableName: 'teams',
-    timestamps: false,
+    timestamps: true,
+    underscored: true,
   }
 );
