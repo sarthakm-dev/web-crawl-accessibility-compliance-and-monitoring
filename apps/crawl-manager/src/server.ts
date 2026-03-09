@@ -3,6 +3,7 @@ import { initPublisher } from './publishers/crawl.publishers';
 import crawlRoutes from './routes/crawl.routes';
 import siteRoutes from './routes/site.routes';
 import issueRoutes from './routes/issues.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 import dotenv from 'dotenv';
 import express from 'express';
 import cookieParser from 'cookie-parser';
@@ -10,6 +11,7 @@ import { jsonValidation } from '@packages/shared-validation/json.validation';
 import http from 'http';
 import { initSocket } from './socket/server';
 import { startCrawlEventsConsumer } from './consumers/crawl-events.consumer';
+import { startAnalysisEventsConsumer } from './consumers/analysis.consumer';
 dotenv.config();
 
 async function crawlManager() {
@@ -19,12 +21,14 @@ async function crawlManager() {
   const server = http.createServer(app);
   initSocket(server);
   await startCrawlEventsConsumer();
+  await startAnalysisEventsConsumer();
   app.use(express.json());
   app.use(cookieParser());
   app.use(jsonValidation());
   app.use('/api/sites', siteRoutes);
   app.use('/api/crawl', crawlRoutes);
   app.use('/api/issues', issueRoutes);
+  app.use('/api/dashboard', dashboardRoutes);
   server.listen(3002, () => {
     console.log(`Crawl Manager running on port 3002`);
   });
