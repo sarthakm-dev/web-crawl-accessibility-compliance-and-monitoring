@@ -1,11 +1,16 @@
 import { Router } from 'express';
 import { DashboardController } from '../controllers/dashboard.controller';
+import { authenticate } from '../middleware/crawl.middleware';
 
 const router = Router();
 
-router.get('/summary', DashboardController.getSummary);
-router.get('/trend', DashboardController.getTrend);
-router.get('/issues-breakdown', DashboardController.getIssuesBreakdown);
-router.get('/latest-crawls', DashboardController.getLatestCrawls);
+router.get('/summary', authenticate, DashboardController.getSummary);
+router.get('/trend', authenticate, DashboardController.getTrend);
+router.get(
+  '/issues-breakdown',
+  authenticate,
+  DashboardController.getIssuesBreakdown
+);
+router.get('/latest-crawls', authenticate, DashboardController.getLatestCrawls);
 
 export default router;
