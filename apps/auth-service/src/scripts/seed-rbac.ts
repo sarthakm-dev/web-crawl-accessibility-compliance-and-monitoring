@@ -16,6 +16,7 @@ async function seed() {
     'site:view',
     'crawl:trigger',
     'crawl:view',
+    'crawl:delete',
     'issue:create',
     'issue:update',
     'issue:view',
