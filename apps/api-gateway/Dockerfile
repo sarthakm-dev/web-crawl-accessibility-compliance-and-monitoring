@@ -7,7 +7,7 @@ COPY ../../pnpm-workspace.yaml ./
 COPY ../../tsconfig.base.json ./
 
 COPY ../../packages ./packages
-COPY ../../apps ./apps
+COPY ../../apps/api-gateway ./apps/api-gateway
 
 RUN npm install -g pnpm
 

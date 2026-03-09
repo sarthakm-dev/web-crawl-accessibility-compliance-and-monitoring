@@ -21,7 +21,7 @@ COPY ../../pnpm-workspace.yaml ./
 COPY ../../tsconfig.base.json ./
 
 COPY ../../packages ./packages
-COPY ../../apps ./apps
+COPY ../../apps/analysis-service ./apps/analysis-service
 
 RUN npm install -g pnpm
 
