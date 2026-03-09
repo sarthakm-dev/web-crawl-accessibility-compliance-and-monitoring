@@ -21,7 +21,7 @@ COPY ../../pnpm-workspace.yaml ./
 COPY ../../tsconfig.base.json ./
 
 COPY ../../packages ./packages
-COPY ../../apps ./apps
+COPY ../../apps/crawl-worker ./apps/crawl-worker
 
 RUN npm install -g pnpm
 
