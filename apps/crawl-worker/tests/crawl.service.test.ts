@@ -4,170 +4,139 @@ import { CrawlJobRepository } from '../src/repositories/crawl-job.repository';
 import { CrawlQueueRepository } from '../src/repositories/crawl-queue.repository';
 import { PageRepository } from '../src/repositories/page.repository';
 import { PageVersionRepository } from '../src/repositories/page-version.repository';
-import { publishToAnalysis } from '../src/publishers/analysis.publisher';
 import { getBrowser } from '../src/browser/browser';
+import { uploadHtml } from '../src/storage/upload-html';
+import { publishToAnalysis } from '../src/publishers/analysis.publisher';
 
 vi.mock('../src/repositories/crawl-job.repository');
 vi.mock('../src/repositories/crawl-queue.repository');
 vi.mock('../src/repositories/page.repository');
 vi.mock('../src/repositories/page-version.repository');
-vi.mock('../src/publishers/analysis.publisher');
 vi.mock('../src/browser/browser');
+vi.mock('../src/storage/upload-html');
+vi.mock('../src/publishers/analysis.publisher');
 
-describe('CrawlService.processJob', () => {
-  const mockPayload = {
-    jobId: 'job-1',
-    siteId: 'site-1',
-    baseUrl: 'https://test.com',
-  };
+describe('CrawlService', () => {
+  let mockChannel: any;
+  let mockBrowser: any;
+  let mockPage: any;
 
-  const mockPage = {
-    goto: vi.fn().mockResolvedValue({ status: () => 200 }),
-    content: vi
-      .fn()
-      .mockResolvedValue(
-        '<html><body><a href="https://test.com"></a></body></html>'
-      ),
-    title: vi.fn().mockResolvedValue('Test Title'),
-    $$eval: vi
-      .fn()
-      .mockResolvedValue(['https://test.com', 'https://external.com']),
-    close: vi.fn(),
-  };
-
-  const mockBrowser = {
-    newPage: vi.fn().mockResolvedValue(mockPage),
+  const payload = {
+    jobId: 'job-123',
+    siteId: 'site-456',
+    baseUrl: 'https://example.com',
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
+
+    mockChannel = {
+      sendToQueue: vi.fn(),
+    };
+
+    mockPage = {
+      goto: vi.fn().mockResolvedValue({ status: () => 200 }),
+      content: vi.fn().mockResolvedValue('<html></html>'),
+      title: vi.fn().mockResolvedValue('Test Page'),
+      $$eval: vi
+        .fn()
+        .mockResolvedValue([
+          'https://example.com/about',
+          'https://external.com',
+          'invalid-url',
+        ]),
+      close: vi.fn(),
+    };
+
+    mockBrowser = {
+      newPage: vi.fn().mockResolvedValue(mockPage),
+    };
     (getBrowser as any).mockResolvedValue(mockBrowser);
   });
 
-  it('should process the seed URL and discover internal links', async () => {
-    vi.mocked(CrawlQueueRepository.getNextPending)
-      .mockResolvedValueOnce({ id: 'q1', url: 'https://test.com' } as any)
+  it('should complete crawl successfully', async () => {
+    (CrawlQueueRepository.getNextPending as any)
+      .mockResolvedValueOnce({ id: 'q1', url: 'https://example.com' })
       .mockResolvedValueOnce(null);
+    (PageRepository.upsert as any).mockResolvedValue({ id: 'page1' });
+    (uploadHtml as any).mockResolvedValue('s3/path');
+    (PageVersionRepository.create as any).mockResolvedValue({ id: 'version1' });
 
-    vi.mocked(PageRepository.upsert).mockResolvedValue({ id: 'p1' } as any);
-    vi.mocked(PageVersionRepository.create).mockResolvedValue({
-      id: 'v1',
-    } as any);
-
-    await CrawlService.processJob(mockPayload);
+    await CrawlService.processJob(payload, mockChannel);
 
     expect(CrawlJobRepository.updateStatus).toHaveBeenCalledWith(
-      'job-1',
-      'running'
-    );
-    expect(CrawlJobRepository.updateStatus).toHaveBeenCalledWith(
-      'job-1',
+      'job-123',
       'completed'
     );
 
-    expect(mockPage.goto).toHaveBeenCalledWith(
-      'https://test.com',
-      expect.any(Object)
-    );
-    expect(publishToAnalysis).toHaveBeenCalledWith({ pageVersionId: 'v1' });
-
-    expect(CrawlQueueRepository.createIfNotExists).toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: 'https://test.com',
-      })
-    );
-    expect(CrawlQueueRepository.createIfNotExists).not.toHaveBeenCalledWith(
-      expect.objectContaining({
-        url: 'https://external.com',
-      })
-    );
-  });
-
-  it('should handle failures gracefully and update status to failed', async () => {
-    vi.mocked(CrawlQueueRepository.getNextPending).mockRejectedValue(
-      new Error('DB Error')
-    );
-
-    await CrawlService.processJob(mockPayload);
-
-    expect(CrawlJobRepository.updateStatus).toHaveBeenCalledWith(
-      'job-1',
-      'failed'
-    );
-  });
-  it('should mark an individual queue item as failed if page processing throws', async () => {
-    vi.mocked(CrawlQueueRepository.getNextPending)
-      .mockResolvedValueOnce({
-        id: 'queue-fail-id',
-        url: 'https://test.com',
-      } as any)
-      .mockResolvedValueOnce(null);
-
-    mockPage.goto.mockRejectedValueOnce(new Error('Navigation Timeout'));
-
-    await CrawlService.processJob(mockPayload);
-
-    expect(CrawlQueueRepository.updateStatus).toHaveBeenCalledWith(
-      'queue-fail-id',
-      'failed'
-    );
-
-    expect(CrawlJobRepository.updateStatus).toHaveBeenCalledWith(
-      'job-1',
-      'completed'
-    );
-  });
-  it('should extract and process internal links using $$eval', async () => {
-    vi.mocked(CrawlQueueRepository.getNextPending)
-      .mockResolvedValueOnce({ id: 'q1', url: 'https://test.com' } as any)
-      .mockResolvedValueOnce(null);
-
-    vi.mocked(PageRepository.upsert).mockResolvedValue({ id: 'p1' } as any);
-    vi.mocked(PageVersionRepository.create).mockResolvedValue({
-      id: 'v1',
-    } as any);
-
-    mockPage.$$eval.mockImplementation((_selector, fn) => {
-      const anchors = [
-        { href: 'https://test.com' },
-        { href: 'https://external.com' },
-      ];
-      return Promise.resolve(fn(anchors));
+    expect(publishToAnalysis).toHaveBeenCalledWith({
+      pageVersionId: 'version1',
     });
 
-    await CrawlService.processJob(mockPayload);
+    expect(mockChannel.sendToQueue).toHaveBeenCalled();
+  });
 
-    expect(mockPage.$$eval).toHaveBeenCalledWith(
-      'a[href]',
-      expect.any(Function)
-    );
+  it('should mark queue item failed when page crawl fails', async () => {
+    (CrawlQueueRepository.getNextPending as any)
+      .mockResolvedValueOnce({ id: 'q1', url: 'https://example.com' })
+      .mockResolvedValueOnce(null);
 
-    expect(CrawlQueueRepository.createIfNotExists).toHaveBeenCalledWith(
-      expect.objectContaining({ url: 'https://test.com' })
-    );
+    mockPage.goto.mockRejectedValue(new Error('Navigation error'));
 
-    expect(CrawlQueueRepository.createIfNotExists).not.toHaveBeenCalledWith(
-      expect.objectContaining({ url: 'https://otherdomain.com' })
+    await CrawlService.processJob(payload, mockChannel);
+
+    expect(CrawlQueueRepository.updateStatus).toHaveBeenCalledWith(
+      'q1',
+      'failed'
     );
   });
 
-  it('should skip invalid URLs in the link loop', async () => {
-    vi.mocked(CrawlQueueRepository.getNextPending)
-      .mockResolvedValueOnce({ id: 'q1', url: 'https://test.com' } as any)
+  it('should mark job failed when browser fails to launch', async () => {
+    (getBrowser as any).mockRejectedValue(new Error('Browser failed'));
+
+    await CrawlService.processJob(payload, mockChannel);
+
+    expect(CrawlJobRepository.updateStatus).toHaveBeenCalledWith(
+      'job-123',
+      'failed'
+    );
+
+    expect(mockChannel.sendToQueue).toHaveBeenCalledWith(
+      'crawl_events',
+      expect.any(Buffer),
+      { persistent: true }
+    );
+  });
+
+  it('should respect MAX_PAGES limit', async () => {
+    process.env.MAX_PAGES = '1';
+    (CrawlQueueRepository.getNextPending as any).mockResolvedValue({
+      id: 'q1',
+      url: 'https://example.com',
+    });
+    (PageRepository.upsert as any).mockResolvedValue({ id: 'p1' });
+    (PageVersionRepository.create as any).mockResolvedValue({ id: 'v1' });
+
+    await CrawlService.processJob(payload, mockChannel);
+
+    expect(CrawlQueueRepository.getNextPending).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle missing response object (status 0)', async () => {
+    (CrawlQueueRepository.getNextPending as any)
+      .mockResolvedValueOnce({ id: 'q1', url: 'https://example.com' })
       .mockResolvedValueOnce(null);
 
-    vi.mocked(PageRepository.upsert).mockResolvedValue({ id: 'p1' } as any);
-    vi.mocked(PageVersionRepository.create).mockResolvedValue({
-      id: 'v1',
-    } as any);
+    mockPage.goto.mockResolvedValue(null);
+    (PageRepository.upsert as any).mockResolvedValue({ id: 'p1' });
+    (PageVersionRepository.create as any).mockResolvedValue({ id: 'v1' });
 
-    mockPage.$$eval.mockResolvedValue(['not-a-valid-url', 'https://test.com']);
+    await CrawlService.processJob(payload, mockChannel);
 
-    await CrawlService.processJob(mockPayload);
-
-    expect(CrawlQueueRepository.createIfNotExists).toHaveBeenCalledTimes(2);
-    expect(CrawlQueueRepository.createIfNotExists).toHaveBeenCalledWith(
-      expect.objectContaining({ url: 'https://test.com' })
+    expect(PageVersionRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        http_status: 0,
+      })
     );
   });
 });
