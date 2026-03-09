@@ -66,7 +66,7 @@ export default function SitesPage() {
 
   const handleCreateSite = async () => {
     try {
-      await api.post('/api/site', {
+      await api.post('/api/sites', {
         name,
         baseUrl,
       });
@@ -87,7 +87,7 @@ export default function SitesPage() {
     setLoading(true);
     try {
       const res = await api.get(
-        `/api/site?page=${page}&limit=${limit}&search=${search}&status=${status}`
+        `/api/sites?page=${page}&limit=${limit}&search=${search}&status=${status}`
       );
       setSites(res.data.data ?? []);
       setTotalPages(res.data.pagination.totalPages);
@@ -115,7 +115,7 @@ export default function SitesPage() {
     if (selectedSites.length === 0) return;
 
     try {
-      await api.delete('/api/site/bulk', {
+      await api.delete('/api/sites/bulk', {
         data: { ids: selectedSites },
       });
       setSites(prev => prev.filter(site => !selectedSites.includes(site.id)));
@@ -396,7 +396,7 @@ export default function SitesPage() {
                                 <AlertDialogAction
                                   onClick={async e => {
                                     e.stopPropagation();
-                                    await api.delete(`/api/site/${site.id}`);
+                                    await api.delete(`/api/sites/${site.id}`);
                                     setSites(prev =>
                                       prev.filter(s => s.id !== site.id)
                                     );
