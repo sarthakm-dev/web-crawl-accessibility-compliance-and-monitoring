@@ -1,6 +1,5 @@
 import amqp from 'amqplib';
 import { getIO } from '../socket/server';
-import { MetricsService } from '../services/metrics.service';
 
 export async function startCrawlEventsConsumer() {
   const connection = await amqp.connect(process.env.RABBITMQ_URL!);
@@ -23,9 +22,6 @@ export async function startCrawlEventsConsumer() {
         const io = getIO();
 
         io.emit('crawl-job-updated', event);
-        if (event.status === 'completed') {
-          await MetricsService.generate(event.siteId, event.jobId);
-        }
 
         channel.ack(msg);
       } catch (err) {
