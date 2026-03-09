@@ -1,11 +1,8 @@
 import { Router } from 'express';
-import { IssuesController } from '../controllers/issues.controller';
+import { issuesProxy } from '../proxies/issues.proxy';
 
 const router = Router();
 
-router.get('/', IssuesController.getAll);
-router.get('/:id', IssuesController.getById);
-router.patch('/:id/status', IssuesController.updateStatus);
-router.post('/:id/notes', IssuesController.addNote);
+router.use('/', issuesProxy);
 
 export default router;
