@@ -19,15 +19,15 @@ export const statusStyles = {
 };
 
 export const data = [
-  { severity: "Critical", value: 0 },
-  { severity: "High", value: 0 },
-  { severity: "Medium", value: 0 },
-  { severity: "Low", value: 0 },
-]
+  { severity: 'Critical', value: 0 },
+  { severity: 'High', value: 0 },
+  { severity: 'Medium', value: 0 },
+  { severity: 'Low', value: 0 },
+];
 
 export const COLORS: Record<string, string> = {
-  Critical: "#ef4444",
-  High: "#f97316",
-  Medium: "#eab308",
-  Low: "#22c55e",
-}
+  critical: '#ef4444',
+  serious: '#f97316',
+  moderate: '#eab308',
+  minor: '#22c55e',
+};

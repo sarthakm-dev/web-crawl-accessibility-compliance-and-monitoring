@@ -61,7 +61,7 @@ export default function SiteDetailsPage() {
 
     const fetchData = async () => {
       try {
-        const siteRes = await api.get(`/api/site/${id}`);
+        const siteRes = await api.get(`/api/sites/${id}`);
 
         setSite(siteRes.data);
 

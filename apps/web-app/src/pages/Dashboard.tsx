@@ -1,30 +1,79 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import api from '@/utils/api';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatBox } from '@/components/cards/StatBox';
 import { JobRow } from '@/components/cards/JobRow';
-import { useNavigate } from 'react-router-dom';
+
 import { AccessibilityTrendChart } from '@/components/charts/AccessibilityTrendChart';
 import { IssueBreakdownChart } from '@/components/charts/IssueBreakdownChart';
+import type { LatestJob } from '@/types/page.types';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+
+  const [summary, setSummary] = useState({
+    activeSites: 0,
+    activeCrawls: 0,
+    openIssues: 0,
+    complianceScore: 0,
+  });
+
+  const [trend, setTrend] = useState([]);
+  const [issues, setIssues] = useState(null);
+  const [latestJobs, setLatestJobs] = useState<LatestJob[]>([]);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const [summaryRes, trendRes, issuesRes, crawlsRes] = await Promise.all([
+          api.get('/api/dashboard/summary'),
+          api.get('/api/dashboard/trend'),
+          api.get('/api/dashboard/issues-breakdown'),
+          api.get('/api/dashboard/latest-crawls'),
+        ]);
+
+        setSummary(summaryRes.data);
+        setTrend(trendRes.data);
+        setIssues(issuesRes.data);
+        setLatestJobs(crawlsRes.data);
+        console.log(crawlsRes.data);
+      } catch (error) {
+        console.error('Failed to load dashboard', error);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
   return (
     <div className="flex-1 min-h-screen bg-linear-to-br from-blue-50 via-blue-100 to-blue-200 p-6 space-y-6">
+      {/* Stats */}
       <div className="grid md:grid-cols-4 grid-cols-2 gap-6">
-        <StatBox title="Active Sites" value="0" />
-        <StatBox title="Active Crawls" value="0" />
-        <StatBox title="Open Issues" value="0" />
-        <StatBox title="Compliance Score" value="0" />
+        <StatBox title="Active Sites" value={summary.activeSites.toString()} />
+        <StatBox
+          title="Active Crawls"
+          value={summary.activeCrawls.toString()}
+        />
+        <StatBox title="Open Issues" value={summary.openIssues.toString()} />
+        <StatBox
+          title="Compliance Score"
+          value={summary.complianceScore.toString()}
+        />
       </div>
 
+      {/* Charts */}
       <div className="grid md:grid-cols-3 gap-6">
         <Card className="rounded-2xl border-none shadow-md bg-white/80 backdrop-blur">
           <CardHeader>
             <CardTitle>Accessibility Score Trend</CardTitle>
           </CardHeader>
+
           <CardContent>
-            <AccessibilityTrendChart />
-            <p className="text-sm text-green-600 mt-3">+0% from last week</p>
+            <AccessibilityTrendChart data={trend} />
           </CardContent>
         </Card>
 
@@ -32,19 +81,21 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>Issue Severity Breakdown</CardTitle>
           </CardHeader>
-          <CardContent className='p-0'>
-            <IssueBreakdownChart />
+
+          <CardContent className="p-0">
+            <IssueBreakdownChart data={issues} />
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl  shadow-lg bg-linear-to-br from-blue-600 to-blue-800 text-white">
+        {/* CTA */}
+        <Card className="rounded-2xl shadow-lg bg-linear-to-br from-blue-600 to-blue-800 text-white">
           <CardContent className="flex flex-col justify-between h-full p-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">
                 Maintain accessibility compliance
               </h3>
 
-              <p className=" text-base mt-4 opacity-90">
+              <p className="text-base mt-4 opacity-90">
                 Automated web crawls to identify WCAG violations such as missing
                 alternative text, insufficient color contrast, broken form
                 labels that often go unnoticed during manual checks.
@@ -61,12 +112,21 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Latest Crawls */}
       <Card className="rounded-2xl border-none shadow-md bg-white/90 backdrop-blur">
         <CardHeader>
           <CardTitle>Latest Crawl Jobs</CardTitle>
         </CardHeader>
+
         <CardContent className="space-y-4 text-sm">
-          <JobRow site="Google.com" status="In Progress" pages="0" />
+          {latestJobs.map(job => (
+            <JobRow
+              key={job.id}
+              site={job.Site?.name || 'Unknown'}
+              status={job.status}
+              pages={job.pages_crawled?.toString() ?? '0'}
+            />
+          ))}
         </CardContent>
       </Card>
     </div>
