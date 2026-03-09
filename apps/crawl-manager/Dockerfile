@@ -7,7 +7,7 @@ COPY ../../pnpm-workspace.yaml ./
 COPY ../../tsconfig.base.json ./
 
 COPY ../../packages ./packages
-COPY ../../apps/crawl-manager ./apps/crawl-manager
+COPY ../../apps/ ./apps/
 
 RUN npm install -g pnpm
 

@@ -7,7 +7,7 @@ COPY ../../pnpm-workspace.yaml ./
 COPY ../../tsconfig.base.json ./
 
 COPY ../../packages ./packages
-COPY ../../apps/auth-service ./apps/auth-service
+COPY ../../apps/ ./apps/
 
 RUN npm install -g pnpm
 
