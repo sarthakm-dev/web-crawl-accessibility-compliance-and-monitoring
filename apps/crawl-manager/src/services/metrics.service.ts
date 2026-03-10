@@ -7,6 +7,7 @@ export const MetricsService = {
     const pageCount = await PageVersion.count({
       where: { crawl_job_id: jobId },
     });
+    // Get impacts for crawl jobs
     const issues = await IssueInstance.findAll({
       attributes: ['impact'],
       include: [
@@ -22,7 +23,7 @@ export const MetricsService = {
     let serious = 0;
     let moderate = 0;
     let minor = 0;
-
+    // Calculate impact counts
     issues.forEach(issue => {
       switch (issue.impact) {
         case 'critical':
@@ -38,7 +39,7 @@ export const MetricsService = {
           minor++;
       }
     });
-
+    // Calculate accessibility score based on impact value
     const total = critical + serious + moderate + minor;
 
     const score = Math.max(

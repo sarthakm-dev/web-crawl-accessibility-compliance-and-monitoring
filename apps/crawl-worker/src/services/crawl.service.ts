@@ -20,12 +20,13 @@ export const CrawlService = {
     const { jobId, siteId, baseUrl } = payload;
 
     let browser;
+    // Define base host
     const baseHost = new URL(baseUrl).hostname;
-
+    // Set limit for maximum no of pages to be crawled
     const MAX_PAGES = Number(process.env.MAX_PAGES) || 200;
 
     let processedCount = 0;
-
+    // Initialize publish event to send messages through RabbitMQ
     const publishEvent = (data: any) => {
       channel.sendToQueue('crawl_events', Buffer.from(JSON.stringify(data)), {
         persistent: true,
@@ -36,7 +37,7 @@ export const CrawlService = {
       browser = await getBrowser();
 
       await CrawlJobRepository.updateStatus(jobId, 'running');
-
+      // Send publish event status througn RabbitMQ to crawl manager for real time update
       publishEvent({
         jobId,
         siteId,
@@ -50,17 +51,17 @@ export const CrawlService = {
         discovered_from: null,
         retry_count: 0,
       });
-
+      // While processed pages less than limit
       while (processedCount < MAX_PAGES) {
         const queueItem = await CrawlQueueRepository.getNextPending(jobId);
 
         if (!queueItem) break;
-
+        // Initialize new page to crawl
         const page = await browser.newPage();
 
         try {
           await CrawlQueueRepository.updateStatus(queueItem.id, 'processing');
-
+          // Wait untill network idle
           const response = await page.goto(queueItem.url, {
             waitUntil: 'networkidle2',
             timeout: 30000,
@@ -70,7 +71,7 @@ export const CrawlService = {
 
           const html = await page.content();
           const title = await page.title();
-
+          // Create a content hash to prevent duplication
           const contentHash = crypto
             .createHash('sha256')
             .update(html)
@@ -84,7 +85,7 @@ export const CrawlService = {
             last_seen_at: new Date(),
             status: httpStatus === 200 ? 'active' : 'error',
           });
-
+          // Upload the crawled page in s3 bucket for future reference
           const htmlPath = await uploadHtml(
             siteId,
             dbPage.id,
@@ -101,7 +102,7 @@ export const CrawlService = {
             html_path: htmlPath,
             content_size: contentSize,
           });
-
+          // Send publish event status througn RabbitMQ to analysis service for accessibility scan
           await publishToAnalysis({ pageVersionId: pageVersion.id });
 
           const links: string[] = await page.$$eval('a[href]', as =>
@@ -115,7 +116,7 @@ export const CrawlService = {
               if (parsed.hostname !== baseHost) continue;
 
               const cleanUrl = parsed.origin + parsed.pathname;
-
+              // Update crawl queue status for observability
               await CrawlQueueRepository.createIfNotExists({
                 crawl_job_id: jobId,
                 url: cleanUrl,
@@ -151,7 +152,7 @@ export const CrawlService = {
       }
 
       await CrawlJobRepository.updateStatus(jobId, 'completed');
-
+      // Send publish event status througn RabbitMQ to crawl manager for real time update
       publishEvent({
         jobId,
         siteId,
@@ -161,7 +162,7 @@ export const CrawlService = {
       console.error('Crawl job failed:', error);
 
       await CrawlJobRepository.updateStatus(jobId, 'failed');
-
+      // Send publish event status failed for real time update
       publishEvent({
         jobId,
         siteId,

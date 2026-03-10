@@ -20,7 +20,7 @@ export async function startCrawlEventsConsumer() {
         console.log('Crawl event received:', event);
 
         const io = getIO();
-
+        // Send job updated broadcast to client
         io.emit('crawl-job-updated', event);
 
         channel.ack(msg);
