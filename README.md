@@ -142,7 +142,6 @@ https://drive.google.com/file/d/1thZ8dVFunbFtJCXpFJB0sB2fPESnxAwQ/view?usp=shari
 
 - If you want to run tests:
   - pnpm test
-  - pnpm test:coverage
 
 - Or if you want to use docker
   - docker compose up --build
