@@ -1,0 +1,26 @@
+{
+  "name": "reporting-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "ts-node-dev src/index.ts",
+    "build": "tsup src/index.ts --format cjs --out-dir dist --clean",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest  run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.2",
+  "dependencies": {
+    "sequelize": "^6.37.7",
+    "uuid": "^13.0.0",
+    "vitest": "^4.0.18"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1"
+  }
+}
