@@ -40,7 +40,6 @@ export default function Dashboard() {
         setTrend(trendRes.data);
         setIssues(issuesRes.data);
         setLatestJobs(crawlsRes.data);
-        console.log(crawlsRes.data);
       } catch (error) {
         console.error('Failed to load dashboard', error);
       }

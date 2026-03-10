@@ -48,7 +48,6 @@ export default function SiteDetailsPage() {
       const res = await api.get(
         `/api/crawl?siteId=${id}&page=${page}&limit=${limit}`
       );
-      console.log(res.data);
       setJobs(res.data.data ?? []);
       setTotalPages(res.data.pagination?.totalPages ?? 1);
     } catch {

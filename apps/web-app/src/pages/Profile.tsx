@@ -17,7 +17,6 @@ export default function Profile() {
     const fetchProfile = async () => {
       try {
         const res = await api.get('/api/auth/me');
-        console.log(res.data);
         setUser(res.data);
       } catch {
         toast.error('Failed to fetch profile');
