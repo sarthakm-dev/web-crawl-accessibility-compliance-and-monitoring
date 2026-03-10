@@ -133,6 +133,7 @@ https://drive.google.com/file/d/1thZ8dVFunbFtJCXpFJB0sB2fPESnxAwQ/view?usp=shari
 
 - First install dependencies.
   - pnpm install
+    (Docker Image is being used for postgress, Minio, RabbitMQ use `docker compose up --build` to set up if you dont want to run in local)
 
 - Then put enviornment variables in .env (refer .env.example)
 
