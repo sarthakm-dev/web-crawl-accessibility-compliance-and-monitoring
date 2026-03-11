@@ -39,7 +39,6 @@ export function IssueDetailsSheet({
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
   const hasPermission = useAuthStore(state => state.hasPermission);
-  console.log(issue);
   if (!issue) return null;
 
   const handleAddComment = async () => {

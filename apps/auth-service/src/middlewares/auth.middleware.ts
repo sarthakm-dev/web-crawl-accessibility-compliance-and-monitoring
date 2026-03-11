@@ -12,6 +12,7 @@ export const authenticate = (
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
+    // Verify JWT Token
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       userId: string;
       teamId: string;

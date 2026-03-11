@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatBox } from '@/components/cards/StatBox';
 import { JobRow } from '@/components/cards/JobRow';
-
+import { toast } from 'sonner';
 import { AccessibilityTrendChart } from '@/components/charts/AccessibilityTrendChart';
 import { IssueBreakdownChart } from '@/components/charts/IssueBreakdownChart';
 import type { LatestJob } from '@/types/page.types';
@@ -40,9 +40,8 @@ export default function Dashboard() {
         setTrend(trendRes.data);
         setIssues(issuesRes.data);
         setLatestJobs(crawlsRes.data);
-        console.log(crawlsRes.data);
       } catch (error) {
-        console.error('Failed to load dashboard', error);
+        toast.error('Failed to load dashboard' + error);
       }
     };
 

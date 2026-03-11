@@ -15,6 +15,7 @@ export async function startAnalysisConsumer() {
 
     const payload = JSON.parse(msg.content.toString());
     try {
+      // Start Analysis
       await AnalysisService.process(payload);
       channel.ack(msg);
     } catch (err) {

@@ -15,7 +15,7 @@ export const SiteService = {
     const { rows, count } = await SiteRepository.findAllWithPagination(params);
 
     const { page, limit } = params;
-
+    // Return paginated response
     return {
       data: rows,
       pagination: {

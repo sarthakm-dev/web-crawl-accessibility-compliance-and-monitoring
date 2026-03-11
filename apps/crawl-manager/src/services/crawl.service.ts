@@ -8,12 +8,13 @@ export const CrawlService = {
     if (!site) {
       throw new Error('Site not found or inactive');
     }
-
+    // Create new Crawl job
     const job = await CrawlJobRepository.create({
       site_id: siteId,
       requested_by: requestedBy,
       trigger_type: triggerType,
     });
+    // Publish job to RabbitMQ
     await publishCrawlJob({
       jobId: job.id,
       siteId,
@@ -27,7 +28,7 @@ export const CrawlService = {
     if (!crawl) {
       throw new Error('Crawl job not found');
     }
-
+    // Get stats of the crawled job
     const stats = await CrawlJobRepository.getStats(id);
 
     return {
@@ -45,7 +46,7 @@ export const CrawlService = {
     const { siteId, status, page, limit } = params;
 
     const filters: any = {};
-
+    // Add filter config
     if (siteId) filters.site_id = siteId;
     if (status) filters.status = status;
 

@@ -18,7 +18,7 @@ export async function startAnalysisEventsConsumer() {
         const event = JSON.parse(msg.content.toString());
 
         console.log('Analysis event received:', event);
-
+        // Generate metrics for analysis event
         await MetricsService.generate(event.siteId, event.jobId);
 
         channel.ack(msg);

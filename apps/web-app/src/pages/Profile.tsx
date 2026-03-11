@@ -17,7 +17,6 @@ export default function Profile() {
     const fetchProfile = async () => {
       try {
         const res = await api.get('/api/auth/me');
-        console.log(res.data);
         setUser(res.data);
       } catch {
         toast.error('Failed to fetch profile');
@@ -75,7 +74,7 @@ export default function Profile() {
                   try {
                     await api.post('/api/auth/logout');
                   } catch (err) {
-                    console.error('Logout failed', err);
+                    toast.error('Logout failed:' + err);
                   } finally {
                     navigate('/');
                   }

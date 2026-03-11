@@ -10,7 +10,7 @@ export const AuthService = {
   async signup(name: string, email: string, password: string) {
     const existing = await UserRepository.findByEmail(email);
     if (existing) throw new Error('User already exists');
-
+    // Create password hash
     const hash = await bcrypt.hash(password, 10);
 
     const user = await UserRepository.create({
@@ -18,10 +18,10 @@ export const AuthService = {
       email,
       passwordHash: hash,
     });
-
+    // Assign new users to default team
     const [defaultTeam] = await TeamRepository.findOrCreateDefault();
     await UserRepository.addTeam(user, defaultTeam);
-
+    // By default viewer role is assigned
     const viewerRole = await RoleRepository.findByName('viewer');
     if (viewerRole) {
       await UserRepository.addRole(user, viewerRole);
@@ -40,14 +40,14 @@ export const AuthService = {
       throw new Error('User is not assigned to any team');
     }
     const activeTeamId = user.Teams[0].id;
-
+    // Fetch roles and permissions
     const roles = user.Roles?.map((role: any) => role.name) ?? [];
 
     const permissions =
       user.Roles?.flatMap((role: any) =>
         role.Permissions?.map((perm: any) => perm.name)
       ) ?? [];
-
+    // Sign access token
     const accessToken = jwt.sign(
       {
         userId: user.id,
@@ -58,7 +58,7 @@ export const AuthService = {
       process.env.JWT_SECRET!,
       { expiresIn: (process.env.ACCESS_EXPIRY || '15m') as any }
     );
-
+    // Create refresh token
     const refreshToken = jwt.sign(
       { userId: user.id },
       process.env.JWT_REFRESH_SECRET!,
@@ -66,7 +66,7 @@ export const AuthService = {
         expiresIn: (process.env.REFRESH_EXPIRY || '7d') as any,
       }
     );
-
+    // Store refresh token in redis
     await redis.set(
       `refresh:${user.id}`,
       refreshToken,
@@ -83,6 +83,7 @@ export const AuthService = {
         refreshToken,
         process.env.JWT_REFRESH_SECRET!
       ) as any;
+      // Check refresh token from redis
       const stored = await redis.get(`refresh:${payload.userId}`);
 
       if (!stored || stored !== refreshToken) {
@@ -95,6 +96,7 @@ export const AuthService = {
       if (!user.Teams || user.Teams.length === 0) {
         throw new Error('User is not assigned to any team');
       }
+      // generate new access token
       const activeTeamId = user.Teams[0].id;
       const roles = user.Roles?.map((r: any) => r.name) ?? [];
       const permissions =
@@ -120,6 +122,7 @@ export const AuthService = {
   },
 
   async logout(userId: string) {
+    // Delete refresh token
     const response = await redis.del(`refresh:${userId}`);
     if (response == 0) {
       throw new Error('Cannot Logout User');
@@ -146,9 +149,9 @@ export const AuthService = {
     if (!user) {
       throw new Error('User not found');
     }
-
+    // generate random otp
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
+    // Store OTP in redis
     await redis.set(
       `reset:${email}`,
       otp,
@@ -167,10 +170,10 @@ export const AuthService = {
 
     const user = await UserRepository.findByEmail(email);
     if (!user) throw new Error('User not found');
-
+    // Create new password Hash
     const hashed = await bcrypt.hash(newPassword, 10);
     await UserRepository.updatePassword(user, hashed);
-
+    // Delete OTP
     await redis.del(`reset:${email}`);
 
     return { message: 'Password reset successful' };

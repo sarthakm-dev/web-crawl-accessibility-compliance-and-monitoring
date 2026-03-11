@@ -12,7 +12,7 @@ import { PageRepository } from '../repositories/page.repository';
 export const AnalysisService = {
   async process(payload: { pageVersionId: string }) {
     const { pageVersionId } = payload;
-
+    // Get HTML path
     const pageVersion = await PageVersionRepository.findById(pageVersionId);
 
     if (!pageVersion || !pageVersion.html_path) {
@@ -25,8 +25,9 @@ export const AnalysisService = {
     }
 
     await PageVersionRepository.updateStatus(pageVersionId, 'pending');
-
+    // Fetch HTML from S3 Bucket
     const html = await getHtmlFromStorage(pageVersion.html_path);
+    // Run axe-core on crawled page
     const results = await AxeAnalyzer.analyze(html);
 
     const page = await PageRepository.findById(pageVersion.page_id);
@@ -38,6 +39,7 @@ export const AnalysisService = {
 
     const transaction = await sequelize.transaction();
 
+    //Update Issue Definition and Issue Instance
     try {
       for (const violation of results.violations) {
         const [definition] = await IssueDefinitionRepository.findOrCreateByRule(

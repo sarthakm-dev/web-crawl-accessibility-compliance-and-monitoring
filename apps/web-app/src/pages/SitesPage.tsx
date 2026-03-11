@@ -45,6 +45,7 @@ import { siteFilterConfig } from '@/config/table-filter-config';
 import { columns } from '@/config/site-columns';
 import { PaginationControls } from '@/components/common/Pagination';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DialogDescription } from '@radix-ui/react-dialog';
 
 export default function SitesPage() {
   const navigate = useNavigate();
@@ -198,9 +199,12 @@ export default function SitesPage() {
                 </Button>
               )}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent aria-describedby={undefined} className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Add New Site</DialogTitle>
+                <DialogDescription id="add-site">
+                  Enter the details for your new site below.
+                </DialogDescription>
               </DialogHeader>
 
               <div className="space-y-4">
