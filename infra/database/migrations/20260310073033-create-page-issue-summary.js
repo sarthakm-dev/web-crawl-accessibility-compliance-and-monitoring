@@ -7,6 +7,7 @@ module.exports = {
         type: Sequelize.UUID,
         primaryKey: true,
         allowNull: false,
+        defaultValue: Sequelize.literal('gen_random_uuid()'),
       },
 
       site_id: {
@@ -58,8 +59,21 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: Sequelize.fn('NOW'),
       },
+
+      updated_at: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
+      },
     });
 
+    // Unique constraint for UPSERT operations
+    await queryInterface.addConstraint('page_issue_summary', {
+      fields: ['site_id', 'page_id', 'crawl_job_id'],
+      type: 'unique',
+      name: 'unique_page_issue_summary',
+    });
+
+    // Indexes for reporting queries
     await queryInterface.addIndex('page_issue_summary', ['site_id']);
     await queryInterface.addIndex('page_issue_summary', ['crawl_job_id']);
     await queryInterface.addIndex('page_issue_summary', ['page_id']);
