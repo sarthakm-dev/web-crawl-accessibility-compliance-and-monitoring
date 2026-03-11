@@ -74,7 +74,7 @@ export default function Profile() {
                   try {
                     await api.post('/api/auth/logout');
                   } catch (err) {
-                    console.error('Logout failed', err);
+                    toast.error('Logout failed:' + err);
                   } finally {
                     navigate('/');
                   }
