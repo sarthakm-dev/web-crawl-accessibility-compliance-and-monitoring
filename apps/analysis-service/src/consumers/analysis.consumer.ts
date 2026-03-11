@@ -14,7 +14,6 @@ export async function startAnalysisConsumer() {
     if (!msg) return;
 
     const payload = JSON.parse(msg.content.toString());
-    console.log(payload);
     try {
       await AnalysisService.process(payload);
       channel.ack(msg);
