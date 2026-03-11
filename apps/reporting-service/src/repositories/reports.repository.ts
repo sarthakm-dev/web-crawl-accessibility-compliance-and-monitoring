@@ -5,6 +5,12 @@ export const ReportsRepository = {
     return await Reports.create(data);
   },
 
+  async update(reportId: string, data: any) {
+    return Reports.update(data, {
+      where: { id: reportId },
+    });
+  },
+
   async updateStatus(id: string, status: string) {
     return await Reports.update({ status }, { where: { id } });
   },

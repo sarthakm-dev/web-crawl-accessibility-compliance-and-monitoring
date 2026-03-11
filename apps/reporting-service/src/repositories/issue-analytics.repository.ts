@@ -1,13 +1,16 @@
 import { IssueAnalytics } from '@packages/shared-models/issue-analytics.model';
 import { fn, col, literal } from 'sequelize';
-
+import type {
+  SeverityBreakdown,
+  PageBreakdown,
+} from '@packages/shared-types/issue.types';
 export const IssueAnalyticsRepository = {
   async bulkInsert(records: any[]) {
     return await IssueAnalytics.bulkCreate(records);
   },
 
-  async getSeverityBreakdown(siteId: string, crawlJobId: string) {
-    return await IssueAnalytics.findAll({
+  async getSeverityBreakdown(siteId: string, crawlJobId?: string) {
+    const result = await IssueAnalytics.findAll({
       attributes: ['severity', [fn('COUNT', col('id')), 'count']],
       where: {
         site_id: siteId,
@@ -16,6 +19,7 @@ export const IssueAnalyticsRepository = {
       group: ['severity'],
       raw: true,
     });
+    return result as unknown as SeverityBreakdown[];
   },
   async countIssues(siteId: string, crawlJobId: string) {
     return await IssueAnalytics.count({
@@ -32,6 +36,50 @@ export const IssueAnalyticsRepository = {
       group: ['page_url'],
       order: [[literal('issues'), 'DESC']],
       limit: 10,
+    });
+  },
+  async getPageBreakdown(siteId: string, crawlJobId: string) {
+    const result = await IssueAnalytics.findAll({
+      attributes: [
+        'page_id',
+        'page_url',
+        [fn('COUNT', col('id')), 'total_issues'],
+
+        [
+          fn('SUM', literal(`CASE WHEN severity='critical' THEN 1 ELSE 0 END`)),
+          'critical_count',
+        ],
+        [
+          fn('SUM', literal(`CASE WHEN severity='serious' THEN 1 ELSE 0 END`)),
+          'serious_count',
+        ],
+        [
+          fn('SUM', literal(`CASE WHEN severity='moderate' THEN 1 ELSE 0 END`)),
+          'moderate_count',
+        ],
+        [
+          fn('SUM', literal(`CASE WHEN severity='minor' THEN 1 ELSE 0 END`)),
+          'minor_count',
+        ],
+      ],
+      where: {
+        site_id: siteId,
+        crawl_job_id: crawlJobId,
+      },
+      group: ['page_id', 'page_url'],
+      raw: true,
+    });
+    return result as unknown as PageBreakdown[];
+  },
+  async getIssues(siteId: string, severity?: string, limit = 50, offset = 0) {
+    return IssueAnalytics.findAndCountAll({
+      where: {
+        site_id: siteId,
+        ...(severity && { severity }),
+      },
+      limit,
+      offset,
+      order: [['detected_at', 'DESC']],
     });
   },
 };

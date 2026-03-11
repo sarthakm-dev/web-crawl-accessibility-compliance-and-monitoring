@@ -1,5 +1,4 @@
 import { PageIssueSummary } from '@packages/shared-models/page-issue-summary.model';
-import { literal } from 'sequelize';
 
 export const PageIssueSummaryRepository = {
   async upsert(data: any) {
@@ -18,11 +17,14 @@ export const PageIssueSummaryRepository = {
     });
   },
 
-  async getTopPages(siteId: string) {
-    return await PageIssueSummary.findAll({
+  async getTopPages(siteId: string, crawlJobId?: string) {
+    return PageIssueSummary.findAll({
       attributes: ['page_url', 'total_issues', 'critical_count'],
-      where: { site_id: siteId },
-      order: [[literal('total_issues'), 'DESC']],
+      where: {
+        site_id: siteId,
+        ...(crawlJobId && { crawl_job_id: crawlJobId }),
+      },
+      order: [['total_issues', 'DESC']],
       limit: 10,
     });
   },
