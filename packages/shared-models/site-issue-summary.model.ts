@@ -4,17 +4,17 @@ import { sequelize } from '@packages/shared-config/database';
 export class SiteIssueSummary extends Model {
   declare id: string;
   declare site_id: string;
-  declare date: Date;
+  declare crawl_job_id: string;
 
-  declare pages_crawled: number;
   declare total_issues: number;
 
-  declare critical_issues: number;
-  declare serious_issues: number;
-  declare moderate_issues: number;
-  declare minor_issues: number;
+  declare critical_count: number;
+  declare serious_count: number;
+  declare moderate_count: number;
+  declare minor_count: number;
 
-  declare accessibility_score: number;
+  declare created_at: Date;
+  declare updated_at: Date;
 }
 
 SiteIssueSummary.init(
@@ -22,6 +22,7 @@ SiteIssueSummary.init(
     id: {
       type: DataTypes.UUID,
       primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
     },
 
     site_id: {
@@ -31,17 +32,33 @@ SiteIssueSummary.init(
 
     crawl_job_id: {
       type: DataTypes.UUID,
+      allowNull: false,
     },
 
-    total_issues: DataTypes.INTEGER,
+    total_issues: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
 
-    critical_count: DataTypes.INTEGER,
+    critical_count: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
 
-    serious_count: DataTypes.INTEGER,
+    serious_count: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
 
-    moderate_count: DataTypes.INTEGER,
+    moderate_count: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
 
-    minor_count: DataTypes.INTEGER,
+    minor_count: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
   },
   {
     sequelize,

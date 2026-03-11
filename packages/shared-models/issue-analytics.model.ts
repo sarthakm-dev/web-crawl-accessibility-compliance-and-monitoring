@@ -6,10 +6,22 @@ export class IssueAnalytics extends Model {
   public site_id!: string;
   public page_id!: string;
   public page_url!: string;
-  public crawl_job_url!: string;
+  public crawl_job_id!: string;
   public page_version_id!: string;
-  declare severity: string;
-  declare count: number;
+  public issue_instance_id!: string;
+  public issue_definition_id!: string;
+
+  public rule_id!: string;
+  public rule_description!: string;
+  public wcag_rule!: string;
+
+  public severity!: string;
+
+  public selector!: string;
+  public message!: string;
+  public status!: string;
+
+  public detected_at!: Date;
 }
 
 IssueAnalytics.init(
@@ -17,6 +29,7 @@ IssueAnalytics.init(
     id: {
       type: DataTypes.UUID,
       primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
     },
 
     site_id: DataTypes.UUID,
