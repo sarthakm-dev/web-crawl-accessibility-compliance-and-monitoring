@@ -12,7 +12,7 @@ import { Op } from 'sequelize';
 export const IssuesRepository = {
   async findAll(filters: any) {
     const { page, limit, teamId, status, severity, search } = filters;
-
+    // Instead of joining multiple tables use an aggregate table (IN PROGRESS)
     return IssueInstance.findAndCountAll({
       include: [
         {
