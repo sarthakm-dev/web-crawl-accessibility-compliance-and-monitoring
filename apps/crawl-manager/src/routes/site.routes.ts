@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { SiteController } from '../controllers/site.controller';
 import { authorize } from '@packages/shared-validation/rbac.validation';
-import { authenticate } from '../middleware/crawl.middleware';
+import { authenticate } from '@packages/shared-utils/auth-middlewate';
 const router = Router();
 router.post(
   '/',

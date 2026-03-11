@@ -6,6 +6,7 @@ import { IssueInstanceRepository } from '../repositories/issue-instance.reposito
 import { IssueStatusHistoryRepository } from '../repositories/issue-status-history.repository';
 import { getHtmlFromStorage } from '../storage/get-html';
 import { publishAnalysisCompleted } from '../publishers/analysis-event.publisher';
+import { publishAnalysisIssues } from '../publishers/analysis-issues.publisher';
 import { PageRepository } from '../repositories/page.repository';
 
 export const AnalysisService = {
@@ -26,8 +27,14 @@ export const AnalysisService = {
     await PageVersionRepository.updateStatus(pageVersionId, 'pending');
 
     const html = await getHtmlFromStorage(pageVersion.html_path);
-
     const results = await AxeAnalyzer.analyze(html);
+
+    const page = await PageRepository.findById(pageVersion.page_id);
+    if (!page) {
+      throw new Error('Page not found for pageVersion');
+    }
+
+    const issues: any[] = [];
 
     const transaction = await sequelize.transaction();
 
@@ -63,6 +70,28 @@ export const AnalysisService = {
             },
             transaction
           );
+
+          // Collect issue for reporting event
+          issues.push({
+            pageId: pageVersion.page_id,
+            pageUrl: page.url,
+            pageVersionId: pageVersionId,
+
+            issueInstanceId: instance.id,
+            issueDefinitionId: definition.id,
+
+            ruleCode: violation.id,
+            ruleDescription: violation.description,
+            wcag: violation.helpUrl,
+
+            severity: violation.impact || 'minor',
+
+            selector: node.target.join(','),
+            message: node.failureSummary,
+
+            status: 'open',
+            detectedAt: new Date(),
+          });
         }
       }
 
@@ -76,15 +105,20 @@ export const AnalysisService = {
       await transaction.commit();
 
       console.log(
-        `Analysis complete for ${pageVersionId}. Violations: ${results.violations.length}`
+        `Analysis complete for ${pageVersionId}. Violations: ${issues.length}`
       );
-      const page = await PageRepository.findById(pageVersion.page_id);
-      if (!page) {
-        throw new Error('Page not found for pageVersion');
-      }
+
+      // Event for crawl-manager
       await publishAnalysisCompleted({
         siteId: page.site_id,
         jobId: pageVersion.crawl_job_id,
+      });
+
+      // Event for reporting-service
+      await publishAnalysisIssues({
+        siteId: page.site_id,
+        crawlJobId: pageVersion.crawl_job_id,
+        issues,
       });
     } catch (error) {
       await transaction.rollback();

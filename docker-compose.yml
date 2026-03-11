@@ -187,6 +187,29 @@ services:
     networks:
       - webcrawl-net
 
+  reporting-service:
+    build:
+      context: .
+      dockerfile: apps/reporting-service/Dockerfile
+    container_name: webcrawl-reporting
+    restart: always
+    env_file:
+      - apps/reporting-service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
+      DB_HOST: postgres
+      DB_PORT: 5432
+      RABBITMQ_URL: amqp://rabbitmq:5672
+    ports:
+      - "4004:4004"
+    networks:
+      - webcrawl-net
+
 
 volumes:
   postgres_data:

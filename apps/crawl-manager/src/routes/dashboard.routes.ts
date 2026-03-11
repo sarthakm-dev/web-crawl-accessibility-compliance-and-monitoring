@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { DashboardController } from '../controllers/dashboard.controller';
-import { authenticate } from '../middleware/crawl.middleware';
+import { authenticate } from '@packages/shared-utils/auth-middlewate';
 
 const router = Router();
 

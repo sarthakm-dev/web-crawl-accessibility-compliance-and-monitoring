@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { IssuesController } from '../controllers/issues.controller';
-import { authenticate } from '../middleware/crawl.middleware';
+import { authenticate } from '@packages/shared-utils/auth-middlewate';
 import { authorize } from '@packages/shared-validation/rbac.validation';
 
 const router = Router();

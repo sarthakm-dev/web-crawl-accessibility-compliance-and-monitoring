@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { CrawlController } from '../controllers/crawl.controllers';
 import { authorize } from '@packages/shared-validation/rbac.validation';
-import { authenticate } from '../middleware/crawl.middleware';
+import { authenticate } from '@packages/shared-utils/auth-middlewate';
 
 const router = Router();
 
