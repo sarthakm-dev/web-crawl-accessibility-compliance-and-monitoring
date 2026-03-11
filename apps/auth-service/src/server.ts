@@ -20,9 +20,19 @@ const authLimiter = rateLimit({
 });
 
 const app = express();
+
+const frontendUrl = process.env.FRONTEND_URL;
+const gatewayUrl = process.env.API_GATEWAY_URL;
+
+if (!frontendUrl || !gatewayUrl) {
+  throw new Error(
+    'Missing required environment variables for CORS configuration.'
+  );
+}
+
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:4000'],
+    origin: [frontendUrl, gatewayUrl],
     credentials: true,
   })
 );
