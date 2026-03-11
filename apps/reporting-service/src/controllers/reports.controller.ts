@@ -1,0 +1,100 @@
+import { Request, Response } from 'express';
+import {
+  exportReportSchema,
+  issuesBreakdownSchema,
+  issuesTableSchema,
+  siteSummarySchema,
+  topPagesSchema,
+} from '@packages/shared-validation/report.schema';
+import { ReportsService } from '../services/reports.service';
+import { handleError } from '@packages/shared-utils/error-handler';
+import { AuthRequest } from '@packages/shared-types/auth.types';
+
+export const ReportsController = {
+  async siteSummary(req: Request, res: Response) {
+    try {
+      const parsed = siteSummarySchema.parse(req.query);
+
+      const data = await ReportsService.getSiteSummary(
+        parsed.siteId,
+        parsed.crawlJobId
+      );
+
+      res.status(200).json(data);
+    } catch (error) {
+      handleError(res, error);
+    }
+  },
+
+  async issuesBreakdown(req: Request, res: Response) {
+    try {
+      const parsed = issuesBreakdownSchema.parse(req.query);
+
+      const data = await ReportsService.getSeverityBreakdown(
+        parsed.siteId,
+        parsed.crawlJobId
+      );
+
+      res.status(200).json(data);
+    } catch (error) {
+      handleError(res, error);
+    }
+  },
+
+  async topPages(req: Request, res: Response) {
+    try {
+      const parsed = topPagesSchema.parse(req.query);
+
+      const pages = await ReportsService.getTopPages(
+        parsed.siteId,
+        parsed.crawlJobId
+      );
+
+      res.status(200).json(pages);
+    } catch (error) {
+      handleError(res, error);
+    }
+  },
+
+  async issuesTable(req: Request, res: Response) {
+    try {
+      const parsed = issuesTableSchema.parse(req.query);
+
+      const data = await ReportsService.getIssues(
+        parsed.siteId,
+        parsed.severity,
+        parsed.page
+      );
+
+      res.status(200).json(data);
+    } catch (error) {
+      handleError(res, error);
+    }
+  },
+
+  async exportReport(req: AuthRequest, res: Response) {
+    try {
+      const parsed = exportReportSchema.parse(req.body);
+
+      const userId = req.userId;
+      if (!userId) {
+        res.status(401).json({ error: 'Unauthorized' });
+      }
+      const reportId = await ReportsService.generateReport({
+        siteId: parsed.siteId,
+        crawlJobId: parsed.crawlJobId,
+        reportType: parsed.reportType,
+        filters: parsed.filters,
+        userId,
+      });
+
+      res.status(202).json({
+        message:
+          'Your report is being generated. You will receive an email when it is ready.',
+        reportId,
+      });
+    } catch (error) {
+      handleError(res, error);
+    }
+  },
+};
