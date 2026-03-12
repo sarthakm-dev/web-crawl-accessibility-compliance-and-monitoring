@@ -39,7 +39,10 @@ SiteIssueSummary.init(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
-
+    pages_crawled: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     critical_count: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
@@ -59,11 +62,21 @@ SiteIssueSummary.init(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    accessibility_score: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
   },
   {
     sequelize,
     tableName: 'site_issue_summary',
     timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ['site_id,crawl_job_id'],
+      },
+    ],
     underscored: true,
   }
 );

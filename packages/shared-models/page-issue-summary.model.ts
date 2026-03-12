@@ -73,5 +73,11 @@ PageIssueSummary.init(
     sequelize,
     tableName: 'page_issue_summary',
     timestamps: false,
+    indexes: [
+      {
+        unique: true,
+        fields: ['site_id', 'page_id', 'crawl_job_id'],
+      },
+    ],
   }
 );

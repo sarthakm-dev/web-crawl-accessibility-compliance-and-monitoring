@@ -25,7 +25,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
-
+      pages_crawled: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+      },
       critical_count: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
@@ -45,7 +48,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
-
+      accessibility_score: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+      },
       created_at: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.fn('NOW'),
