@@ -7,12 +7,6 @@ export const SiteIssueSummaryRepository = {
     });
   },
 
-  async getBySite(siteId: string) {
-    return await SiteIssueSummary.findOne({
-      where: { site_id: siteId },
-    });
-  },
-
   async getSiteSummary(siteId: string, crawlJobId?: string) {
     return SiteIssueSummary.findOne({
       where: {

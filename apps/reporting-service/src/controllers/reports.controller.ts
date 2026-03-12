@@ -63,6 +63,7 @@ export const ReportsController = {
       const data = await ReportsService.getIssues(
         parsed.siteId,
         parsed.severity,
+        parsed.limit,
         parsed.page
       );
 
