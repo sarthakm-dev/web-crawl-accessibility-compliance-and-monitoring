@@ -18,6 +18,11 @@ export async function uploadReportToMinio(payload: any) {
 
   const bucket = 'reports';
   const fileName = `report-${payload.reportId}.pdf`;
+
+  const exists = await minioClient.bucketExists(bucket);
+  if (!exists) {
+    await minioClient.makeBucket(bucket, 'us-east-1');
+  }
   // Generate PDF Stream
   const pdfStream = generatePdfStream(payload);
   const chunks: any[] = [];
@@ -32,5 +37,5 @@ export async function uploadReportToMinio(payload: any) {
     'Content-Type': 'application/pdf',
   });
 
-  return fileName;
+  return { fileName, buffer };
 }
