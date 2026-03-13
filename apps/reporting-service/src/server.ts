@@ -5,6 +5,7 @@ import { sequelize } from '@packages/shared-config/database';
 import { initModels } from '@packages/shared-models/init-models';
 import dotenv from 'dotenv';
 import amqp from 'amqplib';
+import { jsonValidation } from '@packages/shared-validation/json.validation';
 import { consumeAnalysisIssues } from './consumer/analysis-completed.consumer';
 
 import cookieParser from 'cookie-parser';
@@ -14,6 +15,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+app.use(jsonValidation());
 app.use('/api/reports', reportsRoutes);
 
 export async function ensureBucketExists() {}
