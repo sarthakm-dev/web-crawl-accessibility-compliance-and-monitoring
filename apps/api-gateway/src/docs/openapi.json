@@ -452,6 +452,207 @@
           }
         }
       }
+    },
+    "/reports/site-summary": {
+      "get": {
+        "summary": "Get site accessibility summary",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "crawlJobId",
+            "in": "query",
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Site summary returned" },
+          "400": { "description": "Invalid request" }
+        }
+      }
+    },
+
+    "/reports/issues": {
+      "get": {
+        "summary": "Get severity breakdown of issues",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "crawlJobId",
+            "in": "query",
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Severity breakdown returned" }
+        }
+      }
+    },
+
+    "/reports/top-pages": {
+      "get": {
+        "summary": "Get pages with most issues",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "crawlJobId",
+            "in": "query",
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Top problem pages returned" }
+        }
+      }
+    },
+
+    "/reports/issues-table": {
+      "get": {
+        "summary": "Get paginated issues list",
+        "parameters": [
+          {
+            "name": "siteId",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["critical", "serious", "moderate", "minor"]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "default": 10 }
+          },
+          {
+            "name": "crawlJobId",
+            "in": "query",
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": { "type": "string", "format": "date" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Issues table returned" }
+        }
+      }
+    },
+
+    "/reports/export": {
+      "post": {
+        "summary": "Generate accessibility report",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["siteId", "reportType"],
+                "properties": {
+                  "siteId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "crawlJobId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "reportType": {
+                    "type": "string",
+                    "enum": ["pdf"]
+                  },
+                  "filters": {
+                    "type": "object",
+                    "properties": {
+                      "severity": {
+                        "type": "string"
+                      },
+                      "startDate": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "endDate": {
+                        "type": "string",
+                        "format": "date"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Report generation started"
+          },
+          "400": {
+            "description": "Invalid request"
+          }
+        }
+      }
     }
   },
   "components": {
