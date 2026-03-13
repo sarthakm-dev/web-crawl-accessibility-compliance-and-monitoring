@@ -5,12 +5,16 @@ import { SummaryCards } from '@/components/reports/SummaryCards';
 import { SeverityChart } from '@/components/charts/SeverityChart';
 import { TopPagesTable } from '@/components/reports/TopPageTable';
 import { ExportSection } from '@/components/reports/ExportSection';
-import { IssuesTable } from '@/components/reports/IssuesTable';
+import { IssuesCards } from '@/components/reports/IssueDetails';
 
 export default function ReportsPage() {
-  const [siteId, setSiteId] = useState('');
-  const [date, setDate] = useState('');
-  const [activeSite, setActiveSite] = useState('');
+  const [siteId, setSiteId] = useState("");
+  const [activeSite, setActiveSite] = useState("");
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(today);
 
   function handleGenerate() {
     setActiveSite(siteId);
@@ -23,23 +27,46 @@ export default function ReportsPage() {
       <ReportsFilters
         siteId={siteId}
         setSiteId={setSiteId}
-        date={date}
-        setDate={setDate}
+        startDate={startDate}
+        endDate={endDate}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
         onGenerate={handleGenerate}
       />
 
       {activeSite && (
         <>
-          <SummaryCards siteId={activeSite} />
+          <SummaryCards
+            siteId={activeSite}
+            startDate={startDate}
+            endDate={endDate}
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <SeverityChart siteId={activeSite} />
-            <TopPagesTable siteId={activeSite} />
+            <SeverityChart
+              siteId={activeSite}
+              startDate={startDate}
+              endDate={endDate}
+            />
+
+            <TopPagesTable
+              siteId={activeSite}
+              startDate={startDate}
+              endDate={endDate}
+            />
           </div>
 
-          <IssuesTable siteId={activeSite} />
+          <IssuesCards
+            siteId={activeSite}
+            startDate={startDate}
+            endDate={endDate}
+          />
 
-          <ExportSection siteId={activeSite} />
+          <ExportSection
+            siteId={activeSite}
+            startDate={startDate}
+            endDate={endDate}
+          />
         </>
       )}
     </div>

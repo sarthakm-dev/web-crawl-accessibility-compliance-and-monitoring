@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import api from '@/utils/api';
+import api from "@/utils/api";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { StatBox } from '@/components/cards/StatBox';
-import { JobRow } from '@/components/cards/JobRow';
-import { toast } from 'sonner';
-import { AccessibilityTrendChart } from '@/components/charts/AccessibilityTrendChart';
-import { IssueBreakdownChart } from '@/components/charts/IssueBreakdownChart';
-import type { LatestJob } from '@/types/page.types';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { StatBox } from "@/components/cards/StatBox";
+import { JobRow } from "@/components/cards/JobRow";
+import { toast } from "sonner";
+import { AccessibilityTrendChart } from "@/components/charts/AccessibilityTrendChart";
+import { IssueBreakdownChart } from "@/components/charts/IssueBreakdownChart";
+
+import type { LatestJob } from "@/types/page.types";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -26,46 +27,54 @@ export default function Dashboard() {
   const [issues, setIssues] = useState(null);
   const [latestJobs, setLatestJobs] = useState<LatestJob[]>([]);
 
+  
+
   useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const [summaryRes, trendRes, issuesRes, crawlsRes] = await Promise.all([
-          api.get('/api/dashboard/summary'),
-          api.get('/api/dashboard/trend'),
-          api.get('/api/dashboard/issues-breakdown'),
-          api.get('/api/dashboard/latest-crawls'),
-        ]);
+    let interval: NodeJS.Timeout;
+     async function fetchDashboard() {
+    try {
+      const [summaryRes, trendRes, issuesRes, crawlsRes] = await Promise.all([
+        api.get("/api/dashboard/summary"),
+        api.get("/api/dashboard/trend"),
+        api.get("/api/dashboard/issues-breakdown"),
+        api.get("/api/dashboard/latest-crawls"),
+      ]);
 
-        setSummary(summaryRes.data);
-        setTrend(trendRes.data);
-        setIssues(issuesRes.data);
-        setLatestJobs(crawlsRes.data);
-      } catch (error) {
-        toast.error('Failed to load dashboard' + error);
-      }
-    };
-
+      setSummary(summaryRes.data);
+      setTrend(trendRes.data);
+      setIssues(issuesRes.data);
+      setLatestJobs(crawlsRes.data);
+    } catch {
+      toast.error("Failed to load dashboard");
+    }
+  }
     fetchDashboard();
-  }, []);
+
+    if (summary.activeCrawls > 0) {
+      interval = setInterval(() => {
+        fetchDashboard();
+      }, 5000); // poll every 5 seconds
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [summary.activeCrawls]);
 
   return (
     <div className="flex-1 min-h-screen bg-linear-to-br from-blue-50 via-blue-100 to-blue-200 p-6 space-y-6">
+
       {/* Stats */}
       <div className="grid md:grid-cols-4 grid-cols-2 gap-6">
         <StatBox title="Active Sites" value={summary.activeSites.toString()} />
-        <StatBox
-          title="Active Crawls"
-          value={summary.activeCrawls.toString()}
-        />
+        <StatBox title="Active Crawls" value={summary.activeCrawls.toString()} />
         <StatBox title="Open Issues" value={summary.openIssues.toString()} />
-        <StatBox
-          title="Compliance Score"
-          value={summary.complianceScore.toString()}
-        />
+        <StatBox title="Compliance Score" value={summary.complianceScore.toString()} />
       </div>
 
       {/* Charts */}
       <div className="grid md:grid-cols-3 gap-6">
+
         <Card className="rounded-2xl border-none shadow-md bg-white/80 backdrop-blur">
           <CardHeader>
             <CardTitle>Accessibility Score Trend</CardTitle>
@@ -96,38 +105,43 @@ export default function Dashboard() {
 
               <p className="text-base mt-4 opacity-90">
                 Automated web crawls to identify WCAG violations such as missing
-                alternative text, insufficient color contrast, broken form
-                labels that often go unnoticed during manual checks.
+                alternative text, insufficient color contrast, broken form labels
+                that often go unnoticed during manual checks.
               </p>
             </div>
 
             <Button
               className="mt-6 bg-white text-blue-700 hover:bg-gray-100"
-              onClick={() => navigate('/sites')}
+              onClick={() => navigate("/sites")}
             >
               Start New Crawl
             </Button>
           </CardContent>
         </Card>
+
       </div>
 
       {/* Latest Crawls */}
+
       <Card className="rounded-2xl border-none shadow-md bg-white/90 backdrop-blur">
+
         <CardHeader>
           <CardTitle>Latest Crawl Jobs</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4 text-sm">
-          {latestJobs.map(job => (
+          {latestJobs.map((job) => (
             <JobRow
               key={job.id}
-              site={job.Site?.name || 'Unknown'}
+              site={job.Site?.name || "Unknown"}
               status={job.status}
-              pages={job.pages_crawled?.toString() ?? '0'}
+              pages={job.pages_crawled?.toString() ?? "0"}
             />
           ))}
         </CardContent>
+
       </Card>
+
     </div>
   );
 }

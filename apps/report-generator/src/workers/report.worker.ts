@@ -1,31 +1,51 @@
 import { IssueAnalyticsRepository } from '../repositories/issue-analytics.repository';
 import { ReportsRepository } from '../repositories/reports.repository';
 import { UserRepository } from '../repositories/user.repository';
+import { SiteRepository } from '../repositories/site.repository';
+import { SiteIssueSummaryRepository } from '../repositories/site-issue-summary.repository';
+
 import { sendReportEmail } from '../services/email.service';
 import { uploadReportToMinio } from '../services/minio.service';
 
 export async function consumeReportJob(message: any, channel: any) {
+
   const payload = JSON.parse(message.content.toString());
 
   try {
+
     const issuesResult = await IssueAnalyticsRepository.getIssues(
       payload.siteId,
-      payload.filters?.severity || null,
+      payload.filters?.severity || undefined,
       1000,
       0
     );
 
     const issues = issuesResult?.rows || [];
 
-    const updatedPayload = { ...payload, issues };
+    // Get site info
+    const site = await SiteRepository.findById(payload.siteId);
 
-    const { fileName, buffer } = await uploadReportToMinio(updatedPayload);
+    // Get summary
+    const summary =
+      await SiteIssueSummaryRepository.getSiteSummary(
+        payload.siteId,
+        payload.crawlJobId
+      );
 
-    // Get user email from reports.requested_by
+    const updatedPayload = {
+      ...payload,
+      issues,
+      site,
+      summary
+    };
+
+    const { fileName, buffer } =
+      await uploadReportToMinio(updatedPayload);
+
     const report = await ReportsRepository.getById(payload.reportId);
 
     if (!report?.requested_by) {
-      throw new Error('Report requester not found');
+      throw new Error("Report requester not found");
     }
 
     const user = await UserRepository.findById(report.requested_by);
@@ -35,18 +55,20 @@ export async function consumeReportJob(message: any, channel: any) {
     }
 
     await ReportsRepository.update(payload.reportId, {
-      status: 'completed',
+      status: "completed",
       object_key: fileName,
-      bucket: 'reports',
-      generated_at: new Date(),
+      bucket: "reports",
+      generated_at: new Date()
     });
 
     channel.ack(message);
+
   } catch (error) {
+
     console.error(error);
 
     await ReportsRepository.update(payload.reportId, {
-      status: 'failed',
+      status: "failed"
     });
 
     channel.nack(message, false, false);

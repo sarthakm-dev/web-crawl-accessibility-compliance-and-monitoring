@@ -5,40 +5,38 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 
-import { useSeverityBreakdown } from '@/hooks/useReports';
+import { useSeverityBreakdown } from "@/hooks/useReports";
+import type { SummaryProps } from "@/types/report.types";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
-interface Props {
-  siteId: string;
-  crawlJobId?: string;
-}
+export function SeverityChart({ siteId, startDate, endDate }: SummaryProps) {
+  const { data, isLoading, isError } = useSeverityBreakdown(
+    siteId,
+    startDate,
+    endDate
+  );
 
-export function SeverityChart({ siteId }: Props) {
-  const { data, isLoading, isError } = useSeverityBreakdown(siteId);
+  useEffect(() => {
+    if (isError) {
+      toast.error("Failed to load severity breakdown");
+    }
 
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-lg p-4">
-        <p className="text-sm text-muted-foreground">Loading chart...</p>
-      </div>
-    );
-  }
+    if (!isLoading && data && data.length === 0) {
+      toast.info("No severity data available for selected dates");
+    }
+  }, [isError, data, isLoading]);
 
-  if (isError) {
-    return (
-      <div className="bg-white rounded-lg p-4">
-        <p className="text-sm text-red-500">Failed to load severity chart</p>
-      </div>
-    );
-  }
+  if (isLoading || !data) return null;
 
   return (
     <div className="bg-white border-none rounded-lg p-4">
       <h2 className="font-semibold mb-4">Issue Severity Breakdown</h2>
 
       <ResponsiveContainer width="100%" height={250}>
-        <BarChart data={data || []}>
+        <BarChart data={data}>
           <XAxis dataKey="severity" />
           <YAxis />
           <Tooltip />

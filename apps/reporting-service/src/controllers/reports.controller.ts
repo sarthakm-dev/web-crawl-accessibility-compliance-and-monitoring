@@ -6,6 +6,7 @@ import {
   siteSummarySchema,
   topPagesSchema,
 } from '@packages/shared-validation/report.schema';
+
 import { ReportsService } from '../services/reports.service';
 import { handleError } from '@packages/shared-utils/error-handler';
 import { AuthRequest } from '@packages/shared-types/auth.types';
@@ -17,7 +18,9 @@ export const ReportsController = {
 
       const data = await ReportsService.getSiteSummary(
         parsed.siteId,
-        parsed.crawlJobId
+        parsed.crawlJobId,
+        parsed.startDate,
+        parsed.endDate
       );
 
       res.status(200).json(data);
@@ -32,7 +35,9 @@ export const ReportsController = {
 
       const data = await ReportsService.getSeverityBreakdown(
         parsed.siteId,
-        parsed.crawlJobId
+        parsed.crawlJobId,
+        parsed.startDate,
+        parsed.endDate
       );
 
       res.status(200).json(data);
@@ -47,7 +52,9 @@ export const ReportsController = {
 
       const pages = await ReportsService.getTopPages(
         parsed.siteId,
-        parsed.crawlJobId
+        parsed.crawlJobId,
+        parsed.startDate,
+        parsed.endDate
       );
 
       res.status(200).json(pages);
@@ -64,7 +71,10 @@ export const ReportsController = {
         parsed.siteId,
         parsed.severity,
         parsed.limit,
-        parsed.page
+        parsed.page,
+        parsed.crawlJobId,
+        parsed.startDate,
+        parsed.endDate
       );
 
       res.status(200).json(data);
@@ -78,9 +88,11 @@ export const ReportsController = {
       const parsed = exportReportSchema.parse(req.body);
 
       const userId = req.userId;
+
       if (!userId) {
-        res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'Unauthorized' });
       }
+
       const reportId = await ReportsService.generateReport({
         siteId: parsed.siteId,
         crawlJobId: parsed.crawlJobId,

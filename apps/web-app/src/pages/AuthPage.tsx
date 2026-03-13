@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { type Mode } from '../../../../packages/shared-types/auth.types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import authApi from '@/utils/auth-api';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function AuthPage() {
   const navigate = useNavigate();
-
+  const user = useAuthStore((state)=>state.user);
+  const setUser = useAuthStore((state) => state.setUser); 
+  
   const [mode, setMode] = useState<Mode>('login');
 
   const [name, setName] = useState('');
@@ -23,7 +26,7 @@ export default function AuthPage() {
   const [confirmError, setConfirmError] = useState('');
 
   const [loading, setLoading] = useState(false);
-
+  
   useEffect(() => {
     if (!email) return setEmailError('');
     const regex = /\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/;
@@ -44,6 +47,10 @@ export default function AuthPage() {
       password !== confirmPassword ? 'Passwords do not match' : ''
     );
   }, [password, confirmPassword, mode]);
+
+  if(user){
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const resetForm = () => {
     setName('');
@@ -67,8 +74,8 @@ export default function AuthPage() {
 
     try {
       if (mode === 'login') {
-        await authApi.post('/api/auth/login', { email, password });
-
+        const res = await authApi.post('/api/auth/login', { email, password });
+        setUser(res.data.user || res.data);
         toast.success('Login Successful');
         navigate('/dashboard');
       } else if (mode === 'signup') {

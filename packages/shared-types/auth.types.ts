@@ -27,7 +27,7 @@ export interface AuthRequest extends Request {
 
 export interface AuthState {
   user: UserType | null;
-  setUser: (user: UserType) => void;
+  setUser: (user: UserType | null) => void;
   clearUser: () => void;
   hasPermission: (permission: string) => boolean;
 }

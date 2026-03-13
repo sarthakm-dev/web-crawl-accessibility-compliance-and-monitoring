@@ -6,7 +6,7 @@ import { initModels } from '@packages/shared-models/init-models';
 import dotenv from 'dotenv';
 import amqp from 'amqplib';
 import { consumeAnalysisIssues } from './consumer/analysis-completed.consumer';
-import { startReportWorker } from './consumer/report.consumer';
+
 import cookieParser from 'cookie-parser';
 dotenv.config();
 const app = express();
@@ -45,8 +45,6 @@ async function startServer() {
     await initModels();
 
     await startConsumer();
-
-    await startReportWorker();
 
     const PORT = process.env.PORT || 4004;
 

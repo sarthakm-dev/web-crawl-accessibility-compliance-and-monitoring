@@ -105,6 +105,7 @@ services:
       - apps/api-gateway/.env
     depends_on:
       - auth-service
+      - redis
     environment:
       AUTH_SERVICE_URL: http://auth-service:5000/api/auth
     ports:
@@ -128,6 +129,8 @@ services:
         condition: service_healthy
     environment:
       AUTH_SERVICE_URL: http://auth-service:5000/api/auth
+      REDIS_HOST: redis
+      REDIS_PORT: 6379:6379
     ports:
       - "3002:3002"
     networks:
@@ -205,13 +208,40 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
       DB_HOST: postgres
       DB_PORT: 5432
       RABBITMQ_URL: amqp://rabbitmq:5672
+      REDIS_HOST: redis
+      REDIS_PORT: 6379:6379
     ports:
       - "4004:4004"
+    networks:
+      - webcrawl-net
+
+  report-generator:
+    build:
+      context: .
+      dockerfile: apps/report-generator/Dockerfile
+    container_name: webcrawl-pdf
+    restart: always
+    env_file:
+      - apps/report-generator/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
+      DB_HOST: postgres
+      DB_PORT: 5432
+      RABBITMQ_URL: amqp://rabbitmq:5672
     networks:
       - webcrawl-net
 

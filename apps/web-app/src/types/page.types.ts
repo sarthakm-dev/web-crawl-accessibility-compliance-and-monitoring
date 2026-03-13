@@ -24,3 +24,9 @@ export type LatestJob = {
     name: string;
   };
 };
+
+export type DashboardUpdateEvent = {
+  activeCrawls?: number;
+  totalIssues?: number;
+  accessibilityScore?: number;
+};

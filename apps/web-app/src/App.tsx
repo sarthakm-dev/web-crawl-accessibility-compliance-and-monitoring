@@ -15,7 +15,8 @@ const SitesPage = lazy(() => import('./pages/SitesPage'));
 const CrawlJobsPage = lazy(() => import('./pages/CrawlJobsPage'));
 const SiteDetailsPage = lazy(() => import('./pages/SiteDetailsPage'));
 const IssuesPage = lazy(() => import('./pages/Issues'));
-
+const ReportsPage = lazy(() => import('./pages/ReportsPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 function App() {
   return (
     <>
@@ -24,6 +25,7 @@ function App() {
           <Routes>
             <Route path="/" element={<AuthPage />} />
 
+            {/* Protected routes */}
             <Route
               element={
                 <ProtectedRoute>
@@ -37,13 +39,20 @@ function App() {
               <Route path="/crawl-jobs" element={<CrawlJobsPage />} />
               <Route path="/sites/:id" element={<SiteDetailsPage />} />
               <Route path="/issues" element={<IssuesPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
+
+              {/* 404 for authenticated users */}
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
+
+            {/* 404 for public routes */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </BrowserRouter>
+
       <Toaster richColors />
     </>
   );
 }
-
 export default App;

@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import api from '@/utils/api';
 import { useAuthStore } from '@/store/auth-store';
 import { socket } from '@/utils/socket';
+import { toast } from 'sonner';
 export default function ProtectedRoute({
   children,
 }: {
@@ -39,8 +40,9 @@ export default function ProtectedRoute({
   if (isAuthenticated === null) {
     return <div className="p-10">Checking authentication...</div>;
   }
-
+ 
   if (!isAuthenticated) {
+    toast.error("You are not logged in");
     return <Navigate to="/" replace />;
   }
 
