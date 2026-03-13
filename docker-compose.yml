@@ -105,7 +105,6 @@ services:
       - apps/api-gateway/.env
     depends_on:
       - auth-service
-      - redis
     environment:
       AUTH_SERVICE_URL: http://auth-service:5000/api/auth
     ports:
