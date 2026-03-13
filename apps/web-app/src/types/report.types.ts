@@ -1,5 +1,4 @@
-
-
+import type { COLORS } from '@/config/issue-config';
 
 export interface Site {
   id: string;
@@ -36,7 +35,7 @@ export type Issue = {
   id: string;
   page_url: string;
   rule_id: string;
-  severity: "minor" | "moderate" | "serious" | "critical";
+  severity: 'minor' | 'moderate' | 'serious' | 'critical';
   selector: string;
   message: string;
   detected_at: string;
@@ -44,5 +43,10 @@ export type Issue = {
 
 export type IssuesResponse = {
   rows: Issue[];
+  count: number;
+};
+
+export type SeverityData = {
+  severity: keyof typeof COLORS;
   count: number;
 };

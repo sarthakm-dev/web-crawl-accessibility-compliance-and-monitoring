@@ -31,3 +31,9 @@ export const COLORS: Record<string, string> = {
   moderate: '#eab308',
   minor: '#22c55e',
 };
+
+export const ISSUE_CONFIG = [
+  { severity: 'critical', label: 'Critical' },
+  { severity: 'serious', label: 'Serious' },
+  { severity: 'moderate', label: 'Moderate' },
+];
