@@ -42,13 +42,13 @@ export const MetricsService = {
     // Calculate accessibility score based on impact value
     const total = critical + serious + moderate + minor;
 
-    const weightedIssues =
-      critical * 10 + serious * 6 + moderate * 3 + minor;
+    const weightedIssues = critical * 10 + serious * 6 + moderate * 3 + minor;
 
-    const score = Math.max(
-      0,
-      Math.round(100 - weightedIssues / Math.max(pageCount, 1))
-    );
+    const pages = Math.max(pageCount, 1);
+
+    const issueDensity = weightedIssues / pages;
+
+    const score = Math.max(0, Math.round(100 - issueDensity * 2));
 
     await SiteDailyMetricsRepository.create({
       site_id: siteId,
