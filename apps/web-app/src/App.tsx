@@ -32,7 +32,7 @@ function App() {
               path="/"
               element={
                 !isInitialized ? (
-                  <LoadingSpinner /> // wait until store is ready
+                  <AuthPage />
                 ) : user ? (
                   <Navigate to="/dashboard" replace />
                 ) : (
