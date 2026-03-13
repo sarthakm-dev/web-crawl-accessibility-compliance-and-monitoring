@@ -1,11 +1,26 @@
-import { v4 as uuidv4 } from "uuid";
-import { CrawlJobRepository } from "../repositories/crawl-job.repository";
-import { IssueAnalyticsRepository } from "../repositories/issue-analytics.repository";
-import { PageIssueSummaryRepository } from "../repositories/page-issue-summary.repository";
-import { ReportsRepository } from "../repositories/reports.repository";
-import { SiteIssueSummaryRepository } from "../repositories/site-issue-summary.repository";
+import { v4 as uuidv4 } from 'uuid';
 
-import { publishReportGeneration } from "../publishers/report.publisher";
+import { CrawlJobRepository } from '../repositories/crawl-job.repository';
+import { IssueAnalyticsRepository } from '../repositories/issue-analytics.repository';
+import { PageIssueSummaryRepository } from '../repositories/page-issue-summary.repository';
+import { ReportsRepository } from '../repositories/reports.repository';
+import { SiteIssueSummaryRepository } from '../repositories/site-issue-summary.repository';
+
+import { publishReportGeneration } from '../publishers/report.publisher';
+
+function normalizeDateRange(startDate?: Date, endDate?: Date) {
+  if (!startDate || !endDate) {
+    return { start: undefined, end: undefined };
+  }
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+}
 
 async function resolveCrawlJob(
   siteId: string,
@@ -15,10 +30,7 @@ async function resolveCrawlJob(
 ) {
   if (crawlJobId) return crawlJobId;
 
-  // Resolve crawl job by date
   if (startDate && endDate) {
-    
-
     const job = await CrawlJobRepository.findByDate(siteId, startDate, endDate);
 
     if (!job?.id) {
@@ -28,7 +40,6 @@ async function resolveCrawlJob(
     return job.id;
   }
 
-  // fallback to latest
   const latest = await CrawlJobRepository.findLatest(siteId);
 
   if (!latest?.id) {
@@ -39,23 +50,48 @@ async function resolveCrawlJob(
 }
 
 export const ReportsService = {
+  async getSiteSummary(
+    siteId: string,
+    crawlJobId?: string,
+    startDate?: Date,
+    endDate?: Date
+  ) {
+    const { start, end } = normalizeDateRange(startDate, endDate);
 
-  async getSiteSummary(siteId: string, crawlJobId?: string, startDate?: Date,endDate?:Date) {
-    const jobId = await resolveCrawlJob(siteId, crawlJobId, startDate,endDate);
+    const jobId = await resolveCrawlJob(siteId, crawlJobId, start, end);
 
-    return SiteIssueSummaryRepository.getSiteSummary(siteId, jobId,startDate,endDate);
+    return SiteIssueSummaryRepository.getSiteSummary(siteId, jobId, start, end);
   },
 
-  async getSeverityBreakdown(siteId: string, crawlJobId?: string, startDate?: Date,endDate?:Date) {
-    const jobId = await resolveCrawlJob(siteId, crawlJobId, startDate,endDate);
+  async getSeverityBreakdown(
+    siteId: string,
+    crawlJobId?: string,
+    startDate?: Date,
+    endDate?: Date
+  ) {
+    const { start, end } = normalizeDateRange(startDate, endDate);
 
-    return IssueAnalyticsRepository.getSeverityBreakdown(siteId, jobId,startDate,endDate);
+    const jobId = await resolveCrawlJob(siteId, crawlJobId, start, end);
+
+    return IssueAnalyticsRepository.getSeverityBreakdown(
+      siteId,
+      jobId,
+      start,
+      end
+    );
   },
 
-  async getTopPages(siteId: string, crawlJobId?: string, startDate?: Date,endDate?:Date) {
-    const jobId = await resolveCrawlJob(siteId, crawlJobId, startDate,endDate);
+  async getTopPages(
+    siteId: string,
+    crawlJobId?: string,
+    startDate?: Date,
+    endDate?: Date
+  ) {
+    const { start, end } = normalizeDateRange(startDate, endDate);
 
-    return PageIssueSummaryRepository.getTopPages(siteId, jobId,startDate,endDate);
+    const jobId = await resolveCrawlJob(siteId, crawlJobId, start, end);
+
+    return PageIssueSummaryRepository.getTopPages(siteId, jobId, start, end);
   },
 
   async getIssues(
@@ -65,9 +101,11 @@ export const ReportsService = {
     page = 1,
     crawlJobId?: string,
     startDate?: Date,
-    endDate?: Date,
+    endDate?: Date
   ) {
-    const jobId = await resolveCrawlJob(siteId, crawlJobId, startDate,endDate);
+    const { start, end } = normalizeDateRange(startDate, endDate);
+
+    const jobId = await resolveCrawlJob(siteId, crawlJobId, start, end);
 
     const offset = (page - 1) * limit;
 
@@ -77,17 +115,22 @@ export const ReportsService = {
       limit,
       offset,
       jobId,
-      startDate,
-      endDate
+      start,
+      end
     );
   },
 
   async generateReport(payload: any) {
+    const { start, end } = normalizeDateRange(
+      payload.filters?.startDate,
+      payload.filters?.endDate
+    );
+
     const jobId = await resolveCrawlJob(
       payload.siteId,
       payload.crawlJobId,
-      payload.filters?.startDate,
-      payload.filters?.endDate
+      start,
+      end
     );
 
     const reportId = uuidv4();
@@ -98,7 +141,7 @@ export const ReportsService = {
       crawl_job_id: jobId,
       requested_by: payload.userId,
       report_type: payload.reportType,
-      status: "pending",
+      status: 'pending',
       filters: payload.filters,
     });
 
@@ -109,6 +152,5 @@ export const ReportsService = {
     });
 
     return reportId;
-  }
-
+  },
 };
