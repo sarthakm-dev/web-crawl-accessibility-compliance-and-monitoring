@@ -44,11 +44,11 @@ export const MetricsService = {
 
     const weightedIssues = critical * 10 + serious * 6 + moderate * 3 + minor;
 
-    const pages = Math.max(pageCount, 1);
+    const norm = Math.max(pageCount, 10);
 
-    const issueDensity = weightedIssues / pages;
+    const issueDensity = weightedIssues / norm;
 
-    const score = Math.max(0, Math.round(100 - issueDensity * 2));
+    const score = Math.max(0, Math.round(100 - issueDensity * 3));
 
     await SiteDailyMetricsRepository.create({
       site_id: siteId,

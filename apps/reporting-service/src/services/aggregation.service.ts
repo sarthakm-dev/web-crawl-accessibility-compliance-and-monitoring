@@ -35,11 +35,11 @@ export const AggregationService = {
       (map.serious || 0) * 6 +
       (map.moderate || 0) * 3 +
       (map.minor || 0);
-    const pages = Math.max(pagesCrawled, 1);
+    const norm = Math.max(pagesCrawled, 10);
 
-    const issueDensity = weightedIssues / pages;
+    const issueDensity = weightedIssues / norm;
 
-    const accessibilityScore = Math.max(0, Math.round(100 - issueDensity * 2));
+    const accessibilityScore = Math.max(0, Math.round(100 - issueDensity * 3));
 
     await SiteIssueSummaryRepository.upsert({
       id: uuidv4(),
