@@ -1,6 +1,6 @@
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import api from "@/utils/api";
-import type { IssuesResponse, QueryParams } from "@/types/report.types";
+import { useQuery } from '@tanstack/react-query';
+import api from '@/utils/api';
+import type { IssuesResponse, QueryParams } from '@/types/report.types';
 
 export function useSiteSummary(
   siteId: string,
@@ -9,7 +9,7 @@ export function useSiteSummary(
   crawlJobId?: string
 ) {
   return useQuery({
-    queryKey: ["site-summary", siteId, startDate, endDate, crawlJobId],
+    queryKey: ['site-summary', siteId, startDate, endDate, crawlJobId],
     queryFn: async () => {
       const params: QueryParams = { siteId };
 
@@ -17,7 +17,7 @@ export function useSiteSummary(
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 
-      const res = await api.get("/api/reports/site-summary", { params });
+      const res = await api.get('/api/reports/site-summary', { params });
 
       return res.data;
     },
@@ -32,7 +32,7 @@ export function useSeverityBreakdown(
   crawlJobId?: string
 ) {
   return useQuery({
-    queryKey: ["severity", siteId, startDate, endDate, crawlJobId],
+    queryKey: ['severity', siteId, startDate, endDate, crawlJobId],
     queryFn: async () => {
       const params: QueryParams = { siteId };
 
@@ -40,7 +40,7 @@ export function useSeverityBreakdown(
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 
-      const res = await api.get("/api/reports/issues", { params });
+      const res = await api.get('/api/reports/issues', { params });
 
       return res.data;
     },
@@ -55,7 +55,7 @@ export function useTopPages(
   crawlJobId?: string
 ) {
   return useQuery({
-    queryKey: ["top-pages", siteId, startDate, endDate, crawlJobId],
+    queryKey: ['top-pages', siteId, startDate, endDate, crawlJobId],
     queryFn: async () => {
       const params: QueryParams = { siteId };
 
@@ -63,14 +63,13 @@ export function useTopPages(
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 
-      const res = await api.get("/api/reports/top-pages", { params });
+      const res = await api.get('/api/reports/top-pages', { params });
 
       return res.data;
     },
     enabled: !!siteId,
   });
 }
-
 
 export function useIssues(
   siteId: string,
@@ -82,7 +81,7 @@ export function useIssues(
 ) {
   return useQuery<IssuesResponse>({
     queryKey: [
-      "issues",
+      'issues',
       siteId,
       severity,
       page,
@@ -101,11 +100,10 @@ export function useIssues(
       if (endDate) params.endDate = endDate;
       if (crawlJobId) params.crawlJobId = crawlJobId;
 
-      const res = await api.get("/api/reports/issues-table", { params });
+      const res = await api.get('/api/reports/issues-table', { params });
 
       return res.data;
     },
     enabled: !!siteId,
-    placeholderData: keepPreviousData,
   });
 }

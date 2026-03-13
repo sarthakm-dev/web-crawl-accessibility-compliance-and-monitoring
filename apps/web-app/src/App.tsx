@@ -1,11 +1,12 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import './App.css';
 
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import LoadingSpinner from './components/ui/spinner';
+import { useAuthStore } from './store/auth-store';
 
 // Lazy loaded page components
 const AuthPage = lazy(() => import('./pages/AuthPage'));
@@ -17,13 +18,28 @@ const SiteDetailsPage = lazy(() => import('./pages/SiteDetailsPage'));
 const IssuesPage = lazy(() => import('./pages/Issues'));
 const ReportsPage = lazy(() => import('./pages/ReportsPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
+
 function App() {
+  const { user, isInitialized } = useAuthStore();
+
   return (
     <>
       <BrowserRouter>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
-            <Route path="/" element={<AuthPage />} />
+            {/* Public route: if user exists, redirect to dashboard */}
+            <Route
+              path="/"
+              element={
+                !isInitialized ? (
+                  <LoadingSpinner /> // wait until store is ready
+                ) : user ? (
+                  <Navigate to="/dashboard" replace />
+                ) : (
+                  <AuthPage />
+                )
+              }
+            />
 
             {/* Protected routes */}
             <Route
@@ -55,4 +71,5 @@ function App() {
     </>
   );
 }
+
 export default App;

@@ -7,6 +7,7 @@ import { type UserType } from '../../../../packages/shared-types/user.types';
 import api from '@/utils/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -76,6 +77,7 @@ export default function Profile() {
                   } catch (err) {
                     toast.error('Logout failed:' + err);
                   } finally {
+                    useAuthStore.getState().clearUser();
                     navigate('/');
                   }
                 }}

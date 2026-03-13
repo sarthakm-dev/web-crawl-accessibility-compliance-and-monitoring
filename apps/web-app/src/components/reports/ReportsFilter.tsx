@@ -46,29 +46,25 @@ export function ReportsFilters({
   }, []);
 
   return (
-    <div className="flex md:flex-row flex-col md:gap-10 gap-2 items-end rounded-lg border-none">
+    <div className="flex flex-col md:flex-row md:gap-10 gap-6 items-start md:items-end rounded-lg border-none">
       {/* Site Dropdown */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 w-full md:w-auto">
         <label className="text-sm">Site</label>
-
         <Select value={siteId} onValueChange={setSiteId}>
-          <SelectTrigger className="w-65 bg-white">
+          <SelectTrigger className="w-full md:w-64 bg-white">
             <SelectValue placeholder="Select site" />
           </SelectTrigger>
-
           <SelectContent>
             {loading && (
               <SelectItem value="loading" disabled>
                 Loading sites...
               </SelectItem>
             )}
-
             {!loading && sites.length === 0 && (
               <SelectItem value="empty" disabled>
                 No sites available
               </SelectItem>
             )}
-
             {sites.map(site => (
               <SelectItem key={site.id} value={site.id}>
                 {site.name} ({site.base_url})
@@ -79,9 +75,8 @@ export function ReportsFilters({
       </div>
 
       {/* Start Date */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 w-full md:w-auto">
         <label className="text-sm">Start Date</label>
-
         <Input
           className="bg-white"
           type="date"
@@ -92,9 +87,8 @@ export function ReportsFilters({
       </div>
 
       {/* End Date */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 w-full md:w-auto">
         <label className="text-sm">End Date</label>
-
         <Input
           className="bg-white"
           type="date"
@@ -107,7 +101,7 @@ export function ReportsFilters({
 
       {/* Generate Button */}
       <Button
-        className="bg-blue-600 hover:bg-blue-700"
+        className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
         onClick={onGenerate}
         disabled={!siteId || new Date(endDate) < new Date(startDate)}
       >
