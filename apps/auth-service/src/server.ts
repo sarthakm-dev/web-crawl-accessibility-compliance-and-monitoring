@@ -12,8 +12,8 @@ import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000,
+  max: Number(process.env.MAX_REQUESTS) || 100,
   message: 'Too many requests from this IP, please try again after 15 minutes',
   standardHeaders: true,
   legacyHeaders: false,
