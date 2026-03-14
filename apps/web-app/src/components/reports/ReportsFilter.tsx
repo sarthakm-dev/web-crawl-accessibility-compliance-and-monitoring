@@ -76,8 +76,11 @@ export function ReportsFilters({
 
       {/* Start Date */}
       <div className="flex flex-col gap-1 w-full md:w-auto">
-        <label className="text-sm">Start Date</label>
+        <label htmlFor="startDate" className="text-sm">
+          Start Date
+        </label>
         <Input
+          id="startDate"
           className="bg-white"
           type="date"
           value={startDate}
@@ -88,8 +91,11 @@ export function ReportsFilters({
 
       {/* End Date */}
       <div className="flex flex-col gap-1 w-full md:w-auto">
-        <label className="text-sm">End Date</label>
+        <label htmlFor="endDate" className="text-sm">
+          End Date
+        </label>
         <Input
+          id="endDate"
           className="bg-white"
           type="date"
           value={endDate}

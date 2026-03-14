@@ -1,6 +1,7 @@
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
@@ -72,6 +73,10 @@ export function IssueDetailsSheet({
           <SheetTitle className="text-lg font-semibold">
             Issue Details
           </SheetTitle>
+
+          <SheetDescription className="sr-only">
+            Detailed information about the selected issue
+          </SheetDescription>
         </SheetHeader>
 
         <div className="space-y-4">
