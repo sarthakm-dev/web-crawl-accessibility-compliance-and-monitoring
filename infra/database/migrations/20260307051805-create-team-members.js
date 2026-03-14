@@ -24,6 +24,14 @@ module.exports = {
         },
         onDelete: 'CASCADE',
       },
+      created_at: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+      },
+      updated_at: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+      },
     });
 
     await queryInterface.addIndex('team_members', ['team_id']);

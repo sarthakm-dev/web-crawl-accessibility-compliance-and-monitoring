@@ -1,13 +1,19 @@
 {
-  "name": "shared-models",
+  "name": "@packages/shared-models",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.29.2",
   "dependencies": {
     "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }

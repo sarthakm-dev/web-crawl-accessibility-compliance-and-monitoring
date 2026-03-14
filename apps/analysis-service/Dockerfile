@@ -31,6 +31,4 @@ RUN pnpm --filter shared-models install --frozen-lockfile --prod=false
 RUN pnpm --filter analysis-service build
 WORKDIR /app/apps/analysis-service
 
-EXPOSE 5000
-
 CMD ["node", "dist/index.js"]

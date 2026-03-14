@@ -650,12 +650,19 @@ importers:
       dotenv:
         specifier: ^17.2.4
         version: 17.2.4
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/shared-models:
     dependencies:
       sequelize:
         specifier: ^6.37.7
         version: 6.37.7(pg-hstore@2.3.4)(pg@8.18.0)
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/shared-types:
     dependencies:
@@ -684,6 +691,9 @@ importers:
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/shared-utils:
     dependencies:
@@ -712,12 +722,19 @@ importers:
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
   packages/shared-validation:
     dependencies:
       zod:
         specifier: ^4.3.6
         version: 4.3.6
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
 packages:
 

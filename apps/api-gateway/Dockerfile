@@ -18,6 +18,6 @@ RUN pnpm --filter api-gateway build
 
 WORKDIR /app/apps/api-gateway
 
-EXPOSE 5000
+EXPOSE 4000
 
 CMD ["node", "dist/server.js"]

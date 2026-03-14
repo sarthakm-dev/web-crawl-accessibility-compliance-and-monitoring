@@ -1,8 +1,8 @@
 {
-  "name": "shared-utils",
+  "name": "@packages/shared-utils",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10"
+    "@types/jsonwebtoken": "^9.0.10",
+    "typescript": "^5.9.3"
   }
 }
