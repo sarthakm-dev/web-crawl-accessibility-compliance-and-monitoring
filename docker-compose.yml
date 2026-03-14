@@ -20,7 +20,6 @@ services:
     networks:
       - webcrawl-net
 
-
   redis:
     image: redis:7
     container_name: webcrawl-redis
@@ -34,7 +33,6 @@ services:
       retries: 10
     networks:
       - webcrawl-net
-
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -51,21 +49,24 @@ services:
     networks:
       - webcrawl-net
 
-
   minio:
     image: minio/minio
     container_name: webcrawl-minio
     command: server /data --console-address ":9001"
+    restart: always
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
     ports:
       - "9000:9000"
       - "9001:9001"
+    volumes:
+      - minio_data:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 5s
       timeout: 5s
-      retries: 5
-    volumes:
-      - minio_data:/data
+      retries: 10
     networks:
       - webcrawl-net
 
@@ -77,18 +78,14 @@ services:
     container_name: webcrawl-auth
     restart: always
     env_file:
-      - apps/auth-service/.env
+      - .env
+    environment:
+      NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
-      DB_HOST: postgres
-      DB_PORT: 5432
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
     ports:
       - "5000:5000"
     networks:
@@ -102,11 +99,12 @@ services:
     container_name: webcrawl-gateway
     restart: always
     env_file:
-      - apps/api-gateway/.env
-    depends_on:
-      - auth-service
+      - .env
     environment:
-      AUTH_SERVICE_URL: http://auth-service:5000/api/auth
+      NODE_ENV: production
+    depends_on:
+      auth-service:
+        condition: service_started
     ports:
       - "4000:4000"
     networks:
@@ -120,16 +118,16 @@ services:
     container_name: webcrawl-manager
     restart: always
     env_file:
-      - apps/crawl-manager/.env
+      - .env
+    environment:
+      NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    environment:
-      AUTH_SERVICE_URL: http://auth-service:5000/api/auth
-      REDIS_HOST: redis
-      REDIS_PORT: 6379:6379
+      redis:
+        condition: service_healthy
     ports:
       - "3002:3002"
     networks:
@@ -143,19 +141,16 @@ services:
     container_name: webcrawl-worker
     restart: always
     env_file:
-      - apps/crawl-worker/.env
+      - .env
+    environment:
+      NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
       minio:
-        condition: service_started
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
-      DB_HOST: postgres
-      DB_PORT: 5432
-      RABBITMQ_URL: amqp://rabbitmq:5672
+        condition: service_healthy
     networks:
       - webcrawl-net
 
@@ -164,17 +159,63 @@ services:
     build:
       context: .
       dockerfile: apps/analysis-service/Dockerfile
-    container_name: webcrawl-analyze
+    container_name: webcrawl-analysis
     restart: always
     env_file:
-      - apps/analysis-service/.env
+      - .env
+    environment:
+      NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
       minio:
-        condition: service_started
+        condition: service_healthy
+    networks:
+      - webcrawl-net
+
+
+  reporting-service:
+    build:
+      context: .
+      dockerfile: apps/reporting-service/Dockerfile
+    container_name: webcrawl-reporting
+    restart: always
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "4004:4004"
+    networks:
+      - webcrawl-net
+
+
+  report-generator:
+    build:
+      context: .
+      dockerfile: apps/report-generator/Dockerfile
+    container_name: webcrawl-report-generator
+    restart: always
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     networks:
       - webcrawl-net
 
@@ -185,62 +226,11 @@ services:
       dockerfile: apps/web-app/Dockerfile
     container_name: webcrawl-web
     restart: always
-    env_file:
-      - apps/web-app/.env
     depends_on:
-      - api-gateway
+      api-gateway:
+        condition: service_started
     ports:
       - "80:80"
-    networks:
-      - webcrawl-net
-
-  reporting-service:
-    build:
-      context: .
-      dockerfile: apps/reporting-service/Dockerfile
-    container_name: webcrawl-reporting
-    restart: always
-    env_file:
-      - apps/reporting-service/.env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
-      DB_HOST: postgres
-      DB_PORT: 5432
-      RABBITMQ_URL: amqp://rabbitmq:5672
-      REDIS_HOST: redis
-      REDIS_PORT: 6379:6379
-    ports:
-      - "4004:4004"
-    networks:
-      - webcrawl-net
-
-  report-generator:
-    build:
-      context: .
-      dockerfile: apps/report-generator/Dockerfile
-    container_name: webcrawl-pdf
-    restart: always
-    env_file:
-      - apps/report-generator/.env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      minio:
-        condition: service_started
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/webcrawl
-      DB_HOST: postgres
-      DB_PORT: 5432
-      RABBITMQ_URL: amqp://rabbitmq:5672
     networks:
       - webcrawl-net
 

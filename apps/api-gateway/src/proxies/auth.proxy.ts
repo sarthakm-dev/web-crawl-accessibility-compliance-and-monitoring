@@ -1,6 +1,6 @@
 import { createProxyMiddleware } from 'http-proxy-middleware';
-
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL;
+import { env } from '@packages/shared-config/env';
+const AUTH_SERVICE_URL = env.AUTH_SERVICE_URL;
 
 export const authProxy = createProxyMiddleware({
   target: AUTH_SERVICE_URL,

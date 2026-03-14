@@ -1,8 +1,8 @@
 import amqp from 'amqplib';
 import { getIO } from '../socket/server';
-
+import { env } from '@packages/shared-config/env';
 export async function startCrawlEventsConsumer() {
-  const connection = await amqp.connect(process.env.RABBITMQ_URL!);
+  const connection = await amqp.connect(env.RABBITMQ_URL!);
   const channel = await connection.createChannel();
 
   await channel.assertQueue('crawl_events', { durable: true });

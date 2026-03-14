@@ -7,16 +7,14 @@ import crawlRoutes from './routes/crawl.routes';
 import issuesRoutes from './routes/issues.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import reportsRoutes from './routes/reports.routes';
-import dotenv from 'dotenv';
 import logger from 'morgan';
 import cors from 'cors';
-
-dotenv.config();
+import { env } from '@packages/shared-config/env';
 
 const app = express();
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: env.FRONTEND_URL,
     credentials: true,
   })
 );
@@ -32,7 +30,7 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.get('/api/health', (_, res) => {
   res.status(200).json({ status: 'ok' });
 });
-const PORT = process.env.PORT || 4000;
+const PORT = env.GATEWAY_PORT || 4000;
 app.listen(PORT, () => {
   console.log(`API Gateway Running on port ${PORT}`);
 });

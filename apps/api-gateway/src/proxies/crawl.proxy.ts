@@ -1,6 +1,6 @@
 import { createProxyMiddleware } from 'http-proxy-middleware';
-
-const CRAWL_URL = process.env.CRAWL_MANAGER_URL + '/crawl';
+import { env } from '@packages/shared-config/env';
+const CRAWL_URL = env.CRAWL_MANAGER_URL + '/crawl';
 
 export const crawlProxy = createProxyMiddleware({
   target: CRAWL_URL,

@@ -1,8 +1,9 @@
 import amqp from 'amqplib';
 import { consumeReportJob } from '../workers/report.worker';
+import { env } from '@packages/shared-config/env';
 
 export async function startReportWorker() {
-  const connection = await amqp.connect(process.env.RABBITMQ_URL!);
+  const connection = await amqp.connect(env.RABBITMQ_URL!);
 
   const channel = await connection.createChannel();
 

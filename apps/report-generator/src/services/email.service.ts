@@ -1,12 +1,12 @@
 import nodemailer from 'nodemailer';
-
+import { env } from '@packages/shared-config/env';
 export const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: Number(process.env.MAIL_PORT),
+  host: env.MAIL_HOST,
+  port: Number(env.MAIL_PORT),
   secure: true,
   auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
+    user: env.MAIL_USER,
+    pass: env.MAIL_PASS,
   },
 });
 
@@ -16,7 +16,7 @@ export async function sendReportEmail(
   reportId: string
 ) {
   await transporter.sendMail({
-    from: `"Accessibility Reports" <${process.env.MAIL_USER}>`,
+    from: `"Accessibility Reports" <${env.MAIL_USER}>`,
     to: email,
     subject: 'Your Accessibility Report is Ready',
     text: 'Your accessibility report is attached.',

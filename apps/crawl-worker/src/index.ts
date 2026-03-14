@@ -1,4 +1,5 @@
 import amqp from 'amqplib';
+import { env } from '@packages/shared-config/env';
 import { CrawlService } from './services/crawl.service';
 import { initModels } from '@packages/shared-models/init-models';
 import { ensureBucket } from '@packages/shared-config/create-bucket';
@@ -6,7 +7,7 @@ async function startWorker() {
   try {
     initModels();
     await ensureBucket();
-    const connection = await amqp.connect(process.env.RABBITMQ_URL!);
+    const connection = await amqp.connect(env.RABBITMQ_URL!);
     const channel = await connection.createChannel();
 
     await channel.assertQueue('crawl_jobs', { durable: true });

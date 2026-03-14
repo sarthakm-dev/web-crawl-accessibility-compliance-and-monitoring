@@ -13,6 +13,7 @@ RUN npm install -g pnpm
 
 RUN pnpm --filter api-gateway install --frozen-lockfile --prod=false
 RUN pnpm --filter shared-validation install --frozen-lockfile --prod=false
+RUN pnpm --filter shared-config install --frozen-lockfile --prod=false
 RUN pnpm --filter api-gateway build
 
 WORKDIR /app/apps/api-gateway

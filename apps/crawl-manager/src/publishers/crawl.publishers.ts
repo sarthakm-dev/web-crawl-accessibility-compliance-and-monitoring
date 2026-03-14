@@ -1,9 +1,9 @@
 import amqp from 'amqplib';
-
+import { env } from '@packages/shared-config/env';
 let channel: amqp.Channel;
 
 export async function initPublisher() {
-  const connection = await amqp.connect(process.env.RABBITMQ_URL!);
+  const connection = await amqp.connect(env.RABBITMQ_URL!);
   channel = await connection.createChannel();
   await channel.assertQueue('crawl_jobs');
 }

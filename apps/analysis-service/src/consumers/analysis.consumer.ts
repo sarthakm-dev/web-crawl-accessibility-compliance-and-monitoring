@@ -1,8 +1,8 @@
 import amqp from 'amqplib';
 import { AnalysisService } from '../services/analysis.service';
-
+import { env } from '@packages/shared-config/env';
 export async function startAnalysisConsumer() {
-  const connection = await amqp.connect(process.env.RABBITMQ_URL!);
+  const connection = await amqp.connect(env.RABBITMQ_URL!);
   const channel = await connection.createChannel();
 
   const queue = 'analysis_jobs';

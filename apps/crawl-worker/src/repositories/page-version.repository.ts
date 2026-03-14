@@ -16,4 +16,10 @@ export const PageVersionRepository = {
       crawled_at: new Date(),
     });
   },
+  async findByHash(hash: string) {
+    return PageVersion.findOne({
+      where: { content_hash: hash },
+      order: [['crawled_at', 'DESC']],
+    });
+  },
 };

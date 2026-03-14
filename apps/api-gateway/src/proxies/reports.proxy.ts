@@ -1,6 +1,7 @@
+import { env } from '@packages/shared-config/env';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
-const REPORTING_SERVICE_URL = process.env.REPORTING_SERVICE_URL + '/reports';
+const REPORTING_SERVICE_URL = env.REPORTING_SERVICE_URL + '/reports';
 
 export const reportsProxy = createProxyMiddleware({
   target: REPORTING_SERVICE_URL,

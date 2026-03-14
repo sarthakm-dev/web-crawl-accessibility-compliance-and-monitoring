@@ -1,20 +1,19 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config();
+import { env } from '@packages/shared-config/env';
 
 export const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: Number(process.env.MAIL_PORT),
+  host: env.MAIL_HOST,
+  port: Number(env.MAIL_PORT),
   secure: true,
   auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
+    user: env.MAIL_USER,
+    pass: env.MAIL_PASS,
   },
 });
 
 export async function sendOTP(email: string, otp: string) {
   await transporter.sendMail({
-    from: `"CompliScan" <${process.env.MAIL_USER}>`,
+    from: `"CompliScan" <${env.MAIL_USER}>`,
     to: email,
     subject: 'Password Reset OTP',
     html: `

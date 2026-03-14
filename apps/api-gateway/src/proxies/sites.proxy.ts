@@ -1,6 +1,7 @@
+import { env } from '@packages/shared-config/env';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
-const SITE_URL = process.env.CRAWL_MANAGER_URL + '/sites';
+const SITE_URL = env.CRAWL_MANAGER_URL + '/sites';
 
 export const sitesProxy = createProxyMiddleware({
   target: SITE_URL,

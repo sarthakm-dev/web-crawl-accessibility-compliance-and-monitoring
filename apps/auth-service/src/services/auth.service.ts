@@ -5,7 +5,7 @@ import { sendOTP } from '../utils/mailer';
 import { UserRepository } from '../repositories/user.repository';
 import { TeamRepository } from '../repositories/team.repository';
 import { RoleRepository } from '../repositories/role.repository';
-
+import { env } from '@packages/shared-config/env';
 export const AuthService = {
   async signup(name: string, email: string, password: string) {
     const existing = await UserRepository.findByEmail(email);
@@ -55,15 +55,15 @@ export const AuthService = {
         roles,
         permissions,
       },
-      process.env.JWT_SECRET!,
-      { expiresIn: (process.env.ACCESS_EXPIRY || '15m') as any }
+      env.JWT_SECRET!,
+      { expiresIn: (env.ACCESS_EXPIRY || '15m') as any }
     );
     // Create refresh token
     const refreshToken = jwt.sign(
       { userId: user.id },
-      process.env.JWT_REFRESH_SECRET!,
+      env.JWT_REFRESH_SECRET!,
       {
-        expiresIn: (process.env.REFRESH_EXPIRY || '7d') as any,
+        expiresIn: (env.REFRESH_EXPIRY || '7d') as any,
       }
     );
     // Store refresh token in redis
@@ -71,7 +71,7 @@ export const AuthService = {
       `refresh:${user.id}`,
       refreshToken,
       'EX',
-      Number(process.env.REDIS_EXPIRY) || 7 * 24 * 60 * 60
+      Number(env.REDIS_EXPIRY) || 7 * 24 * 60 * 60
     );
 
     return { accessToken, refreshToken };
@@ -79,10 +79,7 @@ export const AuthService = {
 
   async refresh(refreshToken: string) {
     try {
-      const payload = jwt.verify(
-        refreshToken,
-        process.env.JWT_REFRESH_SECRET!
-      ) as any;
+      const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET!) as any;
       // Check refresh token from redis
       const stored = await redis.get(`refresh:${payload.userId}`);
 
@@ -111,8 +108,8 @@ export const AuthService = {
           roles,
           permissions,
         },
-        process.env.JWT_SECRET!,
-        { expiresIn: (process.env.ACCESS_EXPIRY || '15m') as any }
+        env.JWT_SECRET!,
+        { expiresIn: (env.ACCESS_EXPIRY || '15m') as any }
       );
 
       return { accessToken: newAccessToken };
@@ -152,12 +149,7 @@ export const AuthService = {
     // generate random otp
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     // Store OTP in redis
-    await redis.set(
-      `reset:${email}`,
-      otp,
-      'EX',
-      Number(process.env.OTP_EXPIRY) || 600
-    );
+    await redis.set(`reset:${email}`, otp, 'EX', Number(env.OTP_EXPIRY) || 600);
 
     await sendOTP(email, otp);
 

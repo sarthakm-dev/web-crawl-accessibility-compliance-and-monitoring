@@ -1,5 +1,4 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import { sequelize } from '@packages/shared-config/database';
 import authRoutes from './routes/auth.routes';
 import { initModels } from '@packages/shared-models/init-models';
@@ -7,13 +6,13 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import helmet from 'helmet';
+import { env } from '@packages/shared-config/env';
 import { jsonValidation } from '@packages/shared-validation/json.validation';
 import rateLimit from 'express-rate-limit';
-dotenv.config();
 
 const authLimiter = rateLimit({
-  windowMs: Number(process.env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000,
-  max: Number(process.env.MAX_REQUESTS) || 100,
+  windowMs: Number(env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000,
+  max: Number(env.MAX_REQUESTS) || 100,
   message: 'Too many requests from this IP, please try again after 15 minutes',
   standardHeaders: true,
   legacyHeaders: false,
@@ -21,8 +20,8 @@ const authLimiter = rateLimit({
 
 const app = express();
 
-const frontendUrl = process.env.FRONTEND_URL;
-const gatewayUrl = process.env.API_GATEWAY_URL;
+const frontendUrl = env.FRONTEND_URL;
+const gatewayUrl = env.API_GATEWAY_URL;
 
 if (!frontendUrl || !gatewayUrl) {
   throw new Error(
@@ -43,7 +42,7 @@ app.use(express.json());
 app.use(jsonValidation());
 app.use('/api/auth', authLimiter, authRoutes);
 
-const PORT = process.env.PORT || 5000;
+const PORT = env.AUTH_PORT || 5000;
 
 sequelize.authenticate().then(() => {
   console.log('Database connected');

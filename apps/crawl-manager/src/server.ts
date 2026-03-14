@@ -4,7 +4,6 @@ import crawlRoutes from './routes/crawl.routes';
 import siteRoutes from './routes/site.routes';
 import issueRoutes from './routes/issues.routes';
 import dashboardRoutes from './routes/dashboard.routes';
-import dotenv from 'dotenv';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { jsonValidation } from '@packages/shared-validation/json.validation';
@@ -12,7 +11,6 @@ import http from 'http';
 import { initSocket } from './socket/server';
 import { startCrawlEventsConsumer } from './consumers/crawl-events.consumer';
 import { startAnalysisEventsConsumer } from './consumers/analysis.consumer';
-dotenv.config();
 
 async function crawlManager() {
   initModels();

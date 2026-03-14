@@ -1,6 +1,7 @@
+import { env } from '@packages/shared-config/env';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 
-const DASHBOARD_URL = process.env.CRAWL_MANAGER_URL + '/dashboard';
+const DASHBOARD_URL = env.CRAWL_MANAGER_URL + '/dashboard';
 
 export const dashboardProxy = createProxyMiddleware({
   target: DASHBOARD_URL,

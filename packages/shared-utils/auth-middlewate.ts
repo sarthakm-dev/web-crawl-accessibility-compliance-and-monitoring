@@ -1,5 +1,6 @@
 import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { env } from '@packages/shared-config/env';
 import { AuthRequest } from '@packages/shared-types/auth.types';
 
 export const authenticate = (
@@ -12,7 +13,7 @@ export const authenticate = (
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+    const decoded = jwt.verify(token, env.JWT_SECRET as string) as {
       userId: string;
       teamId: string;
       roles: string[];

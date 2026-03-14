@@ -1,8 +1,8 @@
 import amqp from 'amqplib';
 import { MetricsService } from '../services/metrics.service';
-
+import { env } from '@packages/shared-config/env';
 export async function startAnalysisEventsConsumer() {
-  const connection = await amqp.connect(process.env.RABBITMQ_URL!);
+  const connection = await amqp.connect(env.RABBITMQ_URL!);
   const channel = await connection.createChannel();
 
   await channel.assertQueue('analysis_events', { durable: true });

@@ -7,6 +7,7 @@ import { PageVersionRepository } from '../src/repositories/page-version.reposito
 import { getBrowser } from '../src/browser/browser';
 import { uploadHtml } from '../src/storage/upload-html';
 import { publishToAnalysis } from '../src/publishers/analysis.publisher';
+import { env } from '@packages/shared-config/env';
 
 vi.mock('../src/repositories/crawl-job.repository');
 vi.mock('../src/repositories/crawl-queue.repository');
@@ -109,7 +110,7 @@ describe('CrawlService', () => {
   });
 
   it('should respect MAX_PAGES limit', async () => {
-    process.env.MAX_PAGES = '1';
+    env.MAX_PAGES = 1;
     (CrawlQueueRepository.getNextPending as any).mockResolvedValue({
       id: 'q1',
       url: 'https://example.com',
