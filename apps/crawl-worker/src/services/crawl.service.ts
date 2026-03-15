@@ -111,6 +111,9 @@ export const CrawlService = {
             });
 
             console.log('Content unchanged, reused analysis');
+            await publishToAnalysis({
+              pageVersionId: pageVersion.id,
+            });
           } else {
             //New content so  upload and analyze page
 

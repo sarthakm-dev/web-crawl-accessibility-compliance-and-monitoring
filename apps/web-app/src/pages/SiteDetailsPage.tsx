@@ -19,8 +19,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 
-import { type Site } from '../../../../packages/shared-types/site.types';
-import { type CrawlJob } from '../../../../packages/shared-types/crawl-job.types';
+import { type Site } from '@packages/shared-types/site.types';
+import { type CrawlJob } from '@packages/shared-types/crawl-job.types';
 
 import { useAuthStore } from '@/store/auth-store';
 import { columns } from '@/config/site-columns';

@@ -3,10 +3,11 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import './App.css';
 
-import AppLayout from './components/layout/AppLayout';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import AppLayout from './layout/AppLayout';
 import LoadingSpinner from './components/ui/spinner';
 import { useAuthStore } from './store/auth-store';
+import AuthInitializer from './auth/AuthInitializer';
+import { ProtectedRoute } from './auth/ProtectedRoute';
 
 // Lazy loaded page components
 const AuthPage = lazy(() => import('./pages/AuthPage'));
@@ -20,52 +21,44 @@ const ReportsPage = lazy(() => import('./pages/ReportsPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 function App() {
-  const { user, isInitialized } = useAuthStore();
+  const { user } = useAuthStore();
 
   return (
     <>
-      <BrowserRouter>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
-            {/* Public route: if user exists, redirect to dashboard */}
-            <Route
-              path="/"
-              element={
-                !isInitialized ? (
-                  <AuthPage />
-                ) : user ? (
-                  <Navigate to="/dashboard" replace />
-                ) : (
-                  <AuthPage />
-                )
-              }
-            />
+      <AuthInitializer>
+        <BrowserRouter>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              {/* Public route: if user exists, redirect to dashboard */}
+              <Route
+                path="/"
+                element={
+                  user ? <Navigate to="/dashboard" replace /> : <AuthPage />
+                }
+              />
 
-            {/* Protected routes */}
-            <Route
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/sites" element={<SitesPage />} />
-              <Route path="/crawl-jobs" element={<CrawlJobsPage />} />
-              <Route path="/sites/:id" element={<SiteDetailsPage />} />
-              <Route path="/issues" element={<IssuesPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
+              {/* Protected routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppLayout />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/sites" element={<SitesPage />} />
+                  <Route path="/crawl-jobs" element={<CrawlJobsPage />} />
+                  <Route path="/sites/:id" element={<SiteDetailsPage />} />
+                  <Route path="/issues" element={<IssuesPage />} />
+                  <Route path="/reports" element={<ReportsPage />} />
 
-              {/* 404 for authenticated users */}
+                  {/* 404 for authenticated users */}
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
+              </Route>
+
+              {/* 404 for public routes */}
               <Route path="*" element={<NotFoundPage />} />
-            </Route>
-
-            {/* 404 for public routes */}
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </AuthInitializer>
 
       <Toaster richColors />
     </>

@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/utils/api';
 import { useCallback } from 'react';
-import { type Site } from '../../../../packages/shared-types/site.types';
+import { type Site } from '@packages/shared-types/site.types';
 import {
   Dialog,
   DialogContent,

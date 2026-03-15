@@ -28,7 +28,7 @@ import { statusConfig } from '@/config/status-config';
 import { PaginationControls } from '@/components/common/Pagination';
 import { TableFilters } from '@/components/common/TableFilters';
 
-import { type CrawlJob } from '../../../../packages/shared-types/crawl-job.types';
+import { type CrawlJob } from '@packages/shared-types/crawl-job.types';
 import { crawlJobFilterConfig } from '@/config/table-filter-config';
 import type { CrawlJobUpdatedEvent } from '@/types/crawl.types';
 export default function CrawlJobsPage() {

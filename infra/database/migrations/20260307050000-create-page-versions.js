@@ -65,7 +65,7 @@ module.exports = {
 
     // Unique constraint from model
     await queryInterface.addConstraint('page_versions', {
-      fields: ['page_id', 'content_hash'],
+      fields: ['page_id', 'content_hash', 'crawl_job_id'],
       type: 'unique',
       name: 'unique_page_content_hash',
     });

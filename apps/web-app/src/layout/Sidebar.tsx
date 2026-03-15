@@ -5,29 +5,29 @@ import {
   AlertTriangle,
   FileText,
   User,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Link, useLocation } from "react-router-dom";
-import EyeIcon from "@/assets/icons/eye.svg?react";
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Link, useLocation } from 'react-router-dom';
+import EyeIcon from '@/assets/icons/eye.svg?react';
 export default function Sidebar() {
   const location = useLocation();
 
   const menuItems = [
-    { label: "Dashboard", icon: Home, path: "/dashboard" },
-    { label: "Sites", icon: Globe, path: "/sites" },
-    { label: "Crawl Jobs", icon: PlayCircle, path: "/crawl-jobs" },
-    { label: "Issues", icon: AlertTriangle, path: "/issues" },
-    { label: "Reports", icon: FileText, path: "/reports" },
-    { label: "Profile", icon: User, path: "/profile" },
+    { label: 'Dashboard', icon: Home, path: '/dashboard' },
+    { label: 'Sites', icon: Globe, path: '/sites' },
+    { label: 'Crawl Jobs', icon: PlayCircle, path: '/crawl-jobs' },
+    { label: 'Issues', icon: AlertTriangle, path: '/issues' },
+    { label: 'Reports', icon: FileText, path: '/reports' },
+    { label: 'Profile', icon: User, path: '/profile' },
   ];
 
   return (
     <div className="md:w-64 w-10 h-screen bg-white shadow-xl flex flex-col md:gap-0 gap-15">
       <div className="text-2xl hidden md:block m-4 font-bold mb-10 text-blue-600">
         CompliScan
-      </div >
+      </div>
       <div className="text-2xl md:hidden block m-2 font-bold mt-5  text-blue-600">
-        <EyeIcon/>
+        <EyeIcon />
       </div>
 
       <nav className="space-y-2">

@@ -54,7 +54,7 @@ PageVersion.init(
     indexes: [
       {
         unique: true,
-        fields: ['page_id', 'content_hash'],
+        fields: ['page_id', 'content_hash', 'crawl_job_id'],
       },
     ],
   }

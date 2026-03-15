@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { type UserType } from '../../../../packages/shared-types/user.types';
+import { type UserType } from '@packages/shared-types/user.types';
 import api from '@/utils/api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
