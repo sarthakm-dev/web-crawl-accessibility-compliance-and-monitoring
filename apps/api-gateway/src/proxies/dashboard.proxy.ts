@@ -8,12 +8,13 @@ export const dashboardProxy = createProxyMiddleware({
   changeOrigin: true,
 
   on: {
+    // get cookie headers
     proxyReq(proxyReq, req) {
       if (req.headers.cookie) {
         proxyReq.setHeader('cookie', req.headers.cookie);
       }
     },
-
+    // set cookie headers for authorization
     proxyRes(proxyRes, _req, res) {
       const cookies = proxyRes.headers['set-cookie'];
       if (cookies) {

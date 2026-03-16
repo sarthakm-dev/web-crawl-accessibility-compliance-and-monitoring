@@ -11,6 +11,7 @@ export const CrawlQueueRepository = {
     try {
       await CrawlQueue.upsert(data);
     } catch (err: any) {
+      // prevent sequelize unique constraint ass it is expected behavious
       if (err.name !== 'SequelizeUniqueConstraintError') {
         throw err;
       }
@@ -18,6 +19,7 @@ export const CrawlQueueRepository = {
   },
 
   async getNextPending(jobId: string) {
+    // find next pending job in queue
     return await CrawlQueue.findOne({
       where: {
         crawl_job_id: jobId,
@@ -28,10 +30,12 @@ export const CrawlQueueRepository = {
   },
 
   async updateStatus(id: string, status: string) {
+    // update queue status
     await CrawlQueue.update({ status }, { where: { id } });
   },
 
   async incrementRetry(id: string) {
+    // increment retry count
     await CrawlQueue.increment('retry_count', {
       where: { id },
     });

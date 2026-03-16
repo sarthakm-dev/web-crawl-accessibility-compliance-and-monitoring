@@ -10,7 +10,7 @@ export const AggregationService = {
       this.updatePageSummary(siteId, crawlJobId),
     ]);
   },
-
+  // update site issue summary table
   async updateSiteSummary(siteId: string, crawlJobId: string) {
     const severityBreakdown =
       await IssueAnalyticsRepository.getSeverityBreakdown(siteId, crawlJobId);
@@ -23,22 +23,23 @@ export const AggregationService = {
     const map = Object.fromEntries(
       severityBreakdown.map(s => [s.severity, Number(s.count)])
     ) as Record<string, number>;
-
+    // calculate accessibility score for latest crawl job in specified date range
     const totalIssues =
       (map.critical || 0) +
       (map.serious || 0) +
       (map.moderate || 0) +
       (map.minor || 0);
-
+    // Add weights for issues
     const weightedIssues =
       (map.critical || 0) * 10 +
       (map.serious || 0) * 6 +
       (map.moderate || 0) * 3 +
       (map.minor || 0);
+    // normalize weights
     const norm = Math.max(pagesCrawled, 10);
-
+    // calculate issue density
     const issueDensity = weightedIssues / norm;
-
+    // Find accessibility score
     const accessibilityScore = Math.max(0, Math.round(100 - issueDensity * 3));
 
     await SiteIssueSummaryRepository.upsert({
@@ -54,7 +55,7 @@ export const AggregationService = {
       accessibility_score: accessibilityScore,
     });
   },
-
+  // update page issue summary
   async updatePageSummary(siteId: string, crawlJobId: string) {
     const pageBreakdown = await IssueAnalyticsRepository.getPageBreakdown(
       siteId,

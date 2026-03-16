@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { env } from '@packages/shared-config/env';
+// setup transporter to send mail to user
 export const transporter = nodemailer.createTransport({
   host: env.MAIL_HOST,
   port: Number(env.MAIL_PORT),
@@ -9,7 +10,7 @@ export const transporter = nodemailer.createTransport({
     pass: env.MAIL_PASS,
   },
 });
-
+// add service to send accessibility pdf document to user
 export async function sendReportEmail(
   email: string,
   buffer: Buffer,

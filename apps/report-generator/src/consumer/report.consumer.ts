@@ -4,15 +4,15 @@ import { env } from '@packages/shared-config/env';
 import { logger } from '@packages/shared-config/logger';
 export async function startReportWorker() {
   const connection = await amqp.connect(env.RABBITMQ_URL!);
-
+  // create channel
   const channel = await connection.createChannel();
-
+  // assert report_generation queue
   await channel.assertQueue('report_generation', {
     durable: true,
   });
 
   channel.prefetch(5);
-
+  // consume jobs in report generation queue
   channel.consume('report_generation', message => {
     if (message) {
       consumeReportJob(message, channel);

@@ -6,8 +6,9 @@ import { siteQuerySchema } from '@packages/shared-validation/dashboard.schema';
 export const DashboardController = {
   async getSummary(req: Request, res: Response) {
     try {
+      // add zod validation
       const { siteId } = siteQuerySchema.parse(req.query);
-
+      // add service to get summary
       const data = await DashboardService.getSummary(siteId);
 
       return res.json(data);
@@ -18,8 +19,9 @@ export const DashboardController = {
 
   async getTrend(req: Request, res: Response) {
     try {
+      // add zod validation
       const { siteId } = siteQuerySchema.parse(req.query);
-
+      // get accessibility trend data
       const data = await DashboardService.getAccessibilityTrend(siteId);
 
       return res.json(data);
@@ -30,6 +32,7 @@ export const DashboardController = {
 
   async getIssuesBreakdown(_req: Request, res: Response) {
     try {
+      // get issues breakdown
       const data = await DashboardService.getIssuesBreakdown();
       return res.json(data);
     } catch (error) {
@@ -39,6 +42,7 @@ export const DashboardController = {
 
   async getLatestCrawls(_req: Request, res: Response) {
     try {
+      // get latest crawls
       const data = await DashboardService.getLatestCrawls();
       return res.json(data);
     } catch (error) {

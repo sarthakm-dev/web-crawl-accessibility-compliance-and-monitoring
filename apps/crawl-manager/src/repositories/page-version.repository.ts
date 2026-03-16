@@ -11,6 +11,7 @@ export const PageVersionRepository = {
     html_content: string;
     crawled_at?: Date;
   }) {
+    // create new page version
     return PageVersion.create({
       ...data,
       crawled_at: new Date(),

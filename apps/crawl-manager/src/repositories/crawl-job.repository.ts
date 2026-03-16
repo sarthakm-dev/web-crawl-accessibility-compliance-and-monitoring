@@ -11,6 +11,7 @@ export const CrawlJobRepository = {
     requested_by: string;
     trigger_type: string;
   }) {
+    // addnew record in crawl job repository
     return CrawlJob.create({
       site_id: data.site_id,
       requested_by: data.requested_by,
@@ -20,6 +21,7 @@ export const CrawlJobRepository = {
   },
 
   async findById(id: string) {
+    // find crawl job by id
     return CrawlJob.findByPk(id);
   },
 
@@ -34,10 +36,11 @@ export const CrawlJobRepository = {
     limit: number;
     search?: string;
   }) {
+    // setup offset fr pagination
     const offset = (page - 1) * limit;
-
+    // add filters
     const where: any = { ...filters };
-
+    // get rows based on specified filters
     const { rows, count } = await CrawlJob.findAndCountAll({
       where,
       order: [['created_at', 'DESC']],
@@ -87,18 +90,19 @@ export const CrawlJobRepository = {
     };
   },
   async getStats(jobId: string) {
+    // get total pages
     const totalPages = await PageVersion.count({
       where: { crawl_job_id: jobId },
     });
-
+    // get total failed pages
     const failed = await CrawlQueue.count({
       where: { crawl_job_id: jobId, status: 'failed' },
     });
-
+    // get total pending pages
     const pending = await CrawlQueue.count({
       where: { crawl_job_id: jobId, status: 'pending' },
     });
-
+    // get total pages completed
     const completed = await CrawlQueue.count({
       where: { crawl_job_id: jobId, status: 'completed' },
     });
@@ -111,6 +115,7 @@ export const CrawlJobRepository = {
     };
   },
   async bulkDelete(ids: string[]) {
+    // delete multiple rows
     return CrawlJob.destroy({
       where: {
         id: ids,

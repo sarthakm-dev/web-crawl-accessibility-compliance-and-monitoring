@@ -10,7 +10,7 @@ export async function startAnalysisEventsConsumer() {
   await channel.assertQueue('analysis_events', { durable: true });
 
   logger.info('Listening for analysis events...');
-
+  // consume messages from analysis_events
   channel.consume(
     'analysis_events',
     async msg => {

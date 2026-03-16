@@ -4,6 +4,7 @@ let browser: Browser;
 
 export async function getBrowser() {
   if (!browser) {
+    // setup browser instance
     browser = await puppeteer.launch({
       headless: true,
       executablePath: '/usr/bin/chromium',

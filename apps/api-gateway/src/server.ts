@@ -13,12 +13,14 @@ import cors from 'cors';
 import { env } from '@packages/shared-config/env';
 
 const app = express();
+// Setup cors
 app.use(
   cors({
     origin: env.FRONTEND_URL,
     credentials: true,
   })
 );
+// morgan logger for api level logging
 app.use(logger('dev'));
 app.use('/api/auth', authRoutes);
 app.use('/api/sites', siteRoutes);
@@ -27,7 +29,7 @@ app.use('/api/issues', issuesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
+// health check
 app.get('/api/health', (_, res) => {
   res.status(200).json({ status: 'ok' });
 });

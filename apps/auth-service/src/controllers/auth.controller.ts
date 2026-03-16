@@ -17,8 +17,9 @@ import { handleError } from '@packages/shared-utils/error-handler';
 export const AuthController = {
   async signup(req: Request, res: Response) {
     try {
+      // validate req using zod
       const parsed = signupSchema.parse(req.body);
-
+      // signup user
       const user = await AuthService.signup(
         parsed.name,
         parsed.email,
@@ -37,10 +38,11 @@ export const AuthController = {
 
   async login(req: Request, res: Response) {
     try {
+      // validate using zod
       const parsed = loginSchema.parse(req.body);
-
+      // login service for user
       const result = await AuthService.login(parsed.email, parsed.password);
-
+      // set up cookies
       res.cookie('accessToken', result.accessToken, accessCookieOptions);
       res.cookie('refreshToken', result.refreshToken, refreshCookieOptions);
 
@@ -52,10 +54,11 @@ export const AuthController = {
 
   async me(req: AuthRequest, res: Response) {
     try {
+      // Prevent unauthorized access
       if (!req.userId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-
+      // get user details
       const user = await AuthService.me(req.userId);
 
       return res.status(200).json({
@@ -72,11 +75,11 @@ export const AuthController = {
   async refresh(req: Request, res: Response) {
     try {
       const refreshToken = req.cookies.refreshToken;
-
+      // handle missing refresh token
       if (!refreshToken) {
         return res.status(401).json({ error: 'Refresh token missing' });
       }
-
+      // refresh access token
       const result = await AuthService.refresh(refreshToken);
 
       res.cookie('accessToken', result.accessToken, accessCookieOptions);
@@ -89,12 +92,13 @@ export const AuthController = {
 
   async logout(req: AuthRequest, res: Response) {
     try {
+      // handle user
       if (!req.userId) {
         return res.status(401).json({ error: 'User not authenticated' });
       }
-
+      // logout user
       await AuthService.logout(req.userId);
-
+      // clear access token
       res.clearCookie('accessToken');
       res.clearCookie('refreshToken');
 
@@ -106,8 +110,9 @@ export const AuthController = {
 
   async forgotPassword(req: Request, res: Response) {
     try {
+      // validate req using zod
       const parsed = forgotPasswordSchema.parse(req.body);
-
+      // handle service for forgot password
       const result = await AuthService.forgotPassword(parsed.email);
 
       return res.status(200).json(result);
@@ -118,8 +123,9 @@ export const AuthController = {
 
   async resetPassword(req: Request, res: Response) {
     try {
+      // validate req using zod
       const parsed = resetPasswordSchema.parse(req.body);
-
+      // add service for reset password
       const result = await AuthService.resetPassword(
         parsed.email,
         parsed.otp,
@@ -134,8 +140,9 @@ export const AuthController = {
 
   async verifyOtp(req: Request, res: Response) {
     try {
+      // validate req using zod
       const parsed = verifyOTPSchema.parse(req.body);
-
+      // add service for verify otp
       const result = await AuthService.verifyOtp(parsed.email, parsed.otp);
 
       return res.status(200).json(result);

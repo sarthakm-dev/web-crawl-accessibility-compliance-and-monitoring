@@ -7,7 +7,7 @@ import { ReportsRepository } from '../repositories/reports.repository';
 import { SiteIssueSummaryRepository } from '../repositories/site-issue-summary.repository';
 
 import { publishReportGeneration } from '../publishers/report.publisher';
-
+// add function to normalize date range
 function normalizeDateRange(startDate?: Date, endDate?: Date) {
   if (!startDate || !endDate) {
     return { start: undefined, end: undefined };
@@ -15,7 +15,7 @@ function normalizeDateRange(startDate?: Date, endDate?: Date) {
 
   const start = new Date(startDate);
   const end = new Date(endDate);
-
+  // convert date into timestamp format
   start.setHours(0, 0, 0, 0);
   end.setHours(23, 59, 59, 999);
 
@@ -39,7 +39,7 @@ async function resolveCrawlJob(
 
     return job.id;
   }
-
+  // find latest crawl job
   const latest = await CrawlJobRepository.findLatest(siteId);
 
   if (!latest?.id) {
@@ -50,6 +50,7 @@ async function resolveCrawlJob(
 }
 
 export const ReportsService = {
+  // add service to get site summary
   async getSiteSummary(
     siteId: string,
     crawlJobId?: string,
@@ -62,7 +63,7 @@ export const ReportsService = {
 
     return SiteIssueSummaryRepository.getSiteSummary(siteId, jobId, start, end);
   },
-
+  // add service to get severity breakdown
   async getSeverityBreakdown(
     siteId: string,
     crawlJobId?: string,
@@ -80,7 +81,7 @@ export const ReportsService = {
       end
     );
   },
-
+  // add service to get top pages
   async getTopPages(
     siteId: string,
     crawlJobId?: string,
@@ -93,7 +94,7 @@ export const ReportsService = {
 
     return PageIssueSummaryRepository.getTopPages(siteId, jobId, start, end);
   },
-
+  // add service to get site issues
   async getIssues(
     siteId: string,
     severity?: string,
@@ -119,7 +120,7 @@ export const ReportsService = {
       end
     );
   },
-
+  // add generate report service
   async generateReport(payload: any) {
     const { start, end } = normalizeDateRange(
       payload.filters?.startDate,

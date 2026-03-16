@@ -13,12 +13,13 @@ import {
 export const IssuesController = {
   async getAll(req: AuthenticatedRequest, res: Response) {
     try {
+      // handle unauthorized user
       if (!req.teamId) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
-
+      // add zod validation
       const query = issuesQuerySchema.parse(req.query);
-
+      // add service to get issues
       const result = await IssuesService.list({
         teamId: req.teamId,
         ...query,

@@ -7,7 +7,7 @@ export async function uploadHtml(
   html: string
 ) {
   const objectName = `sites/${siteId}/pages/${pageId}/${versionHash}.html`;
-
+  // put html content in s3 bucket
   await minioClient.putObject(
     BUCKET,
     objectName,

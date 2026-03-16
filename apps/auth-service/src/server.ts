@@ -10,6 +10,8 @@ import { env } from '@packages/shared-config/env';
 import { jsonValidation } from '@packages/shared-validation/json.validation';
 import rateLimit from 'express-rate-limit';
 import { logger } from '@packages/shared-config/logger';
+
+// Setup rate limiter
 const authLimiter = rateLimit({
   windowMs: Number(env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000,
   max: Number(env.MAX_REQUESTS) || 100,
@@ -22,19 +24,20 @@ const app = express();
 
 const frontendUrl = env.FRONTEND_URL;
 const gatewayUrl = env.API_GATEWAY_URL;
-
+// handle missing .env variables
 if (!frontendUrl || !gatewayUrl) {
   throw new Error(
     'Missing required environment variables for CORS configuration.'
   );
 }
-
+// setup cors for frontend
 app.use(
   cors({
     origin: [frontendUrl, gatewayUrl],
     credentials: true,
   })
 );
+// add morgan logger
 app.use(morgan('dev'));
 app.use(helmet());
 app.use(cookieParser());

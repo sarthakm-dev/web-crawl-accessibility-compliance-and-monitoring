@@ -1,39 +1,44 @@
-import PDFDocument from "pdfkit";
-import { PassThrough } from "stream";
+import PDFDocument from 'pdfkit';
+import { PassThrough } from 'stream';
 
 export function generatePdfStream(payload: any) {
-
   const doc = new PDFDocument({ margin: 50 });
   const stream = new PassThrough();
 
   doc.pipe(stream);
-
+  // get site
   const site = payload.site;
+  // get site summary
   const summary = payload.summary;
 
-  doc.fontSize(22).text("Accessibility Report", { align: "center" });
+  doc.fontSize(22).text('Accessibility Report', { align: 'center' });
 
   doc.moveDown();
 
-  doc.fontSize(14).text("Site Information", { underline: true });
+  doc.fontSize(14).text('Site Information', { underline: true });
 
   doc.moveDown(0.5);
-
-  doc.fontSize(12).text(`Site Name: ${site?.name ?? "-"}`);
-  doc.text(`Site URL: ${site?.base_url ?? "-"}`);
+  // write site name in pdf
+  doc.fontSize(12).text(`Site Name: ${site?.name ?? '-'}`);
+  // add base url field
+  doc.text(`Site URL: ${site?.base_url ?? '-'}`);
 
   doc.moveDown();
 
-  doc.fontSize(14).text("Summary", { underline: true });
+  doc.fontSize(14).text('Summary', { underline: true });
 
   doc.moveDown(0.5);
-
-  doc.fontSize(12).text(`Accessibility Score: ${summary?.accessibility_score ?? "-"}`);
-  doc.text(`Pages Crawled: ${summary?.pages_crawled ?? "-"}`);
-  doc.text(`Total Issues: ${summary?.total_issues ?? "-"}`);
+  // Add accessibility score
+  doc
+    .fontSize(12)
+    .text(`Accessibility Score: ${summary?.accessibility_score ?? '-'}`);
+  // add pages_crawled
+  doc.text(`Pages Crawled: ${summary?.pages_crawled ?? '-'}`);
+  // add total issues
+  doc.text(`Total Issues: ${summary?.total_issues ?? '-'}`);
 
   doc.moveDown();
-
+  // add issues count summary
   doc.text(`Critical: ${summary?.critical_count ?? 0}`);
   doc.text(`Serious: ${summary?.serious_count ?? 0}`);
   doc.text(`Moderate: ${summary?.moderate_count ?? 0}`);
@@ -41,18 +46,17 @@ export function generatePdfStream(payload: any) {
 
   doc.moveDown();
 
-  doc.fontSize(16).text("Issues Found");
+  doc.fontSize(16).text('Issues Found');
 
   doc.moveDown();
 
   const issues = Array.isArray(payload.issues) ? payload.issues : [];
 
   if (issues.length === 0) {
-    doc.fontSize(12).text("No issues detected.");
+    doc.fontSize(12).text('No issues detected.');
   } else {
-
+    // update issues in pdf
     issues.forEach((issue: any, index: number) => {
-
       const data = issue.dataValues || issue;
 
       doc.fontSize(12).text(`${index + 1}. Rule: ${data.rule_id}`);
@@ -70,7 +74,7 @@ export function generatePdfStream(payload: any) {
       }
 
       if (data.message) {
-        doc.text(`Fix: ${data.message.replace(/\n/g, " ")}`);
+        doc.text(`Fix: ${data.message.replace(/\n/g, ' ')}`);
       }
 
       doc.moveDown();

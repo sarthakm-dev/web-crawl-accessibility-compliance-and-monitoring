@@ -12,7 +12,7 @@ import { Op } from 'sequelize';
 export const IssuesRepository = {
   async findAll(filters: any) {
     const { page, limit, teamId, status, severity, search } = filters;
-    // Instead of joining multiple tables use an aggregate table (IN PROGRESS)
+    // get all issues for specified filters
     return IssueInstance.findAndCountAll({
       include: [
         {
@@ -48,6 +48,7 @@ export const IssuesRepository = {
   },
 
   async findById(id: string) {
+    // find issue by id
     return IssueInstance.findByPk(id, {
       include: [
         IssueDefinition,
@@ -68,10 +69,12 @@ export const IssuesRepository = {
   },
 
   async updateStatus(id: string, status: string) {
+    // updat status of issue
     return IssueInstance.update({ current_status: status }, { where: { id } });
   },
 
   async createNote(data: any) {
+    // add note to issue
     return IssueNote.create(data);
   },
   async updateStatusWithHistory(
@@ -80,16 +83,18 @@ export const IssuesRepository = {
     newStatus: string,
     note?: string
   ) {
+    // start a transaction
     const transaction = await sequelize.transaction();
 
     try {
+      // find the issue selected
       const issue = await IssueInstance.findByPk(issueId, { transaction });
       if (!issue) throw new Error('Issue not found');
-
+      // GET PREVIOUS STATUS
       const previousStatus = issue.current_status;
-
+      // UPDATE ISSUE STATUS
       await issue.update({ current_status: newStatus }, { transaction });
-
+      // update issue status history
       await IssueStatusHistory.create(
         {
           issue_instance_id: issueId,
@@ -101,10 +106,11 @@ export const IssuesRepository = {
         },
         { transaction }
       );
-
+      // commit transaction
       await transaction.commit();
       return issue;
     } catch (error) {
+      // rollback transaction if failed
       await transaction.rollback();
       throw error;
     }

@@ -57,6 +57,7 @@ export const CrawlService = {
     });
   },
   async bulkDeleteCrawls(ids: string[]) {
+    // delete multiple crawls
     const deleted = await CrawlJobRepository.bulkDelete(ids);
     if (!deleted) {
       throw new Error('Crawl jobs not found');

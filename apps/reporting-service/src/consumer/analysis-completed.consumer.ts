@@ -10,6 +10,7 @@ export const consumeAnalysisIssues = async (message: any, channel: any) => {
       channel.ack(message);
       return;
     }
+    // consume analysis copleted event to start table aggregation
     const records = payload.issues.map((issue: any) => ({
       id: uuidv4(),
 
@@ -38,7 +39,7 @@ export const consumeAnalysisIssues = async (message: any, channel: any) => {
     }));
 
     await IssueAnalyticsRepository.bulkInsert(records);
-
+    // Start aggregatio process
     await AggregationService.aggregate(payload.siteId, payload.crawlJobId);
 
     channel.ack(message);

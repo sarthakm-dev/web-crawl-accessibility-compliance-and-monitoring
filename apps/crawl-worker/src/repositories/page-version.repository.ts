@@ -17,6 +17,7 @@ export const PageVersionRepository = {
     });
   },
   async findByHash(hash: string) {
+    // find page by hash to handle duplicates
     return PageVersion.findOne({
       where: { content_hash: hash },
       order: [['crawled_at', 'DESC']],

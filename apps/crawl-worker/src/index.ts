@@ -7,15 +7,16 @@ import { logger } from '@packages/shared-config/logger';
 
 async function startWorker() {
   try {
+    // initialize db models
     initModels();
+    // ensure s3 bucket exists
     await ensureBucket();
     const connection = await amqp.connect(env.RABBITMQ_URL!);
     const channel = await connection.createChannel();
-
     await channel.assertQueue('crawl_jobs', { durable: true });
 
     logger.info('Crawl Worker is listening for jobs...');
-
+    // consume message to process jobs
     channel.consume(
       'crawl_jobs',
       async msg => {
@@ -26,6 +27,7 @@ async function startWorker() {
         logger.info('Received job:', payload.jobId);
 
         try {
+          // crawl page using puppeteer
           await CrawlService.processJob(payload, channel);
           channel.ack(msg);
           logger.info('Job Completed');

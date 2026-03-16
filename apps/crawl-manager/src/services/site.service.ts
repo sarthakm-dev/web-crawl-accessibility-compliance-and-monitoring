@@ -38,6 +38,7 @@ export const SiteService = {
   },
 
   async deleteSite(teamId: string, id: string) {
+    // find site by id
     const site = await SiteRepository.findById(teamId, id);
 
     if (!site) {
@@ -47,6 +48,7 @@ export const SiteService = {
     await SiteRepository.deleteWithJobs(id);
   },
   async bulkDeleteSites(teamId: string, ids: string[]) {
+    // delete multiple sites
     const deleted = await SiteRepository.bulkDelete(teamId, ids);
     if (!deleted) {
       throw new Error('Sites not found');

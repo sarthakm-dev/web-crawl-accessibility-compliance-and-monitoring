@@ -10,7 +10,7 @@ export async function startCrawlEventsConsumer() {
   await channel.assertQueue('crawl_events', { durable: true });
 
   logger.info('Listening for crawl events...');
-
+  // consume from channel crawl_events
   channel.consume(
     'crawl_events',
     async msg => {
