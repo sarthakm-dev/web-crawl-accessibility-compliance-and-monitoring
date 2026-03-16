@@ -3,7 +3,6 @@ import { initPublisher } from './publishers/crawl.publishers';
 import crawlRoutes from './routes/crawl.routes';
 import siteRoutes from './routes/site.routes';
 import issueRoutes from './routes/issues.routes';
-import dashboardRoutes from './routes/dashboard.routes';
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import { jsonValidation } from '@packages/shared-validation/json.validation';
@@ -26,7 +25,6 @@ async function crawlManager() {
   app.use('/api/sites', siteRoutes);
   app.use('/api/crawl', crawlRoutes);
   app.use('/api/issues', issueRoutes);
-  app.use('/api/dashboard', dashboardRoutes);
   server.listen(3002, () => {
     console.log(`Crawl Manager running on port 3002`);
   });

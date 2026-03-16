@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import reportsRoutes from './routes/reports.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 import { sequelize } from '@packages/shared-config/database';
 import { initModels } from '@packages/shared-models/init-models';
 import amqp from 'amqplib';
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(jsonValidation());
 app.use('/api/reports', reportsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 export async function ensureBucketExists() {}
 async function startConsumer() {
