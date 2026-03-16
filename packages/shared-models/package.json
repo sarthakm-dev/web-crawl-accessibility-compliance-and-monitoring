@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsup index.ts --format cjs --out-dir dist --clean"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +14,6 @@
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
-    "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   }
 }

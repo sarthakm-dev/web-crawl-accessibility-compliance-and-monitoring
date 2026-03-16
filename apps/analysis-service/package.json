@@ -23,12 +23,7 @@
     "pg-hstore": "^2.3.4",
     "puppeteer": "^24.38.0",
     "tsup": "^8.5.1",
-    "vitest": "^4.0.18",
-    "@packages/shared-config": "workspace:*",
-    "@packages/shared-models": "workspace:*",
-    "@packages/shared-utils": "workspace:*",
-    "@packages/shared-types": "workspace:*",
-    "@packages/shared-validation": "workspace:*"
+    "vitest": "^4.0.18"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.8",
