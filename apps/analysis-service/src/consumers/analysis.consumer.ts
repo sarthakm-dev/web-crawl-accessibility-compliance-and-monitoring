@@ -10,7 +10,7 @@ export async function startAnalysisConsumer() {
   await channel.assertQueue(queue, { durable: true });
 
   logger.info('Waiting for analysis jobs...');
-
+  // Consume analysis jobs
   channel.consume(queue, async msg => {
     if (!msg) return;
 
