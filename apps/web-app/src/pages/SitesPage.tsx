@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { logger } from '@packages/shared-config/logger';
 import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/utils/api';
 import { useCallback } from 'react';
@@ -79,8 +78,7 @@ export default function SitesPage() {
       await fetchSites();
 
       toast.success('Site created successfully');
-    } catch (error) {
-      logger.error(error);
+    } catch {
       toast.error('Failed to create site');
     }
   };

@@ -10,6 +10,7 @@ import {
 import api from '@/utils/api';
 import { mapIssueDetail, mapIssue } from '@/utils/mapper';
 import { PaginationControls } from '@/components/common/Pagination';
+import { toast } from 'sonner';
 
 export default function IssuesPage() {
   const [issues, setIssues] = useState<Issue[]>([]);
@@ -26,32 +27,44 @@ export default function IssuesPage() {
   const [total, setTotal] = useState(0);
 
   const handleSelect = async (issue: Issue) => {
-    const res = await api.get<IssueDetailApiResponse>(
-      `/api/issues/${issue.id}`
-    );
+    try {
+      const res = await api.get<IssueDetailApiResponse>(
+        `/api/issues/${issue.id}`
+      );
 
-    setSelectedIssue(mapIssueDetail(res.data));
-    setOpen(true);
+      setSelectedIssue(mapIssueDetail(res.data));
+      setOpen(true);
+    } catch (error) {
+      toast.error(`Cannot get issues ${error}`);
+    }
   };
 
   const handleStatusChange = async (id: string, status: Issue['status']) => {
-    await api.patch(`/api/issues/${id}/status`, { status });
+    try {
+      await api.patch(`/api/issues/${id}/status`, { status });
 
-    setIssues(prev =>
-      prev.map(issue => (issue.id === id ? { ...issue, status } : issue))
-    );
+      setIssues(prev =>
+        prev.map(issue => (issue.id === id ? { ...issue, status } : issue))
+      );
 
-    if (selectedIssue?.id === id) {
-      const res = await api.get<IssueDetailApiResponse>(`/api/issues/${id}`);
-      setSelectedIssue(mapIssueDetail(res.data));
+      if (selectedIssue?.id === id) {
+        const res = await api.get<IssueDetailApiResponse>(`/api/issues/${id}`);
+        setSelectedIssue(mapIssueDetail(res.data));
+      }
+    } catch (error) {
+      toast.error(`Cannot update issue status ${error}`);
     }
   };
 
   const handleAddComment = async (id: string, note: string) => {
-    await api.post(`/api/issues/${id}/notes`, { note });
+    try {
+      await api.post(`/api/issues/${id}/notes`, { note });
 
-    const res = await api.get<IssueDetailApiResponse>(`/api/issues/${id}`);
-    setSelectedIssue(mapIssueDetail(res.data));
+      const res = await api.get<IssueDetailApiResponse>(`/api/issues/${id}`);
+      setSelectedIssue(mapIssueDetail(res.data));
+    } catch (error) {
+      toast.error(`Cannot add comment ${error}`);
+    }
   };
 
   useEffect(() => {
@@ -70,7 +83,6 @@ export default function IssuesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      
       {/* Issues */}
       <IssuesCardList
         issues={issues}

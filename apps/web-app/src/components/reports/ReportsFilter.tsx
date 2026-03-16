@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import api from '@/utils/api';
-import { logger } from '@packages/shared-config/logger';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -12,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 
 import type { FilterProps, Site } from '@/types/report.types';
+import { toast } from 'sonner';
 
 export function ReportsFilters({
   siteId,
@@ -36,7 +36,7 @@ export function ReportsFilters({
 
         setSites(res.data.data || []);
       } catch (err) {
-        logger.error({ err }, 'Failed to load sites');
+        toast.error(`$Failed to fetch site ${err}`);
       } finally {
         setLoading(false);
       }
