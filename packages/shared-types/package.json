@@ -1,5 +1,5 @@
 {
-  "name": "@shared/shared-types",
+  "name": "@packages/shared-types",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
