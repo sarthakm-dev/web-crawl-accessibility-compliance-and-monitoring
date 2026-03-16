@@ -39,7 +39,7 @@ export const consumeAnalysisIssues = async (message: any, channel: any) => {
     }));
 
     await IssueAnalyticsRepository.bulkInsert(records);
-    // Start aggregatio process
+    // Start aggregation process
     await AggregationService.aggregate(payload.siteId, payload.crawlJobId);
 
     channel.ack(message);
