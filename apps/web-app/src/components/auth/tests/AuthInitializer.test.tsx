@@ -1,39 +1,37 @@
-import { render, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-describe("AuthInitializer", () => {
+describe('AuthInitializer', () => {
   let mockSetUser: any;
   let mockClearUser: any;
   let authApi: any;
   let AuthInitializer: any;
-  let useAuthStore: any;
 
   beforeEach(async () => {
     vi.resetModules();
-
     mockSetUser = vi.fn();
     mockClearUser = vi.fn();
 
-    vi.doMock("@/store/auth-store", () => ({
-      useAuthStore: (selector: any) =>
+    vi.doMock('@/store/auth-store', () => ({
+      useAuthStore: vi.fn((selector: any) =>
         selector({
           setUser: mockSetUser,
           clearUser: mockClearUser,
-        }),
+        })
+      ),
     }));
 
-    vi.doMock("@/utils/auth-api", () => ({
+    vi.doMock('@/utils/auth-api', () => ({
       default: {
         get: vi.fn(),
       },
     }));
 
-    authApi = (await import("@/utils/auth-api")).default;
-    useAuthStore = (await import("@/store/auth-store")).useAuthStore;
-    AuthInitializer = (await import("../AuthInitializer")).default;
+    authApi = (await import('@/utils/auth-api')).default;
+    AuthInitializer = (await import('../AuthInitializer')).default;
   });
 
-  it("calls setUser when auth succeeds", async () => {
+  it('calls setUser when auth succeeds', async () => {
     authApi.get.mockResolvedValue({ data: { id: 1 } });
 
     render(
@@ -47,8 +45,8 @@ describe("AuthInitializer", () => {
     });
   });
 
-  it("calls clearUser when auth fails", async () => {
-    authApi.get.mockRejectedValue(new Error("Unauthorized"));
+  it('calls clearUser when auth fails', async () => {
+    authApi.get.mockRejectedValue(new Error('Unauthorized'));
 
     render(
       <AuthInitializer>
@@ -61,13 +59,13 @@ describe("AuthInitializer", () => {
     });
   });
 
-  it("renders children", () => {
+  it('renders children', () => {
     const { getByText } = render(
       <AuthInitializer>
         <div>Child Component</div>
       </AuthInitializer>
     );
 
-    expect(getByText("Child Component")).toBeInTheDocument();
+    expect(getByText('Child Component')).toBeInTheDocument();
   });
 });

@@ -6,8 +6,8 @@ import './App.css';
 import AppLayout from './layout/AppLayout';
 import LoadingSpinner from './components/ui/spinner';
 import { useAuthStore } from './store/auth-store';
-import AuthInitializer from './auth/AuthInitializer';
-import { ProtectedRoute } from './auth/ProtectedRoute';
+import AuthInitializer from './components/auth/AuthInitializer';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Lazy loaded page components
 const AuthPage = lazy(() => import('./pages/AuthPage'));
