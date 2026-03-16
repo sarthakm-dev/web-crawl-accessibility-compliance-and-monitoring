@@ -7,6 +7,7 @@ import crawlRoutes from './routes/crawl.routes';
 import issuesRoutes from './routes/issues.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import reportsRoutes from './routes/reports.routes';
+import { logger as log } from '@packages/shared-config/logger';
 import logger from 'morgan';
 import cors from 'cors';
 import { env } from '@packages/shared-config/env';
@@ -32,6 +33,6 @@ app.get('/api/health', (_, res) => {
 });
 const PORT = env.GATEWAY_PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`API Gateway Running on port ${PORT}`);
+  log.info(`API Gateway Running on port ${PORT}`);
 });
 export default app;

@@ -1,5 +1,5 @@
 import { minioClient } from './minio';
-
+import { logger } from '@packages/shared-config/logger';
 const bucket = 'webcrawl';
 
 export async function ensureBucket() {
@@ -7,6 +7,6 @@ export async function ensureBucket() {
 
   if (!exists) {
     await minioClient.makeBucket(bucket);
-    console.log('MinIO bucket created:', bucket);
+    logger.info('MinIO bucket created:');
   }
 }

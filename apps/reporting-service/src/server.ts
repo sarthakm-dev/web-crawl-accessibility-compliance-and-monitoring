@@ -9,11 +9,13 @@ import { jsonValidation } from '@packages/shared-validation/json.validation';
 import { consumeAnalysisIssues } from './consumer/analysis-completed.consumer';
 import { env } from '@packages/shared-config/env';
 import cookieParser from 'cookie-parser';
-
+import { logger } from '@packages/shared-config/logger';
+import helmet from 'helmet';
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(helmet());
 app.use(cookieParser());
 app.use(jsonValidation());
 app.use('/api/reports', reportsRoutes);
@@ -37,13 +39,13 @@ async function startConsumer() {
     }
   });
 
-  console.log('Reporting Service consuming analysis_issues');
+  logger.info('Reporting Service consuming analysis_issues');
 }
 
 async function startServer() {
   try {
     await sequelize.authenticate();
-    console.log('Database connected');
+    logger.info('Database connected');
 
     await initModels();
 
@@ -52,10 +54,10 @@ async function startServer() {
     const PORT = env.REPORTING_PORT || 4004;
 
     app.listen(PORT, () => {
-      console.log(`Reporting service running on port ${PORT}`);
+      logger.info(`Reporting service running on port ${PORT}`);
     });
   } catch (error) {
-    console.error('Failed to start reporting service', error);
+    logger.error({ error }, 'Failed to start reporting service');
   }
 }
 

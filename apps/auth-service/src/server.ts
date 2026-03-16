@@ -9,7 +9,7 @@ import helmet from 'helmet';
 import { env } from '@packages/shared-config/env';
 import { jsonValidation } from '@packages/shared-validation/json.validation';
 import rateLimit from 'express-rate-limit';
-
+import { logger } from '@packages/shared-config/logger';
 const authLimiter = rateLimit({
   windowMs: Number(env.RATE_LIMIT_WINDOW) || 15 * 60 * 1000,
   max: Number(env.MAX_REQUESTS) || 100,
@@ -45,10 +45,10 @@ app.use('/api/auth', authLimiter, authRoutes);
 const PORT = env.AUTH_PORT || 5000;
 
 sequelize.authenticate().then(() => {
-  console.log('Database connected');
+  logger.info('Database connected');
 });
 
 initModels();
 app.listen(PORT, () => {
-  console.log(`Auth Service running on port ${PORT}`);
+  logger.info(`Auth Service running on port ${PORT}`);
 });

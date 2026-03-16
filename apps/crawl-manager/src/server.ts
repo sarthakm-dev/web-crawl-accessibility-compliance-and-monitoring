@@ -10,6 +10,7 @@ import http from 'http';
 import { initSocket } from './socket/server';
 import { startCrawlEventsConsumer } from './consumers/crawl-events.consumer';
 import { startAnalysisEventsConsumer } from './consumers/analysis.consumer';
+import { logger } from '@packages/shared-config/logger';
 
 async function crawlManager() {
   initModels();
@@ -26,7 +27,7 @@ async function crawlManager() {
   app.use('/api/crawl', crawlRoutes);
   app.use('/api/issues', issueRoutes);
   server.listen(3002, () => {
-    console.log(`Crawl Manager running on port 3002`);
+    logger.info(`Crawl Manager running on port 3002`);
   });
 }
 crawlManager();

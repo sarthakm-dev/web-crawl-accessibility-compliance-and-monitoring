@@ -1,13 +1,15 @@
 import amqp from 'amqplib';
 import { MetricsService } from '../services/metrics.service';
 import { env } from '@packages/shared-config/env';
+import { logger } from '@packages/shared-config/logger';
+
 export async function startAnalysisEventsConsumer() {
   const connection = await amqp.connect(env.RABBITMQ_URL!);
   const channel = await connection.createChannel();
 
   await channel.assertQueue('analysis_events', { durable: true });
 
-  console.log('Listening for analysis events...');
+  logger.info('Listening for analysis events...');
 
   channel.consume(
     'analysis_events',
@@ -17,13 +19,13 @@ export async function startAnalysisEventsConsumer() {
       try {
         const event = JSON.parse(msg.content.toString());
 
-        console.log('Analysis event received:', event);
+        logger.info(`Analysis event received: ${event}`);
         // Generate metrics for analysis event
         await MetricsService.generate(event.siteId, event.jobId);
 
         channel.ack(msg);
       } catch (err) {
-        console.error('Failed to process analysis event', err);
+        logger.error({ err }, 'Failed to process analysis event');
 
         channel.nack(msg, false, false);
       }

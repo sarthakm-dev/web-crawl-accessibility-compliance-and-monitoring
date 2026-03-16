@@ -6,7 +6,7 @@ import { CrawlJobRepository } from '../repositories/crawl-job.repository';
 import { CrawlQueueRepository } from '../repositories/crawl-queue.repository';
 import { PageRepository } from '../repositories/page.repository';
 import { PageVersionRepository } from '../repositories/page-version.repository';
-
+import { logger } from '@packages/shared-config/logger';
 import { publishToAnalysis } from '../publishers/analysis.publisher';
 import { uploadHtml } from '../storage/upload-html';
 
@@ -110,7 +110,7 @@ export const CrawlService = {
               content_size: existingVersion.content_size,
             });
 
-            console.log('Content unchanged, reused analysis');
+            logger.info('Content unchanged, reused analysis');
             await publishToAnalysis({
               pageVersionId: pageVersion.id,
             });
@@ -169,7 +169,7 @@ export const CrawlService = {
 
           processedCount++;
 
-          console.log('Processed Count:', processedCount);
+          logger.info({ processedCount }, 'Processed Count');
           // After every 5 crawls update event as running
           if (processedCount % 5 === 0) {
             publishEvent({
@@ -179,7 +179,7 @@ export const CrawlService = {
             });
           }
         } catch (err) {
-          console.error(`Failed crawling ${queueItem.url}`, err);
+          logger.error({ err }, `Failed crawling ${queueItem.url}`);
           // Mark Crawl as failed
           await CrawlQueueRepository.updateStatus(queueItem.id, 'failed');
         }
@@ -195,7 +195,7 @@ export const CrawlService = {
         status: 'completed',
       });
     } catch (error) {
-      console.error('Crawl job failed:', error);
+      logger.error({ error }, 'Crawl job failed:');
 
       await CrawlJobRepository.updateStatus(jobId, 'failed');
 

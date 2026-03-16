@@ -3,6 +3,8 @@ import { env } from '@packages/shared-config/env';
 import { CrawlService } from './services/crawl.service';
 import { initModels } from '@packages/shared-models/init-models';
 import { ensureBucket } from '@packages/shared-config/create-bucket';
+import { logger } from '@packages/shared-config/logger';
+
 async function startWorker() {
   try {
     initModels();
@@ -12,7 +14,7 @@ async function startWorker() {
 
     await channel.assertQueue('crawl_jobs', { durable: true });
 
-    console.log('Crawl Worker is listening for jobs...');
+    logger.info('Crawl Worker is listening for jobs...');
 
     channel.consume(
       'crawl_jobs',
@@ -21,21 +23,21 @@ async function startWorker() {
 
         const payload = JSON.parse(msg.content.toString());
 
-        console.log('Received job:', payload.jobId);
+        logger.info('Received job:', payload.jobId);
 
         try {
           await CrawlService.processJob(payload, channel);
           channel.ack(msg);
-          console.log('Job Completed');
+          logger.info('Job Completed');
         } catch (error) {
-          console.error('Job failed:', error);
+          logger.error({ error }, 'Job failed');
           channel.nack(msg, false, false);
         }
       },
       { noAck: false }
     );
   } catch (error) {
-    console.error('Worker startup failed:', error);
+    logger.error({ error }, 'Worker startup failed');
   }
 }
 

@@ -8,7 +8,7 @@ import { getHtmlFromStorage } from '../storage/get-html';
 import { publishAnalysisCompleted } from '../publishers/analysis-event.publisher';
 import { publishAnalysisIssues } from '../publishers/analysis-issues.publisher';
 import { PageRepository } from '../repositories/page.repository';
-
+import { logger } from '@packages/shared-config/logger';
 export const AnalysisService = {
   async process(payload: { pageVersionId: string }) {
     const { pageVersionId } = payload;
@@ -20,7 +20,7 @@ export const AnalysisService = {
     }
 
     if (pageVersion.analysis_status === 'completed') {
-      console.log(`Analysis already completed for ${pageVersionId}. Skipping.`);
+      logger.info(`Analysis already completed for ${pageVersionId}. Skipping.`);
       return;
     }
 
@@ -106,7 +106,7 @@ export const AnalysisService = {
 
       await transaction.commit();
 
-      console.log(
+      logger.info(
         `Analysis complete for ${pageVersionId}. Violations: ${issues.length}`
       );
 

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-
+import { logger } from '@packages/shared-config/logger';
 import { Skeleton } from '@/components/ui/skeleton';
 import api from '@/utils/api';
 import { useCallback } from 'react';
@@ -80,7 +80,7 @@ export default function SitesPage() {
 
       toast.success('Site created successfully');
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       toast.error('Failed to create site');
     }
   };

@@ -1,6 +1,7 @@
 import amqp from 'amqplib';
 import { AnalysisService } from '../services/analysis.service';
 import { env } from '@packages/shared-config/env';
+import { logger } from '@packages/shared-config/logger';
 export async function startAnalysisConsumer() {
   const connection = await amqp.connect(env.RABBITMQ_URL!);
   const channel = await connection.createChannel();
@@ -8,7 +9,7 @@ export async function startAnalysisConsumer() {
   const queue = 'analysis_jobs';
   await channel.assertQueue(queue, { durable: true });
 
-  console.log('Waiting for analysis jobs...');
+  logger.info('Waiting for analysis jobs...');
 
   channel.consume(queue, async msg => {
     if (!msg) return;
@@ -19,7 +20,7 @@ export async function startAnalysisConsumer() {
       await AnalysisService.process(payload);
       channel.ack(msg);
     } catch (err) {
-      console.error('Analysis failed:', err);
+      logger.error({ err }, 'Analysis failed');
       channel.nack(msg);
     }
   });

@@ -1,7 +1,7 @@
 import amqp from 'amqplib';
 import { consumeReportJob } from '../workers/report.worker';
 import { env } from '@packages/shared-config/env';
-
+import { logger } from '@packages/shared-config/logger';
 export async function startReportWorker() {
   const connection = await amqp.connect(env.RABBITMQ_URL!);
 
@@ -19,5 +19,5 @@ export async function startReportWorker() {
     }
   });
 
-  console.log('Report worker started - consuming generate_report queue');
+  logger.info('Report worker started - consuming generate_report queue');
 }

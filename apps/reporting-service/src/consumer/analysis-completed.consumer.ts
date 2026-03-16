@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { IssueAnalyticsRepository } from '../repositories/issue-analytics.repository';
 import { AggregationService } from '../services/aggregation.service';
+import { logger } from '@packages/shared-config/logger';
 
 export const consumeAnalysisIssues = async (message: any, channel: any) => {
   try {
@@ -42,7 +43,7 @@ export const consumeAnalysisIssues = async (message: any, channel: any) => {
 
     channel.ack(message);
   } catch (error) {
-    console.error('Reporting consumer failed:', error);
+    logger.error({ error }, 'Reporting consumer failed:');
 
     channel.nack(message, false, false);
   }

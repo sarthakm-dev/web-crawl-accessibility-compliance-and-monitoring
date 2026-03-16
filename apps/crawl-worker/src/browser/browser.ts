@@ -1,5 +1,5 @@
 import puppeteer, { Browser } from 'puppeteer';
-
+import { logger } from '@packages/shared-config/logger';
 let browser: Browser;
 
 export async function getBrowser() {
@@ -10,7 +10,7 @@ export async function getBrowser() {
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
-    console.log('Puppeteer browser launched');
+    logger.info('Puppeteer browser launched');
   }
 
   return browser;

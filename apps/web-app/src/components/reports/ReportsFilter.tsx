@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '@/utils/api';
-
+import { logger } from '@packages/shared-config/logger';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -36,7 +36,7 @@ export function ReportsFilters({
 
         setSites(res.data.data || []);
       } catch (err) {
-        console.error('Failed to load sites', err);
+        logger.error({ err }, 'Failed to load sites');
       } finally {
         setLoading(false);
       }

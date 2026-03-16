@@ -2,11 +2,12 @@ import { sequelize } from '@packages/shared-config/database';
 import { Permission } from '@packages/shared-models/permission.model';
 import { Role } from '@packages/shared-models/role.model';
 import { initModels } from '@packages/shared-models/init-models';
+import { logger } from '@packages/shared-config/logger';
 
 async function seed() {
   initModels();
   sequelize.authenticate().then(() => {
-    console.log('Seed database connected');
+    logger.info('Seed database connected');
   });
 
   const allPermissions = [

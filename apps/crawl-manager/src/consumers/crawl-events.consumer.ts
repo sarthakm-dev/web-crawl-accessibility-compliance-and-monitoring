@@ -1,13 +1,15 @@
 import amqp from 'amqplib';
 import { getIO } from '../socket/server';
 import { env } from '@packages/shared-config/env';
+import { logger } from '@packages/shared-config/logger';
+
 export async function startCrawlEventsConsumer() {
   const connection = await amqp.connect(env.RABBITMQ_URL!);
   const channel = await connection.createChannel();
 
   await channel.assertQueue('crawl_events', { durable: true });
 
-  console.log('Listening for crawl events...');
+  logger.info('Listening for crawl events...');
 
   channel.consume(
     'crawl_events',
@@ -17,7 +19,7 @@ export async function startCrawlEventsConsumer() {
       try {
         const event = JSON.parse(msg.content.toString());
 
-        console.log('Crawl event received:', event);
+        logger.info('Crawl event received:', event);
 
         const io = getIO();
         // Send job updated broadcast to client
@@ -25,7 +27,7 @@ export async function startCrawlEventsConsumer() {
 
         channel.ack(msg);
       } catch (err) {
-        console.error('Failed to process crawl event', err);
+        logger.error({ err }, 'Failed to process crawl event');
         channel.nack(msg, false, false);
       }
     },

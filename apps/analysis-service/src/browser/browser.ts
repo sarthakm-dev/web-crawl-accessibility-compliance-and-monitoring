@@ -1,5 +1,5 @@
 import puppeteer, { Browser } from 'puppeteer';
-
+import { logger } from '@packages/shared-config/logger';
 let browser: Browser | null = null;
 
 export async function getBrowser() {
@@ -9,7 +9,7 @@ export async function getBrowser() {
       executablePath: '/usr/bin/chromium',
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
-    console.log('Analysis browser launched');
+    logger.info('Analysis browser launched');
   }
   return browser;
 }
