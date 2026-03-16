@@ -23,9 +23,11 @@ This helps teams:
 
 ## Services
 
+Since crawling and report generation is a CPU intensive task these are handled by separate services to asynchronously handle these requests in non blocking manner.
+
 ### API Gateway
 
-Handles routing and acts as the entry point for the frontend.
+Handles routing and acts as the entry point for the frontend. In case any kind of transformation or control of data can be handled from this microservice.
 
 ### Auth Service
 
@@ -42,6 +44,14 @@ Actually visits the pages using a headless browser and extracts HTML content.
 ### Analysis Service
 
 Runs accessibility checks (using axe-core) on the crawled pages and records violations.
+
+### Reporting Service
+
+Responsible for powering up dashboard and reports part. Exposes API's for analytics part of the project.
+
+### Report Generator
+
+Responsible for creating pdf reports for site issues and sending generated pdf through email to user.
 
 ---
 
@@ -90,6 +100,10 @@ Reverse Proxy:
 S3 Bucket Store:
 
 - Minio
+
+Logging:
+
+- Pino
 
 ---
 
