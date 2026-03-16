@@ -9,10 +9,12 @@ export const authenticate = (
   next: NextFunction
 ) => {
   const token = req.cookies.accessToken;
+  // unauthorized if access token not found
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
+    // verify jwt secret
     const decoded = jwt.verify(token, env.JWT_SECRET as string) as {
       userId: string;
       teamId: string;

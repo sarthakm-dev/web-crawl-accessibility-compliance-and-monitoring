@@ -7,6 +7,7 @@ export function handleError(
   error: unknown,
   fallbackStatus = 500
 ) {
+  // handle zod error
   if (error instanceof ZodError) {
     return res.status(400).json({
       error: 'Validation failed',
@@ -16,13 +17,13 @@ export function handleError(
       })),
     });
   }
-
+  // handle axios error
   if (axios.isAxiosError(error)) {
     return res.status(error.response?.status || 500).json({
       error: error.response?.data?.error || error.response?.data?.message,
     });
   }
-
+  // handle database unique constraint error
   if (error instanceof UniqueConstraintError) {
     return res.status(409).json({
       error: 'Conflict',
@@ -32,19 +33,19 @@ export function handleError(
           .join(', ') || 'Record already exists',
     });
   }
-
+  // handle base database error
   if (error instanceof BaseError) {
     return res.status(500).json({
       error: 'Database error',
     });
   }
-
+  // handle fallback error
   if (error instanceof Error) {
     return res.status(fallbackStatus).json({
       error: error.message,
     });
   }
-
+  // any other internal server error
   return res.status(500).json({
     error: 'Internal server error',
   });
