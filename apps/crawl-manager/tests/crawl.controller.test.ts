@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { CrawlController } from '../src/controllers/crawl.controllers';
+import { CrawlController } from '../src/controllers/crawl.controller';
 import { CrawlService } from '../src/services/crawl.service';
 import { handleError } from '@packages/shared-utils/error-handler';
 
