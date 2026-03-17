@@ -41,6 +41,9 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
     });
+    await queryInterface.addIndex('crawl_jobs', ['site_id']);
+    await queryInterface.addIndex('crawl_jobs', ['status']);
+    await queryInterface.addIndex('crawl_jobs', ['created_at']);
   },
 
   async down(queryInterface) {
