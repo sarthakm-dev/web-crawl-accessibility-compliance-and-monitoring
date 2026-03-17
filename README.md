@@ -151,6 +151,8 @@ https://drive.google.com/file/d/1thZ8dVFunbFtJCXpFJB0sB2fPESnxAwQ/view?usp=shari
 
 - Then put enviornment variables in .env (refer .env.example)
 
+- Then create uploads and postgress folder in root as host binded mounts are being user and docker image of postgress and minio is being used
+
 - Then run the services.
   - pnpm dev
 
