@@ -4,16 +4,18 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsup"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.29.2",
   "dependencies": {
+    "@packages/shared-config": "workspace:*",
     "sequelize": "^6.37.7"
   },
   "devDependencies": {
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   }
 }

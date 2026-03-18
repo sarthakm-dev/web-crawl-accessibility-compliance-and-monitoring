@@ -1,8 +1,11 @@
 {
-  "name": "@shared/shared-types",
+  "name": "@packages/shared-types",
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "scripts": {
+    "build": "tsup"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -18,6 +21,7 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   }
 }

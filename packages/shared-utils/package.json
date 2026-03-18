@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/index.js",
+  "scripts": {
+    "build": "tsup"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.29.2",
   "dependencies": {
+    "@packages/shared-config": "workspace:*",
+    "@packages/shared-types": "workspace:*",
     "axios": "^1.13.5",
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
@@ -18,6 +23,7 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3"
   }
 }
