@@ -10,11 +10,13 @@ import { consumeAnalysisIssues } from './consumer/analysis-completed.consumer';
 import { env } from '@packages/shared-config/env';
 import cookieParser from 'cookie-parser';
 import { logger } from '@packages/shared-config/logger';
+import morgan from 'morgan';
 import helmet from 'helmet';
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(morgan('dev'));
 app.use(helmet());
 app.use(cookieParser());
 app.use(jsonValidation());
