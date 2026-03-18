@@ -11,7 +11,7 @@ import { logger as log } from '@packages/shared-config/logger';
 import logger from 'morgan';
 import cors from 'cors';
 import { env } from '@packages/shared-config/env';
-
+import helmet from 'helmet';
 const app = express();
 // Setup cors
 app.use(
@@ -22,6 +22,7 @@ app.use(
 );
 // morgan logger for api level logging
 app.use(logger('dev'));
+app.use(helmet());
 app.use('/api/auth', authRoutes);
 app.use('/api/sites', siteRoutes);
 app.use('/api/crawl', crawlRoutes);
