@@ -2,10 +2,10 @@
   "name": "api-gateway",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "dev": "ts-node-dev src/server.ts",
-    "build": "tsup src/server.ts --format cjs --out-dir dist --clean",
+    "build": "tsup",
     "start": "node dist/server.js"
   },
   "keywords": [],
@@ -26,7 +26,8 @@
     "socket.io": "^4.8.3",
     "swagger-ui-express": "^5.0.1",
     "vitest": "^4.0.18",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "@packages/shared-config": "workspace:*"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

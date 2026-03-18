@@ -1,4 +1,4 @@
-# ---------- Base ----------
+# Base 
 FROM node:20-bullseye AS base
 
 WORKDIR /app
@@ -17,39 +17,62 @@ RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm turbo
 
 
-# ---------- Install deps ----------
+# Prune
+FROM base AS pruner
+
+WORKDIR /app
+
+# copy repo
+COPY . .
+
+# create minimal repo for crawl-worker
+RUN turbo prune crawl-worker --docker
+
+
+# Install 
 FROM base AS deps
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY tsconfig.base.json ./
+WORKDIR /app
 
-COPY packages ./packages
-COPY apps ./apps
+# only package.json files
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+
+#  copy tsconfig
+COPY tsconfig.base.json ./tsconfig.base.json
 
 RUN pnpm install --frozen-lockfile
 
 
-# ---------- Build ----------
+# Build 
 FROM deps AS builder
 
-RUN pnpm --filter crawl-worker... build
+WORKDIR /app
+
+# full pruned source
+COPY --from=pruner /app/out/full/ .
+
+RUN pnpm turbo run build --filter=crawl-worker...
 
 
-# ---------- Runtime ----------
+# Runtime 
 FROM base AS runner
 
 WORKDIR /app
 
-# Copy runtime dependencies
+ENV NODE_ENV=production
+ENV NODE_PATH=/app
+
+# dependencies
 COPY --from=builder /app/node_modules ./node_modules
 
-# Copy shared workspace packages
+# shared packages
 COPY --from=builder /app/packages ./packages
 
-# Copy service
+# service
 COPY --from=builder /app/apps/crawl-worker ./apps/crawl-worker
 
 WORKDIR /app/apps/crawl-worker

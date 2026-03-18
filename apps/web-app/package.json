@@ -45,7 +45,8 @@
     "tailwind-merge": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
     "zukeeper": "^1.0.2",
-    "zustand": "^5.0.11"
+    "zustand": "^5.0.11",
+    "@packages/shared-types": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

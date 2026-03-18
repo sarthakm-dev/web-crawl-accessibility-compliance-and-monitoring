@@ -1,41 +1,75 @@
-#  Base 
+# Base 
 FROM node:20-alpine AS base
-RUN npm install -g pnpm
+
 WORKDIR /app
 
+RUN npm install -g pnpm turbo
 
-# Install deps 
+
+# Prune
+FROM base AS pruner
+
+WORKDIR /app
+
+# Copy full repo 
+COPY . .
+
+# Generate minimal workspace for api-gateway
+RUN turbo prune api-gateway --docker
+
+
+# Dependencies 
 FROM base AS deps
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY tsconfig.base.json ./
+WORKDIR /app
 
-COPY packages ./packages
-COPY apps ./apps
+# Copy pruned package.json files
+COPY --from=pruner /app/out/json/ .
 
+# Copy lockfile
+COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
+
+# Install only required deps
 RUN pnpm install --frozen-lockfile
 
 
 # Build 
 FROM deps AS builder
 
-RUN pnpm --filter api-gateway... build
+WORKDIR /app
+
+# Copy full source
+COPY --from=pruner /app/out/full/ .
+
+# include tsconfig
+COPY tsconfig.base.json ./tsconfig.base.json
+
+# Build api-gateway and dependencies
+RUN pnpm turbo run build --filter=api-gateway...
 
 
 # Runtime 
 FROM node:20-alpine AS runner
 
 WORKDIR /app
+
+ENV NODE_ENV=production
+
 RUN npm install -g pnpm
 
-# Copy runtime dependencies
+
+# Copy runtime deps
 COPY --from=builder /app/node_modules ./node_modules
 
-# Copy shared workspace packages
+# Copy built packages (shared)
 COPY --from=builder /app/packages ./packages
 
-# Copy gateway app
+# Copy built api-gateway
 COPY --from=builder /app/apps/api-gateway ./apps/api-gateway
+
+# Copy tsconfig 
+COPY --from=builder /app/tsconfig.base.json ./tsconfig.base.json
+
 
 WORKDIR /app/apps/api-gateway
 
