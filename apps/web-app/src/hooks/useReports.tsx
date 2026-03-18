@@ -44,6 +44,7 @@ export function useSeverityBreakdown(
 
       return res.data;
     },
+    select: data => (Array.isArray(data) ? data : []),
     enabled: !!siteId,
   });
 }
@@ -67,6 +68,7 @@ export function useTopPages(
 
       return res.data;
     },
+    select: data => (Array.isArray(data) ? data : []),
     enabled: !!siteId,
   });
 }
@@ -104,6 +106,10 @@ export function useIssues(
 
       return res.data;
     },
+    select: (data): IssuesResponse => ({
+      rows: Array.isArray(data?.rows) ? data.rows : [],
+      count: typeof data?.count === 'number' ? data.count : 0,
+    }),
     enabled: !!siteId,
   });
 }

@@ -17,10 +17,10 @@ export default function AuthInitializer({
     initialized = true;
 
     const initAuth = async () => {
-      try {
-        const res = await authApi.get('/api/auth/me');
+      const res = await authApi.get('/api/auth/me');
+      if (res.data) {
         setUser(res.data);
-      } catch {
+      } else {
         clearUser();
       }
     };

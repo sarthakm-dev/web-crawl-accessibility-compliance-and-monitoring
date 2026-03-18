@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 import {
   Select,
@@ -9,25 +9,25 @@ import {
   SelectContent,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
-import { useIssues } from "@/hooks/useReports";
-import { getImpactColor } from "@/utils/color";
-import { toast } from "sonner";
+import { useIssues } from '@/hooks/useReports';
+import { getImpactColor } from '@/utils/color';
+import { toast } from 'sonner';
 
-import type { Issue, SummaryProps } from "@/types/report.types";
+import type { Issue, SummaryProps } from '@/types/report.types';
 
 export function IssuesCards({ siteId, startDate, endDate }: SummaryProps) {
-  const [severity, setSeverity] = useState("all");
-  const [search, setSearch] = useState("");
+  const [severity, setSeverity] = useState('all');
+  const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isError } = useIssues(
     siteId,
-    severity === "all" ? undefined : severity,
+    severity === 'all' ? undefined : severity,
     page,
     startDate,
     endDate
@@ -35,11 +35,11 @@ export function IssuesCards({ siteId, startDate, endDate }: SummaryProps) {
 
   useEffect(() => {
     if (isError) {
-      toast.error("Failed to load issues");
+      toast.error('Failed to load issues');
     }
 
     if (!isLoading && data && data.rows.length === 0) {
-      toast.info("No issues found for selected filters");
+      toast.info('No issues found for selected filters');
     }
   }, [isError, data, isLoading]);
 
@@ -49,7 +49,7 @@ export function IssuesCards({ siteId, startDate, endDate }: SummaryProps) {
   const total = data.count ?? 0;
   const totalPages = Math.ceil(total / 10);
 
-  const filtered = issues.filter((i) =>
+  const filtered = issues.filter(i =>
     i.page_url.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -64,13 +64,13 @@ export function IssuesCards({ siteId, startDate, endDate }: SummaryProps) {
           <Input
             placeholder="Search page..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={e => setSearch(e.target.value)}
             className="w-60 bg-white"
           />
 
           <Select
             value={severity}
-            onValueChange={(v) => {
+            onValueChange={v => {
               setSeverity(v);
               setPage(1);
             }}
@@ -93,7 +93,7 @@ export function IssuesCards({ siteId, startDate, endDate }: SummaryProps) {
       {/* Issues */}
 
       <div className="space-y-4">
-        {filtered.map((issue) => (
+        {filtered.map(issue => (
           <Card key={issue.id} className="shadow-sm border-none">
             <CardContent className="p-4 space-y-3">
               <div className="flex justify-between items-center">
@@ -134,7 +134,7 @@ export function IssuesCards({ siteId, startDate, endDate }: SummaryProps) {
           <Button
             variant="outline"
             disabled={page === 1}
-            onClick={() => setPage((p) => p - 1)}
+            onClick={() => setPage(p => p - 1)}
           >
             Previous
           </Button>
@@ -142,7 +142,7 @@ export function IssuesCards({ siteId, startDate, endDate }: SummaryProps) {
           <Button
             variant="outline"
             disabled={page >= totalPages}
-            onClick={() => setPage((p) => p + 1)}
+            onClick={() => setPage(p => p + 1)}
           >
             Next
           </Button>

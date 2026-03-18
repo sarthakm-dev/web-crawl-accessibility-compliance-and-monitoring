@@ -5,29 +5,28 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
-import { useTopPages } from "@/hooks/useReports";
-import { toast } from "sonner";
-import { useEffect } from "react";
-import type { SummaryProps, TopPage } from "@/types/report.types";
+import { useTopPages } from '@/hooks/useReports';
+import { toast } from 'sonner';
+import { useEffect } from 'react';
+import type { SummaryProps, TopPage } from '@/types/report.types';
 
 export function TopPagesTable({ siteId, startDate, endDate }: SummaryProps) {
   const { data, isLoading, isError } = useTopPages(siteId, startDate, endDate);
+  const pages: TopPage[] = Array.isArray(data) ? data : [];
 
   useEffect(() => {
     if (isError) {
-      toast.error("Failed to load top pages");
+      toast.error('Failed to load top pages');
     }
 
-    if (!isLoading && data && data.length === 0) {
-      toast.info("No problem pages found for selected dates");
+    if (!isLoading && pages.length === 0) {
+      toast.info('No problem pages found for selected dates');
     }
-  }, [isError, data, isLoading]);
+  }, [isError, pages, isLoading]);
 
-  if (isLoading || !data) return null;
-
-  const pages: TopPage[] = data;
+  if (isLoading) return null;
 
   return (
     <div className="bg-white border-none rounded-lg p-4">
@@ -43,8 +42,8 @@ export function TopPagesTable({ siteId, startDate, endDate }: SummaryProps) {
         </TableHeader>
 
         <TableBody>
-          {pages.map((page) => (
-            <TableRow className="hover:bg-muted/50" key={page.page_url}>
+          {pages.map(page => (
+            <TableRow key={page.page_url} className="hover:bg-muted/50">
               <TableCell className="max-w-55 truncate">
                 {page.page_url}
               </TableCell>

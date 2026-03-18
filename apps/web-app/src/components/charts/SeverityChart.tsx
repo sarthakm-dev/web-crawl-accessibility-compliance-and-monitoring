@@ -20,18 +20,19 @@ export function SeverityChart({ siteId, startDate, endDate }: SummaryProps) {
     startDate,
     endDate
   );
+  const safeData = Array.isArray(data) ? data : [];
 
   useEffect(() => {
     if (isError) {
       toast.error('Failed to load severity breakdown');
     }
 
-    if (!isLoading && data && data.length === 0) {
+    if (!isLoading && safeData.length === 0) {
       toast.info('No severity data available for selected dates');
     }
-  }, [isError, data, isLoading]);
+  }, [isError, safeData, isLoading]);
 
-  if (isLoading || !data) return null;
+  if (isLoading) return null;
 
   return (
     <Card className="border-none">
@@ -40,7 +41,7 @@ export function SeverityChart({ siteId, startDate, endDate }: SummaryProps) {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={data}>
+          <BarChart data={safeData}>
             <XAxis dataKey="severity" />
             <YAxis />
             <Tooltip />
