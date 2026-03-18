@@ -16,15 +16,15 @@
   "license": "ISC",
   "packageManager": "pnpm@10.29.2",
   "dependencies": {
+    "@packages/shared-config": "workspace:*",
+    "@packages/shared-models": "workspace:*",
     "amqplib": "^0.10.9",
     "dotenv": "^17.2.4",
     "nodemailer": "^8.0.1",
     "pdfkit": "^0.17.2",
     "pg": "^8.18.0",
     "pg-hstore": "^2.3.4",
-    "vitest": "^4.0.18",
-    "@packages/shared-config": "workspace:*",
-    "@packages/shared-models": "workspace:*"
+    "vitest": "^4.0.18"
   },
   "devDependencies": {
     "@types/amqplib": "^0.10.8",

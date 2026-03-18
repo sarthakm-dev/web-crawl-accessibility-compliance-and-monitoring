@@ -12,7 +12,7 @@
   "packageManager": "pnpm@10.29.2",
   "dependencies": {
     "@packages/shared-config": "workspace:*",
-    "sequelize": "^6.37.7"
+    "sequelize": "^6.37.8"
   },
   "devDependencies": {
     "tsup": "^8.5.1",
