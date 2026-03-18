@@ -155,13 +155,21 @@ export default function AuthPage() {
           {mode !== 'otp' && (
             <>
               <Input
-                type="email"
+                type="text"
                 placeholder="Email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                aria-label="Email address"
+                aria-describedby={emailError ? 'email-error' : undefined}
               />
               {emailError && (
-                <p className="text-red-500 text-sm">{emailError}</p>
+                <p
+                  id="email-error"
+                  className="text-red-500 text-sm"
+                  role="alert"
+                >
+                  {emailError}
+                </p>
               )}
             </>
           )}
@@ -182,9 +190,17 @@ export default function AuthPage() {
                 placeholder={mode === 'reset' ? 'New Password' : 'Password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                aria-label={mode === 'reset' ? 'New password' : 'Password'}
+                aria-describedby={passwordError ? 'password-error' : undefined}
               />
               {passwordError && (
-                <p className="text-red-500 text-sm">{passwordError}</p>
+                <p
+                  id="password-error"
+                  className="text-red-500 text-sm"
+                  role="alert"
+                >
+                  {passwordError}
+                </p>
               )}
             </>
           )}
@@ -196,9 +212,17 @@ export default function AuthPage() {
                 placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
+                aria-label="Confirm password"
+                aria-describedby={confirmError ? 'confirm-error' : undefined}
               />
               {confirmError && (
-                <p className="text-red-500 text-sm">{confirmError}</p>
+                <p
+                  id="confirm-error"
+                  className="text-red-500 text-sm"
+                  role="alert"
+                >
+                  {confirmError}
+                </p>
               )}
             </>
           )}
