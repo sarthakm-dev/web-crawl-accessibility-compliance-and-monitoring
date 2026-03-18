@@ -4,3 +4,4 @@ export * from './database';
 export * from './minio';
 export * from './env';
 export * from './redis';
+export * from './logger';

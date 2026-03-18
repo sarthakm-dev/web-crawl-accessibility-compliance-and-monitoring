@@ -1,4 +1,4 @@
-import { env } from '@packages/shared-config/env';
+import { env } from './env';
 export const accessCookieOptions = {
   httpOnly: true,
   secure: env.NODE_ENV === 'production',

@@ -1,5 +1,5 @@
 import { minioClient } from './minio';
-import { logger } from '@packages/shared-config/logger';
+import { logger } from './logger';
 const bucket = 'webcrawl';
 
 export async function ensureBucket() {

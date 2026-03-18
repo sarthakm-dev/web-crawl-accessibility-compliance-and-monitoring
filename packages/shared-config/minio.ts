@@ -1,5 +1,5 @@
 import { Client } from 'minio';
-import { env } from '@packages/shared-config/env';
+import { env } from './env';
 
 export const minioClient = new Client({
   endPoint: env.MINIO_HOST || 'minio',

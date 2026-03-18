@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
-import { env } from '@packages/shared-config/env';
-import { logger } from '@packages/shared-config/logger';
+import { env } from './env';
+import { logger } from './logger';
 export const redis = new Redis({
   host: env.REDIS_HOST || 'localhost',
   port: Number(env.REDIS_PORT) || 6379,

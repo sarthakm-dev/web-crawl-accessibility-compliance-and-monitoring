@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize';
-import { env } from '@packages/shared-config/env';
+import { env } from './env';
 
 type GlobalWithSequelize = typeof globalThis & {
   sequelizeInstance?: Sequelize;
