@@ -1,50 +1,51 @@
-import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
-import { ProtectedRoute } from "../ProtectedRoute";
-import { useAuthStore } from "@/store/auth-store";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render } from '@testing-library/react';
+import { MemoryRouter, Routes, Route } from 'react-router-dom';
 
-vi.mock("@/store/auth-store");
+import { ProtectedRoute } from '../ProtectedRoute';
+import { useAuthStore } from '@/store/auth-store';
 
-describe("ProtectedRoute", () => {
-  it("renders outlet when user exists", () => {
-    (useAuthStore as any).mockImplementation((selector: any) =>
-      selector({
-        user: { id: "1", email: "test@test.com" },
-      })
-    );
+// Mock the store
+vi.mock('@/store/auth-store', () => ({
+  useAuthStore: vi.fn(),
+}));
 
-    render(
-      <MemoryRouter initialEntries={["/dashboard"]}>
-        <Routes>
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<div>Dashboard</div>} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    );
-
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+describe('ProtectedRoute', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it("redirects to login when user is null", () => {
-    (useAuthStore as any).mockImplementation((selector: any) =>
-      selector({
-        user: null,
-      })
-    );
+  it('redirects to / when no user is present', () => {
+    (useAuthStore as any).mockReturnValue({ user: null });
 
-    render(
-      <MemoryRouter initialEntries={["/dashboard"]}>
+    const { container } = render(
+      <MemoryRouter initialEntries={['/protected']}>
         <Routes>
           <Route path="/" element={<div>Login Page</div>} />
           <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<div>Dashboard</div>} />
+            <Route path="/protected" element={<div>Protected Content</div>} />
           </Route>
         </Routes>
       </MemoryRouter>
     );
 
-    expect(screen.getByText("Login Page")).toBeInTheDocument();
+    expect(container.innerHTML).toContain('Login Page');
+  });
+
+  it('renders protected content when user exists', () => {
+    (useAuthStore as any).mockReturnValue({ user: { id: '1' } });
+
+    const { container } = render(
+      <MemoryRouter initialEntries={['/protected']}>
+        <Routes>
+          <Route path="/" element={<div>Login Page</div>} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/protected" element={<div>Protected Content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(container.innerHTML).toContain('Protected Content');
   });
 });
