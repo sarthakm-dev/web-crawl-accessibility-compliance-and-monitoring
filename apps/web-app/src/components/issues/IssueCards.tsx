@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import type { Issue, IssuesTableProps } from '../../types/issue.types';
+import type { Issue, IssuesTableProps } from '@/types/issue.types';
 import { useCallback, useEffect, useState } from 'react';
 import { TableFilters } from '../common/TableFilters';
 import { issueFilterConfig } from '@/config/table-filter-config';

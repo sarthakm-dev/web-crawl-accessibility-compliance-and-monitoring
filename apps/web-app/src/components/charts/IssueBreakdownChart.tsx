@@ -6,7 +6,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 
-import { COLORS, ISSUE_CONFIG } from '../../config/issue-config';
+import { COLORS, ISSUE_CONFIG } from '@/config/issue-config';
 import type { Props } from '@/types/crawl.types';
 
 export function IssueBreakdownChart({ data }: Props) {

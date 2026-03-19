@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { type Props, type IssueStatus } from '../../types/issue.types';
+import { type Props, type IssueStatus } from '@/types/issue.types';
 import { useState } from 'react';
 import { getImpactColor, getStatusColor } from '@/utils/color';
 import { Textarea } from '@/components/ui/textarea';
