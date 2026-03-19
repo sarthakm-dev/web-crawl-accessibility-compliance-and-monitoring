@@ -43,6 +43,7 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
 app.use(jsonValidation());
+app.set('trust proxy', 1);
 app.use('/api/auth', authLimiter, authRoutes);
 
 const PORT = env.AUTH_PORT || 5000;
