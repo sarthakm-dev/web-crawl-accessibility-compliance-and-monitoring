@@ -34,7 +34,8 @@ async function resolveCrawlJob(
     const job = await CrawlJobRepository.findByDate(siteId, startDate, endDate);
 
     if (!job?.id) {
-      throw new Error(`No crawl job found for site ${siteId} in date range`);
+      // edge case when no crawl jobs found in date range
+      return null;
     }
 
     return job.id;
@@ -43,7 +44,8 @@ async function resolveCrawlJob(
   const latest = await CrawlJobRepository.findLatest(siteId);
 
   if (!latest?.id) {
-    throw new Error(`No crawl jobs found for site ${siteId}`);
+    // No latest crawl job found
+    return null;
   }
 
   return latest.id;
@@ -60,7 +62,10 @@ export const ReportsService = {
     const { start, end } = normalizeDateRange(startDate, endDate);
 
     const jobId = await resolveCrawlJob(siteId, crawlJobId, start, end);
-
+    if (!jobId) {
+      // edge case where no crawl job found
+      return [];
+    }
     return SiteIssueSummaryRepository.getSiteSummary(siteId, jobId, start, end);
   },
   // add service to get severity breakdown
@@ -73,7 +78,10 @@ export const ReportsService = {
     const { start, end } = normalizeDateRange(startDate, endDate);
 
     const jobId = await resolveCrawlJob(siteId, crawlJobId, start, end);
-
+    if (!jobId) {
+      // edge case where no crawl job found
+      return [];
+    }
     return IssueAnalyticsRepository.getSeverityBreakdown(
       siteId,
       jobId,
@@ -91,7 +99,10 @@ export const ReportsService = {
     const { start, end } = normalizeDateRange(startDate, endDate);
 
     const jobId = await resolveCrawlJob(siteId, crawlJobId, start, end);
-
+    if (!jobId) {
+      // edge case where no crawl job found
+      return [];
+    }
     return PageIssueSummaryRepository.getTopPages(siteId, jobId, start, end);
   },
   // add service to get site issues
@@ -107,7 +118,10 @@ export const ReportsService = {
     const { start, end } = normalizeDateRange(startDate, endDate);
 
     const jobId = await resolveCrawlJob(siteId, crawlJobId, start, end);
-
+    if (!jobId) {
+      // edge case where no crawl job found
+      return [];
+    }
     const offset = (page - 1) * limit;
 
     return IssueAnalyticsRepository.getIssues(
@@ -133,7 +147,10 @@ export const ReportsService = {
       start,
       end
     );
-
+    if (!jobId) {
+      // Invalid request if no crawl job found
+      throw new Error('No crawl data available to generate report');
+    }
     const reportId = uuidv4();
 
     await ReportsRepository.create({
