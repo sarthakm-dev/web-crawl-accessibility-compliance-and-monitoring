@@ -23,7 +23,6 @@ app.use(jsonValidation());
 app.use('/api/reports', reportsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-export async function ensureBucketExists() {}
 async function startConsumer() {
   const connection = await amqp.connect(env.RABBITMQ_URL!);
 
