@@ -46,12 +46,10 @@ export default function Dashboard() {
     }
   }, []);
 
-  // Initial fetch
   useEffect(() => {
     fetchDashboard();
   }, [fetchDashboard]);
 
-  // Real-time updates
   const handleJobUpdated = useCallback(() => {
     fetchDashboard();
   }, [fetchDashboard]);
@@ -59,8 +57,8 @@ export default function Dashboard() {
   useDashboardSocket(handleJobUpdated);
 
   return (
-    <div className="flex-1 min-h-screen bg-linear-to-br from-blue-50 via-blue-100 to-blue-200 p-6 space-y-6">
-      <div className="grid md:grid-cols-4 grid-cols-2 gap-6">
+    <div className="flex-1 min-h-screen min-w-0 bg-linear-to-br from-blue-50 via-blue-100 to-blue-200 p-4 sm:p-6 space-y-6 overflow-x-hidden">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <StatBox title="Active Sites" value={summary.activeSites.toString()} />
         <StatBox
           title="Active Crawls"
@@ -73,32 +71,36 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card className="rounded-2xl border-none shadow-md bg-white/80 backdrop-blur">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <Card className="min-w-0 rounded-2xl border-none shadow-md bg-white/80 backdrop-blur">
           <CardHeader>
-            <CardTitle>Accessibility Score Trend</CardTitle>
+            <CardTitle className="text-sm sm:text-base">
+              Accessibility Score Trend
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-w-0 overflow-hidden">
             <AccessibilityTrendChart data={trend} />
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-none shadow-md bg-white/80 backdrop-blur">
+        <Card className="min-w-0 rounded-2xl border-none shadow-md bg-white/80 backdrop-blur">
           <CardHeader>
-            <CardTitle>Issue Severity Breakdown</CardTitle>
+            <CardTitle className="text-sm sm:text-base">
+              Issue Severity Breakdown
+            </CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 min-w-0 overflow-hidden">
             <IssueBreakdownChart data={issues} />
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-none shadow-lg bg-linear-to-br from-blue-600 to-blue-800 text-white">
+        <Card className="min-w-0 w-full rounded-2xl border-none shadow-lg bg-linear-to-br from-blue-600 to-blue-800 text-white">
           <CardContent className="flex flex-col justify-between h-full p-6">
             <div>
               <h3 className="text-lg font-semibold mb-2">
                 Maintain accessibility compliance
               </h3>
-              <p className="text-base mt-4 opacity-90">
+              <p className="text-sm sm:text-base mt-4 opacity-90">
                 Automated web crawls to identify WCAG violations such as missing
                 alternative text, insufficient color contrast, broken form
                 labels that often go unnoticed during manual checks.
@@ -114,11 +116,11 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <Card className="rounded-2xl border-none shadow-md bg-white/90 backdrop-blur">
+      <Card className="min-w-0 rounded-2xl border-none shadow-md bg-white/90 backdrop-blur">
         <CardHeader>
           <CardTitle>Latest Crawl Jobs</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 text-sm">
+        <CardContent className="space-y-4 text-sm overflow-x-auto">
           {latestJobs.map(job => (
             <JobRow
               key={job.id}
