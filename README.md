@@ -55,6 +55,56 @@ Responsible for creating pdf reports for site issues and sending generated pdf t
 
 ---
 
+## Message Queue & Event Flow
+
+The system uses a queue-based architecture to decouple services and communicate with each other.
+
+### Crawl Flow
+
+1. API Gateway receives crawl request
+2. Crawl Manager creates a job and pushes it to queue
+
+Queue Message(Example):
+
+```
+{
+  "type": "crawl-site",
+  "siteId": "123",
+  "triggerType": "manual"
+}
+```
+
+3. Crawl Worker consumes the job
+4. Worker crawls pages and sends results to Analysis Service
+5. Analysis Service processes accessibility issues
+6. Results are stored in database
+
+---
+
+### Analysis Flow
+
+1. Crawl Worker pushes job to analysis queue
+2. Analysis Queue retrieves the pageVersionId and fetches HTML from minio s3 storage
+   Queue Message(Example):
+
+```
+{
+  "pageVersionId": "12332131",
+}
+```
+
+3. Analysis service runs axe core analysis on retrieved HTML.
+
+---
+
+### Reporting Flow
+
+1. Reporting Service queries aggregated data
+2. Report Generator creates PDF
+3. Email service sends report to user
+
+---
+
 ## Main Features
 
 - Website crawling using a headless browser
