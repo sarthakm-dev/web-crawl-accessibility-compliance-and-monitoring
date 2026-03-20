@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import api from '@/utils/api';
-import { socket } from '@/utils/socket';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +25,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { columns } from '@/config/site-columns';
 
 import { PaginationControls } from '@/components/common/Pagination';
+import { useCrawlJobSocket } from '@/hooks/useCrawlJobSocket';
 
 export default function SiteDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -75,31 +75,7 @@ export default function SiteDetailsPage() {
     fetchData();
   }, [id, fetchJobs]);
 
-  useEffect(() => {
-    if (!id) return;
-
-    socket.connect();
-
-    const handleUpdate = (event: {
-      jobId: string;
-      siteId: string;
-      status: string;
-    }) => {
-      if (event.siteId !== id) return;
-
-      setJobs(prev =>
-        prev.map(job =>
-          job.id === event.jobId ? { ...job, status: event.status } : job
-        )
-      );
-    };
-
-    socket.on('crawl-job-updated', handleUpdate);
-
-    return () => {
-      socket.off('crawl-job-updated', handleUpdate);
-    };
-  }, [id]);
+  useCrawlJobSocket(setJobs, id);
 
   const startCrawl = async () => {
     if (!id) return;

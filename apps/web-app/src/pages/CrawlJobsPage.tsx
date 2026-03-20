@@ -17,7 +17,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 
 import api from '@/utils/api';
-import { socket } from '@/utils/socket';
 
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -30,7 +29,7 @@ import { TableFilters } from '@/components/common/TableFilters';
 
 import { type CrawlJob } from '@packages/shared-types/crawl-job.types';
 import { crawlJobFilterConfig } from '@/config/table-filter-config';
-import type { CrawlJobUpdatedEvent } from '@/types/crawl.types';
+import { useCrawlJobSocket } from '@/hooks/useCrawlJobSocket';
 export default function CrawlJobsPage() {
   const [jobs, setJobs] = useState<CrawlJob[]>([]);
   const [loading, setLoading] = useState(false);
@@ -78,21 +77,7 @@ export default function CrawlJobsPage() {
     fetchJobs();
   }, [fetchJobs]);
 
-  useEffect(() => {
-    const handleJobUpdate = (event: CrawlJobUpdatedEvent) => {
-      setJobs(prev =>
-        prev.map(job =>
-          job.id === event.jobId ? { ...job, status: event.status } : job
-        )
-      );
-    };
-    socket.connect();
-    socket.on('crawl-job-updated', handleJobUpdate);
-
-    return () => {
-      socket.off('crawl-job-updated', handleJobUpdate);
-    };
-  }, []);
+  useCrawlJobSocket(setJobs);
 
   const toggleJobSelection = (id: string) => {
     setSelectedJobs(prev =>
