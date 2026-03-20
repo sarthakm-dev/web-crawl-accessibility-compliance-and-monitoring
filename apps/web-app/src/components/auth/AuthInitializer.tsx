@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@/store/auth-store';
-import authApi from '@/utils/auth-api';
+import api from '@/utils/api';
 
 let initialized = false;
 
@@ -18,7 +18,7 @@ export default function AuthInitializer({
 
     const initAuth = async () => {
       try {
-        const res = await authApi.get('/api/auth/me');
+        const res = await api.get('/api/auth/me');
         if (res.data) {
           setUser(res.data);
         } else {

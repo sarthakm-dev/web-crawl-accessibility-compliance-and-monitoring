@@ -21,13 +21,13 @@ describe('AuthInitializer', () => {
       ),
     }));
 
-    vi.doMock('@/utils/auth-api', () => ({
+    vi.doMock('@/utils/api', () => ({
       default: {
         get: vi.fn(),
       },
     }));
 
-    authApi = (await import('@/utils/auth-api')).default;
+    authApi = (await import('@/utils/api')).default;
     AuthInitializer = (await import('../AuthInitializer')).default;
   });
 
