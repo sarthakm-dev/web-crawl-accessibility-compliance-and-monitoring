@@ -4,7 +4,9 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "dev": "echo \"No dev script for this package\"",
+    "test": "echo \"No tests required for this package\""
   },
   "keywords": [],
   "author": "",
@@ -17,7 +19,7 @@
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "sequelize": "^6.37.7",
+    "sequelize": "^6.37.8",
     "zod": "^4.3.6"
   },
   "devDependencies": {

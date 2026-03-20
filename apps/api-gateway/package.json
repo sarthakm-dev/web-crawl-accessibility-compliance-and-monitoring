@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "ts-node-dev src/server.ts",
     "build": "tsup",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "test": "echo \"No tests required for this package\""
   },
   "keywords": [],
   "author": "",

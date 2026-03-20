@@ -4,7 +4,9 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "dev": "echo \"No dev script for this package\"",
+    "test": "echo \"No tests required for this package\""
   },
   "keywords": [],
   "author": "",
