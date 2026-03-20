@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AuthController } from '../../src/controllers/auth.controller';
-import { AuthService } from '../../src/services/auth.service';
+import { AuthController } from '../src/controllers/auth.controller';
+import { AuthService } from '../src/services/auth.service';
 import { handleError } from '@packages/shared-utils/error-handler';
 
 vi.mock('../../src/services/auth.service');
@@ -135,7 +135,7 @@ describe('AuthController', () => {
     const req: any = { userId: 1 };
     const res = mockResponse();
 
-    vi.spyOn(AuthService, 'logout').mockResolvedValue(undefined);
+    vi.spyOn(AuthService, 'logout').mockResolvedValue(true as any);
 
     await AuthController.logout(req, res);
 

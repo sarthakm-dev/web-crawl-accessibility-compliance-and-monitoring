@@ -6,6 +6,7 @@ import { UserRepository } from '../repositories/user.repository';
 import { TeamRepository } from '../repositories/team.repository';
 import { RoleRepository } from '../repositories/role.repository';
 import { env } from '@packages/shared-config/env';
+import crypto from 'crypto';
 export const AuthService = {
   async signup(name: string, email: string, password: string) {
     const existing = await UserRepository.findByEmail(email);
@@ -146,8 +147,9 @@ export const AuthService = {
     if (!user) {
       throw new Error('User not found');
     }
-    // generate random otp
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate cryptographically secure random OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+
     // Store OTP in redis
     await redis.set(`reset:${email}`, otp, 'EX', Number(env.OTP_EXPIRY) || 600);
 

@@ -3,7 +3,7 @@ import { SiteDailyMetrics } from '@packages/shared-models/site-daily-metrics.mod
 export const SiteDailyMetricsRepository = {
   async create(data: any) {
     // create new record in site daily metrics
-    return SiteDailyMetrics.create(data);
+    return SiteDailyMetrics.upsert(data);
   },
 
   async findBySiteAndDate(siteId: string, date: string) {
