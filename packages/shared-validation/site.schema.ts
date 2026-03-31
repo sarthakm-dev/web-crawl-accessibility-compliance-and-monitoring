@@ -3,6 +3,11 @@ import { z } from 'zod';
 export const createSiteSchema = z.object({
   name: z.string().min(1),
   baseUrl: z.url(),
+  scheduledCrawlTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Invalid time format')
+    .optional()
+    .or(z.literal('')),
 });
 
 export const getSitesQuerySchema = z.object({

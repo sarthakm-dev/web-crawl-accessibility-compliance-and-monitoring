@@ -18,15 +18,21 @@ export function CreateSiteDialog({ onCreated }: CreateSiteDialogProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
+  const [scheduledCrawlTime, setScheduledCrawlTime] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleCreate = async () => {
     setSubmitting(true);
     try {
-      await api.post('/api/sites', { name, baseUrl });
+      await api.post('/api/sites', {
+        name,
+        baseUrl,
+        scheduledCrawlTime: scheduledCrawlTime || undefined,
+      });
       setOpen(false);
       setName('');
       setBaseUrl('');
+      setScheduledCrawlTime('');
       await onCreated();
       toast.success('Site created successfully');
     } catch {
@@ -43,10 +49,10 @@ export function CreateSiteDialog({ onCreated }: CreateSiteDialogProps) {
           + Add Site
         </Button>
       </DialogTrigger>
-      <DialogContent aria-describedby="add-site-desc" className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add New Site</DialogTitle>
-          <DialogDescription id="add-site-desc">
+          <DialogDescription>
             Enter the details for your new site below.
           </DialogDescription>
         </DialogHeader>
@@ -62,6 +68,23 @@ export function CreateSiteDialog({ onCreated }: CreateSiteDialogProps) {
             value={baseUrl}
             onChange={e => setBaseUrl(e.target.value)}
           />
+          <div className="space-y-2">
+            <label
+              className="text-sm font-medium"
+              htmlFor="scheduled-crawl-time"
+            >
+              Daily crawl time
+            </label>
+            <Input
+              id="scheduled-crawl-time"
+              type="time"
+              value={scheduledCrawlTime}
+              onChange={e => setScheduledCrawlTime(e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">
+              Leave empty to keep manual crawls only.
+            </p>
+          </div>
         </div>
 
         <DialogFooter className="mt-4">

@@ -52,6 +52,32 @@ describe('CrawlService', () => {
     expect(result).toEqual(mockJob);
   });
 
+  it('should create scheduled crawl without a requesting user', async () => {
+    const mockSite = {
+      id: 'site-1',
+      base_url: 'https://example.com',
+    };
+
+    const mockJob = {
+      id: 'job-2',
+      site_id: 'site-1',
+      requested_by: null,
+      trigger_type: 'scheduled',
+    };
+
+    (SiteRepository.findActiveSite as any).mockResolvedValue(mockSite);
+    (CrawlJobRepository.create as any).mockResolvedValue(mockJob);
+
+    const result = await CrawlService.triggerCrawl('site-1', null, 'scheduled');
+
+    expect(CrawlJobRepository.create).toHaveBeenCalledWith({
+      site_id: 'site-1',
+      requested_by: null,
+      trigger_type: 'scheduled',
+    });
+    expect(result).toEqual(mockJob);
+  });
+
   it('should throw error if site not found or inactive', async () => {
     (SiteRepository.findActiveSite as any).mockResolvedValue(null);
 

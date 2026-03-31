@@ -26,6 +26,15 @@ import { columns } from '@/config/site-columns';
 
 import { PaginationControls } from '@/components/common/Pagination';
 import { useCrawlJobSocket } from '@/hooks/useCrawlJobSocket';
+import { socket } from '@/utils/socket';
+import type { CrawlJobUpdatedEvent } from '@/types/crawl.types';
+
+type ActiveCrawlStatus = CrawlJobUpdatedEvent['status'] | null;
+
+const isActiveCrawlStatus = (
+  status: ActiveCrawlStatus
+): status is Exclude<ActiveCrawlStatus, 'completed' | 'failed' | null> =>
+  status === 'pending' || status === 'running';
 
 export default function SiteDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +47,9 @@ export default function SiteDetailsPage() {
   const [jobs, setJobs] = useState<CrawlJob[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [startingCrawl, setStartingCrawl] = useState(false);
+  const [activeCrawlStatus, setActiveCrawlStatus] =
+    useState<ActiveCrawlStatus>(null);
 
   const hasPermission = useAuthStore(state => state.hasPermission);
 
@@ -55,16 +67,41 @@ export default function SiteDetailsPage() {
     }
   }, [id, page, limit]);
 
+  const fetchActiveCrawlStatus = useCallback(async () => {
+    if (!id) return null;
+
+    for (const status of ['pending', 'running'] as const) {
+      const res = await api.get('/api/crawl', {
+        params: {
+          siteId: id,
+          status,
+          page: 1,
+          limit: 1,
+        },
+      });
+
+      if ((res.data.data ?? []).length > 0) {
+        setActiveCrawlStatus(status);
+        return status;
+      }
+    }
+
+    setActiveCrawlStatus(null);
+    return null;
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
 
     const fetchData = async () => {
       try {
-        const siteRes = await api.get(`/api/sites/${id}`);
+        const [siteRes] = await Promise.all([
+          api.get(`/api/sites/${id}`),
+          fetchJobs(),
+          fetchActiveCrawlStatus(),
+        ]);
 
         setSite(siteRes.data);
-
-        await fetchJobs();
       } catch {
         toast.error('Failed to load site');
       } finally {
@@ -73,24 +110,50 @@ export default function SiteDetailsPage() {
     };
 
     fetchData();
-  }, [id, fetchJobs]);
+  }, [id, fetchJobs, fetchActiveCrawlStatus]);
 
   useCrawlJobSocket(setJobs, id);
 
-  const startCrawl = async () => {
+  useEffect(() => {
     if (!id) return;
 
+    const handleJobUpdate = (event: CrawlJobUpdatedEvent) => {
+      if (event.siteId !== id) return;
+
+      setActiveCrawlStatus(
+        isActiveCrawlStatus(event.status) ? event.status : null
+      );
+    };
+
+    socket.on('crawl-job-updated', handleJobUpdate);
+
+    return () => {
+      socket.off('crawl-job-updated', handleJobUpdate);
+    };
+  }, [id]);
+
+  const hasActiveCrawl = isActiveCrawlStatus(activeCrawlStatus);
+
+  const startCrawl = async () => {
+    if (!id || hasActiveCrawl || startingCrawl) return;
+
     try {
+      setStartingCrawl(true);
+
       await api.post('/api/crawl', {
         siteId: id,
         triggerType: 'manual',
       });
 
+      setActiveCrawlStatus('pending');
       await fetchJobs();
 
       toast.success('Crawl started');
     } catch {
       toast.error('Failed to start crawl');
+      await fetchActiveCrawlStatus();
+    } finally {
+      setStartingCrawl(false);
     }
   };
 
@@ -132,17 +195,24 @@ export default function SiteDetailsPage() {
             </div>
 
             <div className="flex justify-between items-center">
-              <p className="text-sm text-muted-foreground">
-                Created on {new Date(site.created_at).toLocaleDateString()}
-              </p>
+              <div className="text-sm text-muted-foreground space-y-1">
+                <p>
+                  Created on {new Date(site.created_at).toLocaleDateString()}
+                </p>
+                <p>Daily crawl: {site.scheduled_crawl_time || 'Manual only'}</p>
+              </div>
 
               {hasPermission('crawl:trigger') && (
                 <Button
                   onClick={startCrawl}
-                  disabled={!site.is_active}
+                  disabled={!site.is_active || startingCrawl || hasActiveCrawl}
                   className="bg-blue-700 hover:bg-blue-800"
                 >
-                  Start Crawl
+                  {startingCrawl
+                    ? 'Starting...'
+                    : hasActiveCrawl
+                      ? 'Crawl In Progress'
+                      : 'Start Crawl'}
                 </Button>
               )}
             </div>

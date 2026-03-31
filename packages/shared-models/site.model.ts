@@ -7,6 +7,7 @@ export class Site extends Model {
   declare name: string;
   declare base_url: string;
   declare is_active: boolean;
+  declare scheduled_crawl_time: string | null;
   declare created_at: Date;
 }
 
@@ -32,6 +33,10 @@ Site.init(
     is_active: {
       type: DataTypes.BOOLEAN,
       defaultValue: true,
+    },
+    scheduled_crawl_time: {
+      type: DataTypes.STRING(5),
+      allowNull: true,
     },
   },
   {

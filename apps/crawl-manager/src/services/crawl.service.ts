@@ -3,7 +3,11 @@ import { SiteRepository } from '../repositories/site.repository';
 import { publishCrawlJob } from '../publishers/crawl.publishers';
 
 export const CrawlService = {
-  async triggerCrawl(siteId: string, requestedBy: string, triggerType: string) {
+  async triggerCrawl(
+    siteId: string,
+    requestedBy: string | null,
+    triggerType: string
+  ) {
     const site = await SiteRepository.findActiveSite(siteId);
     if (!site) {
       throw new Error('Site not found or inactive');

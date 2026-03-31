@@ -3,5 +3,6 @@ export interface Site {
   name: string;
   base_url: string;
   is_active: boolean;
+  scheduled_crawl_time: string | null;
   created_at: string;
 }

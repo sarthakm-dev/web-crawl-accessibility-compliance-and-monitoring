@@ -1,8 +1,16 @@
 import { SiteRepository } from '../repositories/site.repository';
 
 export const SiteService = {
-  async createSite(teamId: string, data: { name: string; baseUrl: string }) {
-    return SiteRepository.create(teamId, data.name, data.baseUrl);
+  async createSite(
+    teamId: string,
+    data: { name: string; baseUrl: string; scheduledCrawlTime?: string }
+  ) {
+    return SiteRepository.create(
+      teamId,
+      data.name,
+      data.baseUrl,
+      data.scheduledCrawlTime
+    );
   },
 
   async getAllSites(params: {

@@ -12,13 +12,19 @@ export const SiteRepository = {
       },
     });
   },
-  async create(teamId: string, name: string, baseUrl: string) {
+  async create(
+    teamId: string,
+    name: string,
+    baseUrl: string,
+    scheduledCrawlTime?: string
+  ) {
     // add new record to table
     return Site.create({
       team_id: teamId,
       name,
       base_url: baseUrl,
       is_active: true,
+      scheduled_crawl_time: scheduledCrawlTime || null,
     });
   },
 
@@ -60,6 +66,15 @@ export const SiteRepository = {
     // find a site by its id
     return Site.findOne({
       where: { id, team_id: teamId },
+    });
+  },
+
+  async findScheduledByTime(scheduledTime: string) {
+    return Site.findAll({
+      where: {
+        is_active: true,
+        scheduled_crawl_time: scheduledTime,
+      },
     });
   },
 

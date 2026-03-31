@@ -23,12 +23,14 @@ describe('SiteService', () => {
     const result = await SiteService.createSite('team1', {
       name: 'Test Site',
       baseUrl: 'https://example.com',
+      scheduledCrawlTime: '09:30',
     });
 
     expect(mockRepo.create).toHaveBeenCalledWith(
       'team1',
       'Test Site',
-      'https://example.com'
+      'https://example.com',
+      '09:30'
     );
 
     expect(result).toEqual({ id: 'site1' });

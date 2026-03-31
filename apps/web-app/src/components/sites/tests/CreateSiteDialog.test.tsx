@@ -56,6 +56,9 @@ describe('CreateSiteDialog', () => {
     fireEvent.change(screen.getByPlaceholderText('https://example.com'), {
       target: { value: 'https://mysite.com' },
     });
+    fireEvent.change(screen.getByLabelText('Daily crawl time'), {
+      target: { value: '09:45' },
+    });
 
     fireEvent.click(screen.getByText('Create'));
 
@@ -63,6 +66,7 @@ describe('CreateSiteDialog', () => {
       expect(api.post).toHaveBeenCalledWith('/api/sites', {
         name: 'My Site',
         baseUrl: 'https://mysite.com',
+        scheduledCrawlTime: '09:45',
       });
       expect(onCreated).toHaveBeenCalled();
       expect(toast.success).toHaveBeenCalledWith('Site created successfully');

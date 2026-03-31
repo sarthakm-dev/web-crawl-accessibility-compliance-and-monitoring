@@ -54,12 +54,16 @@ describe('SiteController', () => {
   it('should create site successfully', async () => {
     const req: any = {
       teamId: 'team1',
-      body: { name: 'test' },
+      body: { name: 'test', baseUrl: 'https://example.com' },
     };
 
     const res = mockRes();
 
-    (createSiteSchema.parse as any).mockReturnValue({ name: 'test' });
+    (createSiteSchema.parse as any).mockReturnValue({
+      name: 'test',
+      baseUrl: 'https://example.com',
+      scheduledCrawlTime: '08:15',
+    });
 
     mockService.createSite.mockResolvedValue({ id: 'site1' });
 
@@ -67,6 +71,8 @@ describe('SiteController', () => {
 
     expect(mockService.createSite).toHaveBeenCalledWith('team1', {
       name: 'test',
+      baseUrl: 'https://example.com',
+      scheduledCrawlTime: '08:15',
     });
 
     expect(res.status).toHaveBeenCalledWith(201);

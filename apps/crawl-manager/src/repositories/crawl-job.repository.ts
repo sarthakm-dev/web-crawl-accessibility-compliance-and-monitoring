@@ -8,7 +8,7 @@ import { Op } from 'sequelize';
 export const CrawlJobRepository = {
   async create(data: {
     site_id: string;
-    requested_by: string;
+    requested_by: string | null;
     trigger_type: string;
   }) {
     // addnew record in crawl job repository
@@ -121,5 +121,33 @@ export const CrawlJobRepository = {
         id: ids,
       },
     });
+  },
+
+  async hasActiveJob(siteId: string) {
+    const count = await CrawlJob.count({
+      where: {
+        site_id: siteId,
+        status: {
+          [Op.in]: ['pending', 'running'],
+        },
+      },
+    });
+
+    return count > 0;
+  },
+
+  async hasScheduledJobInWindow(siteId: string, start: Date, end: Date) {
+    const count = await CrawlJob.count({
+      where: {
+        site_id: siteId,
+        trigger_type: 'scheduled',
+        created_at: {
+          [Op.gte]: start,
+          [Op.lt]: end,
+        },
+      },
+    });
+
+    return count > 0;
   },
 };

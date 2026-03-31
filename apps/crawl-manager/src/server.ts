@@ -11,6 +11,7 @@ import { initSocket } from './socket/server';
 import { startCrawlEventsConsumer } from './consumers/crawl-events.consumer';
 import { startAnalysisEventsConsumer } from './consumers/analysis.consumer';
 import { logger } from '@packages/shared-config/logger';
+import { ScheduledCrawlService } from './services/scheduled-crawl.service';
 
 async function crawlManager() {
   initModels();
@@ -20,6 +21,7 @@ async function crawlManager() {
   initSocket(server);
   await startCrawlEventsConsumer();
   await startAnalysisEventsConsumer();
+  ScheduledCrawlService.start();
   app.use(express.json());
   app.use(cookieParser());
   app.use(jsonValidation());
